@@ -1,0 +1,1521 @@
+body {
+    background-color: #f4f9fc;
+    overflow-x: hidden
+}
+
+.main_menu {
+    position: absolute;
+    width: 100%;
+    z-index: 9999
+}
+
+
+.script .custome_btn {
+    width: 230px;
+    margin-top: 0;
+}
+
+@media screen and (min-width:0) {
+    .head {
+        width: 100%;
+        height: 100vh;
+        background-color: aliceblue;
+        position: relative;
+        z-index: 0;
+    }
+
+    .hexagon_1, .hexagon_2, .hexagon_3, .hexagon_4, .hexagon_6, .hexagon_7, .head_right {
+        display: none
+    }
+
+    .hexagon_5 {
+        position: relative;
+        z-index: 1;
+        top: unset;
+        left: unset;
+        width: 100%;
+        background: url(../image/home/header-hexagon.svg) no-repeat;
+        background-size: cover;
+        background-position: right 18vh;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .hexagon_5 .script {
+            position: absolute;
+            left: 0;
+            top: 34vh;
+            width: 100%;
+            color: #fff;
+        }
+
+            .hexagon_5 .script p {
+                color: #fff;
+            }
+
+            .hexagon_5 .script span {
+                display: block;
+            }
+
+        .hexagon_5 .script {
+            padding: 0 20px;
+        }
+
+        .hexagon_5 .font_500 {
+            font-size: 30px;
+            font-weight: 500;
+        }
+
+        .hexagon_5 .font_900 {
+            font-size: 47px;
+            font-weight: 900;
+        }
+
+        .hexagon_5 .font_600 {
+            font-size: 30px;
+            font-weight: 600;
+        }
+
+        .hexagon_5 hr {
+            margin: 1rem 0;
+            color: inherit;
+            border: 0;
+            border-top: 4px solid #fff;
+            opacity: 1;
+            width: 40%;
+            text-align: left;
+        }
+}
+
+@media screen and (min-width:450px) {
+    .hexagon_5 .script {
+        padding: 0 25px;
+    }
+
+    .hexagon_5 .font_500 {
+        font-size: 50px
+    }
+
+    .hexagon_5 .font_900 {
+        font-size: 64px;
+    }
+
+    .hexagon_5 .font_600 {
+        font-size: 42px
+    }
+}
+
+@media screen and (min-width:576px) {
+    .hexagon_5 .script {
+        top: 37vh;
+    }
+}
+
+@media screen and (min-width:642px) {
+    .hexagon_5 .script {
+        top: 40vh;
+    }
+}
+
+@media screen and (min-width:768px) {
+    .hexagon_5 .script {
+        text-align: center;
+    }
+
+    .hexagon_5 p {
+        text-align: center;
+    }
+
+    .hexagon_5 .font_500 {
+        font-size: 54px
+    }
+
+    .hexagon_5 .font_900 {
+        font-size: 69px;
+    }
+
+    .hexagon_5 .font_600 {
+        font-size: 54px
+    }
+
+    .hexagon_5 hr {
+        margin-right: auto;
+        margin-left: auto
+    }
+}
+
+@media screen and (min-width:993px) {
+}
+
+@media screen and (min-width:1024px) {
+    .hexagon_5 .script {
+        top: 44.5vh;
+    }
+}
+
+@media screen and (min-width:1200px) {
+    .hexagon_1, .hexagon_2, .hexagon_7, .head_right {
+        display: block
+    }
+
+    .head {
+        margin-bottom: 80px;
+    }
+
+    .hexagon_5 {
+        position: absolute;
+        z-index: 1;
+        top: 15%;
+        left: -160px;
+        width: 91%;
+        background: url(../image/home/header-hexagon.svg) no-repeat;
+        height: 115vh;
+    }
+
+        .hexagon_5 .script {
+            padding-left: 30%;
+            left: 0;
+            top: 70px;
+            width: 100%;
+            height: 100%;
+            padding-right: 100px;
+            color: #fff;
+            padding-top: 15%;
+            text-align: left;
+        }
+
+        .hexagon_5 .font_300 {
+            font-weight: 400;
+            font-size: 1.5em
+        }
+
+        .hexagon_5 .font_500 {
+            font-weight: 500;
+            font-size: 1.6em
+        }
+
+        .hexagon_5 .font_900 {
+            font-weight: 900;
+            font-size: 2.2em
+        }
+
+        .hexagon_5 .font_600 {
+            font-weight: 600;
+            font-size: 1.6em
+        }
+
+        .hexagon_5 span {
+            display: block
+        }
+
+        .hexagon_5 hr {
+            margin-right: unset;
+            margin-left: unset;
+        }
+
+        .hexagon_5 p {
+            color: #fff;
+            font-size: 18px;
+            text-align: left;
+        }
+
+
+    .hexagon_2 {
+        display: block;
+        background: var(--hexagon-1);
+        width: 471px;
+        transform: rotate(-7deg);
+        right: 25px;
+        top: 125px;
+    }
+
+    .head_right {
+        position: relative;
+        width: 589px;
+        height: 502px;
+        overflow: hidden;
+        float: right
+    }
+
+    .hexagon_1 {
+        position: absolute;
+        right: 0;
+        top: -145px;
+        display: inline-block;
+        width: 100%;
+        height: 610px;
+        background: var(--hexagon-1);
+        clip-path: polygon(0% 20%,0% 80%,50% 100%,100% 80%,100% 20%,50% 0%)
+    }
+
+    .hexagon_2 {
+        position: absolute;
+        top: -123px;
+        right: -60px;
+        display: inline-block;
+        width: 450px;
+        height: 400px;
+        background: var(--hexagon-2);
+        transform: rotate(45deg);
+        -webkit-clip-path: polygon(45% 1.33975%,46.5798% .60307%,48.26352% .15192%,50% 0%,51.73648% .15192%,53.4202% .60307%,55% 1.33975%,89.64102% 21.33975%,91.06889% 22.33956%,92.30146% 23.57212%,93.30127% 25%,94.03794% 26.5798%,94.48909% 28.26352%,94.64102% 30%,94.64102% 70%,94.48909% 71.73648%,94.03794% 73.4202%,93.30127% 75%,92.30146% 76.42788%,91.06889% 77.66044%,89.64102% 78.66025%,55% 98.66025%,53.4202% 99.39693%,51.73648% 99.84808%,50% 100%,48.26352% 99.84808%,46.5798% 99.39693%,45% 98.66025%,10.35898% 78.66025%,8.93111% 77.66044%,7.69854% 76.42788%,6.69873% 75%,5.96206% 73.4202%,5.51091% 71.73648%,5.35898% 70%,5.35898% 30%,5.51091% 28.26352%,5.96206% 26.5798%,6.69873% 25%,7.69854% 23.57212%,8.93111% 22.33956%,10.35898% 21.33975%);
+        clip-path: polygon(45% 1.33975%,46.5798% .60307%,48.26352% .15192%,50% 0%,51.73648% .15192%,53.4202% .60307%,55% 1.33975%,89.64102% 21.33975%,91.06889% 22.33956%,92.30146% 23.57212%,93.30127% 25%,94.03794% 26.5798%,94.48909% 28.26352%,94.64102% 30%,94.64102% 70%,94.48909% 71.73648%,94.03794% 73.4202%,93.30127% 75%,92.30146% 76.42788%,91.06889% 77.66044%,89.64102% 78.66025%,55% 98.66025%,53.4202% 99.39693%,51.73648% 99.84808%,50% 100%,48.26352% 99.84808%,46.5798% 99.39693%,45% 98.66025%,10.35898% 78.66025%,8.93111% 77.66044%,7.69854% 76.42788%,6.69873% 75%,5.96206% 73.4202%,5.51091% 71.73648%,5.35898% 70%,5.35898% 30%,5.51091% 28.26352%,5.96206% 26.5798%,6.69873% 25%,7.69854% 23.57212%,8.93111% 22.33956%,10.35898% 21.33975%)
+    }
+
+    .hexagon_7 {
+        position: absolute;
+        top: 22%;
+        left: -9%;
+        display: inline-block;
+        width: 60%;
+        height: 53%;
+        background: #dcdcdc;
+        -webkit-clip-path: polygon(45% 1.33975%, 46.5798% .60307%, 48.26352% .15192%, 50% 0%, 51.73648% .15192%, 53.4202% .60307%, 55% 1.33975%, 89.64102% 21.33975%, 91.06889% 22.33956%, 92.30146% 23.57212%, 93.30127% 25%, 94.03794% 26.5798%, 94.48909% 28.26352%, 94.64102% 30%, 94.64102% 70%, 94.48909% 71.73648%, 94.03794% 73.4202%, 93.30127% 75%, 92.30146% 76.42788%, 91.06889% 77.66044%, 89.64102% 78.66025%, 55% 98.66025%, 53.4202% 99.39693%, 51.73648% 99.84808%, 50% 100%, 48.26352% 99.84808%, 46.5798% 99.39693%, 45% 98.66025%, 10.35898% 78.66025%, 8.93111% 77.66044%, 7.69854% 76.42788%, 6.69873% 75%, 5.96206% 73.4202%, 5.51091% 71.73648%, 5.35898% 70%, 5.35898% 30%, 5.51091% 28.26352%, 5.96206% 26.5798%, 6.69873% 25%, 7.69854% 23.57212%, 8.93111% 22.33956%, 10.35898% 21.33975%);
+        clip-path: polygon(45% 1.33975%, 46.5798% .60307%, 48.26352% .15192%, 50% 0%, 51.73648% .15192%, 53.4202% .60307%, 55% 1.33975%, 89.64102% 21.33975%, 91.06889% 22.33956%, 92.30146% 23.57212%, 93.30127% 25%, 94.03794% 26.5798%, 94.48909% 28.26352%, 94.64102% 30%, 94.64102% 70%, 94.48909% 71.73648%, 94.03794% 73.4202%, 93.30127% 75%, 92.30146% 76.42788%, 91.06889% 77.66044%, 89.64102% 78.66025%, 55% 98.66025%, 53.4202% 99.39693%, 51.73648% 99.84808%, 50% 100%, 48.26352% 99.84808%, 46.5798% 99.39693%, 45% 98.66025%, 10.35898% 78.66025%, 8.93111% 77.66044%, 7.69854% 76.42788%, 6.69873% 75%, 5.96206% 73.4202%, 5.51091% 71.73648%, 5.35898% 70%, 5.35898% 30%, 5.51091% 28.26352%, 5.96206% 26.5798%, 6.69873% 25%, 7.69854% 23.57212%, 8.93111% 22.33956%, 10.35898% 21.33975%);
+        z-index: 0;
+    }
+}
+
+@media screen and (min-width:1400px) {
+    .hexagon_5 {
+        width: 77%;
+    }
+
+        .hexagon_5 .script {
+            padding-left: 35%;
+            left: 0;
+            top: 30px;
+            width: 100%;
+            height: 100%;
+            padding-right: 100px;
+            color: #fff;
+            padding-top: 15%;
+        }
+
+        .hexagon_5 p {
+            color: #fff;
+            font-size: 18px;
+            text-align: left;
+        }
+
+
+    .hexagon_2 {
+        display: block;
+        background: var(--hexagon-1);
+        width: 471px;
+        transform: rotate(-7deg);
+        right: 25px;
+        top: 125px;
+    }
+
+    .head_right {
+        position: relative;
+        width: 589px;
+        height: 502px;
+        overflow: hidden;
+        float: right
+    }
+
+    .hexagon_1 {
+        position: absolute;
+        right: 0;
+        top: -145px;
+        display: inline-block;
+        width: 100%;
+        height: 610px;
+        background: var(--hexagon-1);
+        clip-path: polygon(0% 20%,0% 80%,50% 100%,100% 80%,100% 20%,50% 0%)
+    }
+
+    .hexagon_2 {
+        position: absolute;
+        top: -123px;
+        right: -60px;
+        display: inline-block;
+        width: 450px;
+        height: 400px;
+        background: var(--hexagon-2);
+        transform: rotate(45deg);
+        -webkit-clip-path: polygon(45% 1.33975%,46.5798% .60307%,48.26352% .15192%,50% 0%,51.73648% .15192%,53.4202% .60307%,55% 1.33975%,89.64102% 21.33975%,91.06889% 22.33956%,92.30146% 23.57212%,93.30127% 25%,94.03794% 26.5798%,94.48909% 28.26352%,94.64102% 30%,94.64102% 70%,94.48909% 71.73648%,94.03794% 73.4202%,93.30127% 75%,92.30146% 76.42788%,91.06889% 77.66044%,89.64102% 78.66025%,55% 98.66025%,53.4202% 99.39693%,51.73648% 99.84808%,50% 100%,48.26352% 99.84808%,46.5798% 99.39693%,45% 98.66025%,10.35898% 78.66025%,8.93111% 77.66044%,7.69854% 76.42788%,6.69873% 75%,5.96206% 73.4202%,5.51091% 71.73648%,5.35898% 70%,5.35898% 30%,5.51091% 28.26352%,5.96206% 26.5798%,6.69873% 25%,7.69854% 23.57212%,8.93111% 22.33956%,10.35898% 21.33975%);
+        clip-path: polygon(45% 1.33975%,46.5798% .60307%,48.26352% .15192%,50% 0%,51.73648% .15192%,53.4202% .60307%,55% 1.33975%,89.64102% 21.33975%,91.06889% 22.33956%,92.30146% 23.57212%,93.30127% 25%,94.03794% 26.5798%,94.48909% 28.26352%,94.64102% 30%,94.64102% 70%,94.48909% 71.73648%,94.03794% 73.4202%,93.30127% 75%,92.30146% 76.42788%,91.06889% 77.66044%,89.64102% 78.66025%,55% 98.66025%,53.4202% 99.39693%,51.73648% 99.84808%,50% 100%,48.26352% 99.84808%,46.5798% 99.39693%,45% 98.66025%,10.35898% 78.66025%,8.93111% 77.66044%,7.69854% 76.42788%,6.69873% 75%,5.96206% 73.4202%,5.51091% 71.73648%,5.35898% 70%,5.35898% 30%,5.51091% 28.26352%,5.96206% 26.5798%,6.69873% 25%,7.69854% 23.57212%,8.93111% 22.33956%,10.35898% 21.33975%)
+    }
+
+    .hexagon_3 {
+        position: absolute;
+        right: 21.5%;
+        top: 10px;
+        display: inline-block;
+        width: 600px;
+        height: 100%;
+        background: var(--hexagon-1);
+        clip-path: polygon(0% 20%,0% 80%,50% 100%,100% 80%,100% 20%,50% 0%);
+        transform: rotate(65deg);
+        z-index: 1;
+        overflow: hidden
+    }
+
+        .hexagon_3:before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -60%;
+            left: -43%;
+            z-index: -1;
+            transform: rotate(-66deg);
+            background-image: url(../image/home/header.jpg);
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: 0
+        }
+
+    .hexagon_4 {
+        -webkit-clip-path: polygon(45% 1.33975%,46.5798% .60307%,48.26352% .15192%,50% 0%,51.73648% .15192%,53.4202% .60307%,55% 1.33975%,89.64102% 21.33975%,91.06889% 22.33956%,92.30146% 23.57212%,93.30127% 25%,94.03794% 26.5798%,94.48909% 28.26352%,94.64102% 30%,94.64102% 70%,94.48909% 71.73648%,94.03794% 73.4202%,93.30127% 75%,92.30146% 76.42788%,91.06889% 77.66044%,89.64102% 78.66025%,55% 98.66025%,53.4202% 99.39693%,51.73648% 99.84808%,50% 100%,48.26352% 99.84808%,46.5798% 99.39693%,45% 98.66025%,10.35898% 78.66025%,8.93111% 77.66044%,7.69854% 76.42788%,6.69873% 75%,5.96206% 73.4202%,5.51091% 71.73648%,5.35898% 70%,5.35898% 30%,5.51091% 28.26352%,5.96206% 26.5798%,6.69873% 25%,7.69854% 23.57212%,8.93111% 22.33956%,10.35898% 21.33975%);
+        clip-path: polygon(45% 1.33975%,46.5798% .60307%,48.26352% .15192%,50% 0%,51.73648% .15192%,53.4202% .60307%,55% 1.33975%,89.64102% 21.33975%,91.06889% 22.33956%,92.30146% 23.57212%,93.30127% 25%,94.03794% 26.5798%,94.48909% 28.26352%,94.64102% 30%,94.64102% 70%,94.48909% 71.73648%,94.03794% 73.4202%,93.30127% 75%,92.30146% 76.42788%,91.06889% 77.66044%,89.64102% 78.66025%,55% 98.66025%,53.4202% 99.39693%,51.73648% 99.84808%,50% 100%,48.26352% 99.84808%,46.5798% 99.39693%,45% 98.66025%,10.35898% 78.66025%,8.93111% 77.66044%,7.69854% 76.42788%,6.69873% 75%,5.96206% 73.4202%,5.51091% 71.73648%,5.35898% 70%,5.35898% 30%,5.51091% 28.26352%,5.96206% 26.5798%,6.69873% 25%,7.69854% 23.57212%,8.93111% 22.33956%,10.35898% 21.33975%);
+        background: linear-gradient(180deg,transparent 50%,rgb(2 159 238 / .5) 50%);
+        position: absolute;
+        top: 6%;
+        left: 10%;
+        width: 55%;
+        height: 100vh;
+        transform: rotate(-17deg);
+    }
+
+
+
+
+    .hexagon_6 {
+        position: absolute;
+        top: 17%;
+        left: 4%;
+        width: 30%;
+        height: 118%;
+        clip-path: polygon(0% 20%,0% 80%,50% 100%,100% 80%,100% 20%,50% 0%);
+        transform: rotate(70deg);
+        background: linear-gradient(90deg,var(--hexagon-2) 50%,transparent);
+        z-index: 0
+    }
+
+    .hexagon_7 {
+        width: 25%;
+        height: 45%;
+    }
+}
+
+@media screen and (min-width:1620px) {
+    .hexagon_5 {
+        width: 63%;
+    }
+
+        .hexagon_5 .script {
+            padding-left: 37%;
+        }
+}
+
+.header_top {
+    width: 80%;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+}
+
+.brand_container span {
+    color: var(--primary-text-color);
+}
+
+.header_top .menu a {
+    color: var(--menu-link)
+}
+
+@media (max-width:1200px) {
+    .header_top .menu a {
+        color: #fff;
+    }
+
+        .header_top .menu a::after.active, .header_top .menu a:hover::after {
+            color: var(--orange);
+            opacity: 1;
+        }
+
+    .menu .menu-btn svg {
+        fill: var(--menu-link)
+    }
+
+    .fixed .menu .menu-btn svg {
+        fill: #fff
+    }
+}
+
+.about {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    height: auto;
+    min-height: 715px;
+    overflow: hidden;
+    background: #f4f9fc
+}
+
+    .about .row {
+        height: 100%;
+    }
+
+    .about h2 {
+        margin-bottom: 30px;
+        font-size: 3rem;
+        font-weight: 900;
+        color: var(--primary-text-color)
+    }
+
+    .about h5 {
+        margin-bottom: 15px;
+        font-size: 1.15rem;
+        line-height: 1.5;
+        color: var(--bs-gray-700)
+    }
+
+    .about p {
+        color: var(--bs-gray-600)
+    }
+
+    .about .back_hexagon {
+        width: 50em;
+        height: 666px;
+        margin-top: 25px;
+        background: url(../image/home/hexagon-side.svg);
+        position: absolute;
+        right: -150px;
+        background-repeat: no-repeat;
+        background-size: cover
+    }
+
+    .about .white_hexagon {
+        width: 40em;
+        height: 666px;
+        margin-top: 25px;
+        position: absolute;
+        right: 15px;
+        top: 0;
+        background: #f4f9fc
+    }
+
+    .about .image_hexagon {
+        position: absolute;
+        right: 50px;
+        top: 50px;
+        width: 40em;
+        height: 620px;
+        background: url(../image/home/welcome.jpg) left;
+        background-repeat: no-repeat;
+        background-size: cover;
+        z-index: 0
+    }
+
+        .about .image_hexagon:after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -6px;
+            width: 100%;
+            height: 110%;
+            background: url(../image/home/hexagon-side.svg);
+            background-repeat: no-repeat;
+            background-size: cover;
+            z-index: 1;
+            opacity: .4
+        }
+
+    .about .content {
+        width: 100%;
+        height: 100%;
+        padding: 0 10px;
+    }
+
+        .about .content .col-md-10 {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            align-content: center;
+        }
+
+    .about ul li {
+        color: var(--bs-gray-600);
+    }
+
+@media screen and (max-width:1400px) {
+    .about_pic {
+        display: none
+    }
+
+    .about {
+        min-height: unset;
+        margin-top: 180px
+    }
+}
+
+@media screen and (max-width:1200px) {
+    .about_pic {
+        display: none
+    }
+
+    .about {
+        margin-top: 80px
+    }
+}
+
+@media screen and (max-width:768px) {
+    .about {
+        flex-flow: column-reverse;
+    }
+
+        .about h2 {
+            font-size: 2.5rem;
+        }
+
+        .about .back_hexagon {
+            height: 333px;
+            right: -55px
+        }
+
+        .about .white_hexagon {
+            width: 100%;
+            height: 97%;
+            margin-top: 16px;
+            right: 12px;
+            top: 0
+        }
+
+        .about .image_hexagon {
+            right: 38px;
+            top: 43px;
+            width: 85%;
+            height: 82%
+        }
+}
+
+.service {
+    width: 100%;
+    background: #f4f9fc;
+}
+
+.service_container {
+    align-items: center;
+    height: 100%
+}
+
+.service .service_bg {
+    background: url(../image/service/service-bg-gradient.svg) no-repeat;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    background-position: right;
+    height: 915px
+}
+
+    .service .service_bg .col-lg-4 {
+        height: auto
+    }
+
+.service .service_box {
+    text-align: center;
+    padding: 18px 20px;
+    background: #fff;
+    border-radius: 10px;
+    background: url(../image/service/service-box-bg.svg) no-repeat;
+    background-size: cover;
+    box-shadow: 0 11px 11px -10px rgb(181 181 181);
+    margin-bottom: 35px;
+    min-height: 194px;
+    max-height: 194px;
+    transition: 0.3s
+}
+
+    .service .service_box:hover {
+        transform: translateY(-10px)
+    }
+
+    .service .service_box .service_box_content {
+        width: 100%;
+        margin: auto
+    }
+
+    .service .service_box h3 {
+        font-weight: 700;
+        font-size: 19px;
+        color: var(--primary-text-color)
+    }
+
+    .service .service_box h4 {
+        font-weight: 400;
+        margin-top: -5px;
+        font-size: 17px;
+        color: var(--bs-gray-700)
+    }
+
+    .service .service_box p {
+        font-size: 15px;
+        color: var(--bs-gray-600)
+    }
+
+.service .service_box_icon {
+    margin-bottom: 20px;
+    position: relative;
+    height: 10px;
+}
+
+    .service .service_box_icon .hexagon {
+        width: 5em;
+        height: 5em;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        background-color: rgba(204, 119, 34, 0.1);
+        top: -30px;
+        left: -5px
+    }
+
+    .service .service_box_icon img {
+        width: 54%;
+        height: auto
+    }
+
+.service .service_last .service_box_icon img {
+    width: 40%;
+    height: auto
+}
+
+.service .service_content {
+    padding: 0 15px
+}
+
+    .service .service_content h3 {
+        font-weight: 900;
+        text-transform: capitalize;
+        font-size: 2.5rem;
+        color: var(--primary-text-color);
+        margin-bottom: 25px;
+    }
+
+.service .service_row_first {
+    justify-content: center;
+    margin-top: 135px
+}
+
+.service .service_row_second {
+    justify-content: center
+}
+
+@media screen and (max-width:1800px) {
+    .service .service_box {
+        max-height: 265px;
+    }
+}
+
+@media screen and (max-width:1400px) {
+    .service {
+        margin-top: 80px;
+    }
+
+    .service_container {
+        flex-flow: column-reverse;
+        height: unset !important
+    }
+
+    .service .service_box {
+        max-height: 265px;
+    }
+
+    .service .service_row_first {
+        margin-top: 222px
+    }
+
+    .service_content {
+        margin-bottom: 50px
+    }
+
+    .service .service_row_second {
+        margin-bottom: 80px
+    }
+}
+
+@media screen and (max-width:1024px) {
+    .service .service_bg {
+        background-color: #f4f9fc;
+        background: linear-gradient(to right,#f4f9fc,#b5b5b5);
+        height: auto
+    }
+
+    .service .service_content p {
+        margin-bottom: 80px
+    }
+
+    .service .service_box {
+        width: 100%;
+    }
+
+        .service .service_box .service_box_content {
+            margin-top: 40px
+        }
+
+        .service .service_box p {
+            margin-bottom: 0
+        }
+
+    .service .service_row_first {
+        margin-top: 100px
+    }
+}
+
+@media screen and (max-width:576px) {
+    .service .service_box {
+        width: 290px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+.project {
+    width: 100%;
+    padding-top: 80px;
+    padding-bottom: 80px;
+    color: #fff;
+    background: url(../image/home/counter-bg.svg) no-repeat;
+    height: auto;
+    background-size: cover;
+    margin-top: 0
+}
+
+    .project .project_title {
+        margin-bottom: 50px;
+        padding: 0 15px
+    }
+
+        .project .project_title h3 {
+            font-weight: 900;
+            text-transform: capitalize;
+            font-size: 2.5rem;
+            margin-bottom: 25px;
+            color: #fff;
+        }
+
+        .project .project_title p {
+            color: var(--bs-gray-400)
+        }
+
+.project_container {
+    width: 100%;
+    margin-bottom: 250px;
+    margin-top: 200px
+}
+
+.project_item {
+    width: 95%;
+    height: 600px;
+    display: flex;
+    flex-wrap: wrap;
+    border-radius: 25px 25px 0 0;
+    margin: auto;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+    .project_item .project_img {
+        height: 300px;
+        width: 100%;
+    }
+
+        .project_item .project_img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            border-radius: 25px 25px 0 0;
+        }
+
+.project_desc {
+    width: 100%;
+    height: 455px;
+    background: #fff0;
+    text-align: center;
+    position: absolute;
+    top: 135px;
+}
+
+    .project_desc .project_hexagon {
+        height: 100%;
+        width: 100%;
+        background: url(../image/project/project-box-bg.svg) no-repeat;
+        background-position: bottom;
+        position: relative;
+        top: 2px;
+        padding: 0 30px;
+        color: #fff;
+        padding-top: 55px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+        transition: 0.3s;
+        background-size: cover;
+    }
+
+        .project_desc .project_hexagon:hover, .project_desc .project_hexagon:focus {
+            height: 100%;
+            width: 100%;
+            background: url(../image/project/project-box-bg-hover.svg) no-repeat;
+            background-position: bottom;
+            position: relative;
+            top: 2px;
+            padding: 0 30px;
+            color: #fff;
+            padding-top: 55px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            transition: 0.3s;
+            background-size: cover;
+        }
+
+        .project_desc .project_hexagon h2 {
+            font-weight: 600;
+            margin-bottom: 15px;
+            width: 100%
+        }
+
+        .project_desc .project_hexagon h5 {
+            margin-bottom: 15px;
+            color: var(--bs-gray-100)
+        }
+
+        .project_desc .project_hexagon p {
+            font-weight: 300;
+            color: var(--bs-gray-400)
+        }
+
+@media screen and (max-width:1400px) {
+    .project_desc .project_hexagon, .project_desc .project_hexagon:hover {
+        background-size: cover;
+        padding-top: 20px
+    }
+}
+
+@media screen and (max-width:1200px) {
+    .project {
+        padding-top: 90px
+    }
+}
+
+@media screen and (max-width:768px) {
+    .project .project_title {
+        padding: 0 15px
+    }
+
+    .owl-carousel {
+        width: 95%;
+        margin: auto
+    }
+
+    .project_item {
+        width: 100%
+    }
+}
+
+@media (min-width:500px) and (max-width:600px) {
+    .project_desc {
+        height: 556px
+    }
+
+    .project_item {
+        height: 700px
+    }
+}
+
+.team {
+    width: 100%;
+    overflow: hidden;
+    background: #f4f9fc;
+    padding-bottom: 80px
+}
+
+    .team .team_title {
+        font-weight: 700;
+        width: 100%;
+        color: var(--primary-text-color)
+    }
+
+        .team .team_title h2 {
+            font-weight: 900;
+            color: var(--primary-text-color);
+            font-size: 2.5rem;
+            margin-bottom: 25px;
+        }
+
+        .team .team_title span {
+            font-weight: 400;
+            color: #000
+        }
+
+    .team .team_desc p {
+        font-size: 16px;
+        color: var(--bs-gray-600)
+    }
+
+        .team .team_desc p:first-child {
+            color: var(--bs-gray-700);
+        }
+
+    .team .team_desc h6 {
+        color: var(--bs-gray-700);
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .team .team_desc .custome_btn {
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .team .team_content {
+        background: url(../image/team/team-bg-gradient.svg) no-repeat;
+        background-size: cover;
+        height: 750px;
+        display: flex;
+        justify-content: flex-end;
+        background-position: left bottom
+    }
+
+        .team .team_content .content {
+            width: 80%;
+            padding: 80px 90px 0 0
+        }
+
+    .team .back_hexagon {
+        width: 50em;
+        height: 666px;
+        margin-top: 25px;
+        background: url(../image/home/hexagon-side.svg);
+        position: absolute;
+        background-repeat: no-repeat;
+        background-size: cover;
+        left: -150px
+    }
+
+    .team .white_hexagon {
+        width: 40em;
+        height: 666px;
+        margin-top: 25px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: #f4f9fc
+    }
+
+    .team .image_hexagon {
+        position: absolute;
+        left: 50px;
+        top: 50px;
+        width: 38em;
+        height: 600px;
+        background: url(../image/team/our-team.jpg) center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        z-index: 0
+    }
+
+        .team .image_hexagon:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -6px;
+            width: 100%;
+            height: 110%;
+            background: url(../image/home/hexagon-side.svg);
+            background-repeat: no-repeat;
+            background-size: cover;
+            z-index: 1;
+            opacity: .3
+        }
+
+.team_member {
+    text-align: center
+}
+
+    .team_member .team_member_box {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 0 10px;
+        transition: 0.3s;
+    }
+
+        .team_member .team_member_box:hover {
+            transform: translateY(-10px)
+        }
+
+    .team_member .team_member_header {
+        width: 260px;
+        height: 260px;
+        margin: auto
+    }
+
+        .team_member .team_member_header .team_back {
+            width: 100%;
+            height: 100%;
+            position: relative
+        }
+
+        .team_member .team_member_header .team-image {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            width: 100%;
+            height: 100%
+        }
+
+    .team_member .team_member_desc {
+        margin-top: 20px
+    }
+
+        .team_member .team_member_desc a {
+            color: var(--primary-text-color)
+        }
+
+        .team_member .team_member_desc h3 {
+            font-weight: 700;
+            margin-bottom: 0
+        }
+
+        .team_member .team_member_desc h4 {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            color: var(--bs-gray-700)
+        }
+
+        .team_member .team_member_desc p {
+            color: var(--bs-gray-600)
+        }
+
+.team_container {
+    margin-bottom: 50px
+}
+
+.team .social_links_wrapp {
+    justify-content: center
+}
+
+    .team .social_links_wrapp a {
+        width: 30px;
+        height: 30px;
+        margin: 0 3px
+    }
+
+        .team .social_links_wrapp a:hover {
+            box-shadow: 3px 3px 20px 0 rgba(204, 119, 34, 0.1)
+        }
+
+        .team .social_links_wrapp a svg {
+            width: 13px;
+            height: 13px
+        }
+
+@media screen and (min-width:2100px) {
+    .team .team_content .content {
+        width: 70%
+    }
+}
+
+@media screen and (max-width:1500px) {
+    .team .back_hexagon {
+        width: 40em;
+        height: 535px
+    }
+
+    .team .white_hexagon {
+        width: 30em;
+        height: 527px;
+        left: 13px;
+        top: 5px
+    }
+
+    .team .image_hexagon {
+        position: absolute;
+        left: 35px;
+        top: 50px;
+        width: 30em;
+        height: 490px
+    }
+
+    .team .team_content {
+        justify-content: end
+    }
+
+        .team .team_content .content {
+            padding: 50px 10px;
+            width: 90%
+        }
+
+    .team .team_title {
+        margin-bottom: 0
+    }
+
+    .team .team_desc p {
+        font-size: 15px
+    }
+}
+
+@media screen and (max-width:1200px) {
+    .team .team_pic {
+        display: none
+    }
+
+    .team .team_content {
+        height: 639px
+    }
+
+        .team .team_content .content {
+            padding: 50px 10px 50px 100px;
+            width: 90%
+        }
+
+    .team {
+        padding-bottom: 0px
+    }
+}
+
+@media screen and (max-width:993px) {
+    .team_member .team_member_header {
+        width: 230px;
+        height: 230px;
+        margin: auto
+    }
+
+    .team .team_content {
+        height: 700px
+    }
+}
+
+@media screen and (max-width:768px) {
+    .team .team_title h2 {
+        font-size: 2.5rem
+    }
+
+    .team .team_container {
+        flex-flow: row-reverse;
+        height: auto
+    }
+
+    .team .back_hexagon {
+        width: 100%;
+        height: 68%;
+        margin-top: 0;
+        left: -40px
+    }
+
+    .team .white_hexagon {
+        width: 100%;
+        height: 67%;
+        margin-top: 0;
+        left: 20px;
+        top: 6px
+    }
+
+    .team .image_hexagon {
+        position: absolute;
+        left: 50px;
+        top: 31px;
+        width: 84%;
+        height: 58%
+    }
+
+    .team .team_content {
+        background-size: cover;
+        background-position: right;
+        height: 700px
+    }
+
+        .team .team_content .content {
+            width: 100%;
+            padding: 50px 10px
+        }
+}
+
+@media screen and (max-width:400px) {
+    .team .team_content {
+        background-size: cover;
+        background-position: right;
+        height: 850px
+    }
+}
+
+.counter {
+    height: 750px;
+    width: 100%;
+    background: #f4f9fc
+}
+
+    .counter .counter_container {
+        float: right;
+        width: 90%;
+        height: 72%;
+        background: url(../image/home/counter.jpg);
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        clip-path: polygon(254.85px calc(100% - 0.049999999999955px),calc(100% - 2.2737367544323E-13px) calc(100% - 0px),calc(100% - 2.2737367544323E-13px) calc(50% - -29px),calc(100% - 2.2737367544323E-13px) calc(50% - -29px),calc(100% - -2.2737367544323E-13px) calc(50% - -18.864px),calc(100% - 0px) calc(50% - 8.6479999999999px),calc(100% - 0px) calc(50% - 49.192px),calc(100% - 0px) calc(50% - 98.424px),calc(100% - 2.2737367544323E-13px) calc(50% - 152px),calc(100% - 2.2737367544323E-13px) calc(50% - 205.576px),calc(100% - 4.5474735088646E-13px) calc(50% - 254.808px),calc(100% - 2.2737367544323E-13px) calc(50% - 295.352px),calc(100% - 4.5474735088646E-13px) calc(50% - 322.864px),calc(100% - 4.5474735088646E-13px) calc(50% - 333px),254.85px .06px,254.85px .06px,244.37936px .56745px,234.14248px 2.064px,224.21292px 4.51095px,214.66424px 7.8696px,205.57px 12.10125px,197.00376px 17.1672px,189.03908px 23.02875px,181.74952px 29.6472px,175.20864px 36.98385px,169.49px 45px,10.86px calc(50% - 37.44px),10.86px calc(50% - 37.44px),6.9504px calc(50% - 30.40532px),3.9096px calc(50% - 23.06776px),1.7376px calc(50% - 15.50304px),.4344px calc(50% - 7.78688px),-8.8817841970013E-16px calc(50% - -0.0049999999999955px),.4344px calc(50% - -7.79688px),1.7376px calc(50% - -15.51304px),3.9096px calc(50% - -23.07776px),6.9504px calc(50% - -30.41532px),10.86px calc(50% - -37.45px),169.5px calc(100% - 44.99px),169.5px calc(100% - 44.99px),175.21836px calc(100% - 36.97385px),181.75848px calc(100% - 29.6372px),189.04692px calc(100% - 23.01875px),197.01024px calc(100% - 17.1572px),205.575px calc(100% - 12.09125px),214.66776px calc(100% - 7.8596px),224.21508px calc(100% - 4.50095px),234.14352px calc(100% - 2.0539999999999px),244.37964px calc(100% - 0.5574499999999px),254.85px calc(100% - 0.050000000000068px))
+    }
+
+    .counter .opacity_div {
+        background: rgb(0 0 0 / .4);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-flow: column;
+        text-align: center
+    }
+
+.counter_container {
+    width: 100%;
+    height: 100%
+}
+
+.counter .number_content {
+    width: 100%;
+    color: #fff
+}
+
+.counter .number {
+    font-size: 5rem;
+    font-weight: 900
+}
+
+.counter .number_title {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 1px;
+}
+
+@media screen and (max-width:1200px) {
+    .counter .number_title {
+        font-size: 1rem;
+        margin-bottom: 40px
+    }
+
+    .counter .number {
+        font-size: 5rem
+    }
+}
+
+@media screen and (max-width:1024px) {
+    .counter .number_title {
+        font-size: 1rem;
+        margin-bottom: 40px
+    }
+
+    .counter .number {
+        font-size: 5rem
+    }
+}
+
+@media screen and (max-width:768px) {
+    .counter {
+        height: 1000px
+    }
+
+        .counter .number_content {
+            margin-bottom: 50px
+        }
+
+        .counter .counter_container {
+            width: 100%;
+            height: auto;
+            clip-path: unset
+        }
+
+        .counter .opacity_div {
+            padding: 100px 0
+        }
+}
+
+.partnership {
+    background: #f4f9fc url(../image/partnership/asset4.svg) no-repeat;
+    background-size: cover;
+    background-position: left center;
+    padding: 0 10px
+}
+
+    .partnership .owl-stage-outer {
+        padding-top: 10px;
+    }
+
+.partnership_header {
+    text-align: center
+}
+
+    .partnership_header h2 {
+        font-weight: 900;
+        text-transform: capitalize;
+        font-size: 2.5rem;
+        color: var(--primary-text-color);
+        margin-bottom: 25px;
+    }
+
+.partnership_logo {
+    padding: 35px;
+    width: 150px;
+    height: 150px;
+    margin: auto;
+    border: 2px solid #f7f7f7;
+    border-radius: 50%;
+    display: flex;
+    transition: 0.3s;
+}
+
+    .partnership_logo:hover {
+        transform: translateY(-10px)
+    }
+
+.partnership_row {
+    margin-top: -100px
+}
+
+.partnership img {
+    width: 100%;
+    height: auto
+}
+
+.partnership div:nth-of-type(even):not(.partnership_content,.owl-nav) {
+    margin-top: 80px;
+    padding-bottom: 80px
+}
+
+.partnership_content {
+    margin-top: 30px;
+    text-align: center
+}
+
+    .partnership_content h4 {
+        font-weight: 700;
+        font-size: 17px;
+        margin-bottom: 0
+    }
+
+    .partnership_content p {
+        font-size: 15px;
+        color: var(--bs-gray-700)
+    }
+
+.logo_back {
+    background: #fff;
+    box-shadow: 0 11px 11px -10px rgb(181 181 181)
+}
+
+.partnership_link {
+    transition: 0.3s;
+}
+
+    .partnership_link:hover .partnership_logo {
+        background: #fff;
+        box-shadow: 0 11px 11px -10px rgb(181 181 181);
+    }
+
+@media screen and (max-width:992px) {
+    .partnership img {
+        width: 80%;
+        display: block;
+        margin: auto
+    }
+
+    .partnership_logo {
+        border: 2px solid #e1dcdc
+    }
+}
+
+@media screen and (max-width:768px) {
+    .partnership {
+        padding-top: 100px;
+        padding-bottom: 50px
+    }
+
+        .partnership img {
+            width: 90%
+        }
+
+        .partnership div:nth-of-type(even):not(.partnership_content,.owl-nav) {
+            margin-top: 50px;
+            padding-bottom: 30px
+        }
+}
+
+.loading-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(255 255 255 / .8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999
+}
+
+.loading-spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid var(--sky-blue);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg)
+    }
+
+    100% {
+        transform: rotate(360deg)
+    }
+}
+
+.main_content {
+    display: none
+}
+
+@-moz-document url-prefix() {
+    .testimonial_shape .pentagon_out {
+        margin-left: -1px;
+    }
+}
+/* for laptop sizes*/
+@media screen and (max-height: 900px) and (min-width:1200px) {
+    .hexagon_5 .script {
+        top: 0;
+        padding-top: 12%;
+    }
+
+    .hexagon_5 .font_500, .hexagon_5 .font_600 {
+        font-size: 1.2em;
+    }
+
+    .hexagon_5 .font_900 {
+        font-size: 1.9em;
+    }
+
+    .hexagon_5 p {
+        width: 57%;
+    }
+    .hexagon_3 {
+        width:480px
+    }
+}

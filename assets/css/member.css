@@ -1,0 +1,163 @@
+body {
+    background-color: #f4f9fc;
+}
+
+.menu .col-20 {
+    position: absolute;
+    top: 0;
+    left: 5%
+}
+
+.header_top {
+    height: 80px
+}
+
+.menu-btn {
+    display: none
+}
+
+.brand_container > a {
+    padding: 6px 0 !important;
+    border: 0 !important;
+    transition: none !important
+}
+
+@media screen and (max-width:1200px) {
+    .menu-btn {
+        display: block
+    }
+
+    .menu .col-20 {
+        left: 0
+    }
+}
+
+.member_header {
+    height: 330px
+}
+
+.member_header_back {
+    position: absolute;
+    top: -490px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    display: block;
+    width: 100%;
+    height: 50em;
+    background: var(--primary-color) url(../image/about/about-header-bg.svg) no-repeat;
+    background-size: 100%;
+    background-position: center;
+    -webkit-clip-path: polygon(45% 1.33975%,46.5798% .60307%,48.26352% .15192%,50% 0%,51.73648% .15192%,53.4202% .60307%,55% 1.33975%,89.64102% 21.33975%,91.06889% 22.33956%,92.30146% 23.57212%,93.30127% 25%,94.03794% 26.5798%,94.48909% 28.26352%,94.64102% 30%,94.64102% 70%,94.48909% 71.73648%,94.03794% 73.4202%,93.30127% 75%,92.30146% 76.42788%,91.06889% 77.66044%,89.64102% 78.66025%,55% 98.66025%,53.4202% 99.39693%,51.73648% 99.84808%,50% 100%,48.26352% 99.84808%,46.5798% 99.39693%,45% 98.66025%,10.35898% 78.66025%,8.93111% 77.66044%,7.69854% 76.42788%,6.69873% 75%,5.96206% 73.4202%,5.51091% 71.73648%,5.35898% 70%,5.35898% 30%,5.51091% 28.26352%,5.96206% 26.5798%,6.69873% 25%,7.69854% 23.57212%,8.93111% 22.33956%,10.35898% 21.33975%);
+    clip-path: polygon(45% 1.33975%,46.5798% .60307%,48.26352% .15192%,50% 0%,51.73648% .15192%,53.4202% .60307%,55% 1.33975%,89.64102% 21.33975%,91.06889% 22.33956%,92.30146% 23.57212%,93.30127% 25%,94.03794% 26.5798%,94.48909% 28.26352%,94.64102% 30%,94.64102% 70%,94.48909% 71.73648%,94.03794% 73.4202%,93.30127% 75%,92.30146% 76.42788%,91.06889% 77.66044%,89.64102% 78.66025%,55% 98.66025%,53.4202% 99.39693%,51.73648% 99.84808%,50% 100%,48.26352% 99.84808%,46.5798% 99.39693%,45% 98.66025%,10.35898% 78.66025%,8.93111% 77.66044%,7.69854% 76.42788%,6.69873% 75%,5.96206% 73.4202%,5.51091% 71.73648%,5.35898% 70%,5.35898% 30%,5.51091% 28.26352%,5.96206% 26.5798%,6.69873% 25%,7.69854% 23.57212%,8.93111% 22.33956%,10.35898% 21.33975%);
+    z-index: 0;
+}
+
+@media screen and (max-width:1200px) {
+    .member_header_back {
+        clip-path: none;
+        background-position: bottom
+    }
+}
+
+.member_desc {
+    text-align: center;
+    position: relative;
+    padding-top: 120px;
+    background: url(../image/partnership/asset4.svg) no-repeat;
+    background-size: cover;
+    background-position: center;
+    padding-bottom: 80px;
+}
+
+    .member_desc h2 {
+        font-weight: 900;
+        font-size: 38px;
+        color: var(--primary-text-color)
+    }
+
+    .member_desc h4 {
+        color: var(--bs-gray-700)
+    }
+
+    .member_desc p {
+        color: var(--bs-gray-700);
+    }
+
+.member_img {
+    width: 200px;
+    height: 200px;
+    margin: auto;
+    position: absolute;
+    top: -120px;
+    left: 0;
+    right: 0
+}
+
+    .member_img img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%
+    }
+
+.member_desc hr {
+    color: var(--secondary-color);
+    border: 0;
+    border-top: 5px solid;
+    opacity: 1;
+    width: 220px;
+    margin: 1rem auto 2rem
+}
+
+.member_desc .social_links_wrapp {
+    justify-content: center;
+}
+
+    .member_desc .social_links_wrapp a {
+        width: 30px;
+        height: 30px;
+        margin: 10px 3px
+    }
+
+        .member_desc .social_links_wrapp a svg {
+            width: 13px;
+            height: 13px
+        }
+
+.member_desc .skills p {
+}
+
+.member_desc .skills hr {
+    color: white;
+}
+
+.breadcrumb {
+    justify-content: center;
+    margin-top: 2em;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: #fff;
+}
+
+.breadcrumb a {
+    color: #fff;
+}
+
+@media screen and (max-width:1200px) {
+    .breadcrumb {
+        margin-top: 4.5em;
+    }
+}
+
+@media screen and (max-width:768px) {
+    .member_desc {
+        background: none;
+    }
+
+    .skills {
+        text-align: center !important;
+    }
+}

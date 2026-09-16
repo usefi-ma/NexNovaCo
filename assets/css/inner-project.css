@@ -1,0 +1,166 @@
+.inner_page_header_pic .hexagon_with_back {
+    background-image: url(../image/project/nexconnect.jpg);
+}
+
+body {
+    overflow-x: hidden;
+}
+
+.hexagon {
+    display: inline-block;
+    width: 50em;
+    height: 50em;
+    background: var(--hexagon-with-back);
+    -webkit-clip-path: polygon( 45% 1.33975%, 46.5798% 0.60307%, 48.26352% 0.15192%, 50% 0%, 51.73648% 0.15192%, 53.4202% 0.60307%, 55% 1.33975%, 89.64102% 21.33975%, 91.06889% 22.33956%, 92.30146% 23.57212%, 93.30127% 25%, 94.03794% 26.5798%, 94.48909% 28.26352%, 94.64102% 30%, 94.64102% 70%, 94.48909% 71.73648%, 94.03794% 73.4202%, 93.30127% 75%, 92.30146% 76.42788%, 91.06889% 77.66044%, 89.64102% 78.66025%, 55% 98.66025%, 53.4202% 99.39693%, 51.73648% 99.84808%, 50% 100%, 48.26352% 99.84808%, 46.5798% 99.39693%, 45% 98.66025%, 10.35898% 78.66025%, 8.93111% 77.66044%, 7.69854% 76.42788%, 6.69873% 75%, 5.96206% 73.4202%, 5.51091% 71.73648%, 5.35898% 70%, 5.35898% 30%, 5.51091% 28.26352%, 5.96206% 26.5798%, 6.69873% 25%, 7.69854% 23.57212%, 8.93111% 22.33956%, 10.35898% 21.33975% );
+    clip-path: polygon( 45% 1.33975%, 46.5798% 0.60307%, 48.26352% 0.15192%, 50% 0%, 51.73648% 0.15192%, 53.4202% 0.60307%, 55% 1.33975%, 89.64102% 21.33975%, 91.06889% 22.33956%, 92.30146% 23.57212%, 93.30127% 25%, 94.03794% 26.5798%, 94.48909% 28.26352%, 94.64102% 30%, 94.64102% 70%, 94.48909% 71.73648%, 94.03794% 73.4202%, 93.30127% 75%, 92.30146% 76.42788%, 91.06889% 77.66044%, 89.64102% 78.66025%, 55% 98.66025%, 53.4202% 99.39693%, 51.73648% 99.84808%, 50% 100%, 48.26352% 99.84808%, 46.5798% 99.39693%, 45% 98.66025%, 10.35898% 78.66025%, 8.93111% 77.66044%, 7.69854% 76.42788%, 6.69873% 75%, 5.96206% 73.4202%, 5.51091% 71.73648%, 5.35898% 70%, 5.35898% 30%, 5.51091% 28.26352%, 5.96206% 26.5798%, 6.69873% 25%, 7.69854% 23.57212%, 8.93111% 22.33956%, 10.35898% 21.33975% );
+}
+
+.inner_project {
+    width: 100%;
+    position: relative;
+    margin-top: 0;
+    margin-bottom: 50px;
+}
+
+    .inner_project h1 {
+        font-weight: 900;
+        margin-bottom: 20px;
+        color: var(--primary-text-color);
+    }
+
+.sidebar {
+    background-image: linear-gradient(-45deg, var(--tertiary-color), var(--secondary-color), var(--tertiary-color));
+    border-radius: 0 75px 75px 0;
+}
+
+.inner_project_wrapper {
+    background: #fff;
+    border-radius: 70px;
+    margin-left: -80px;
+    margin-top: 150px;
+    margin-bottom: 150px;
+    padding: 50px 50px 50px 50px;
+}
+
+.inner_project_wrapper_slide {
+    margin-bottom: 60px;
+    border-radius: 50px;
+}
+
+    .inner_project_wrapper_slide .carousel-inner {
+        border-radius: 50px;
+        height: 480px;
+        width: 100%;
+    }
+
+    .inner_project_wrapper_slide img {
+        border-radius: 50px;
+        width: 100%;
+    }
+
+.carousel-item {
+    width: 100%;
+}
+
+.inner_page_header_pic {
+    height: 1100px;
+}
+
+.inner_project_content_hexagon {
+    position: absolute;
+    top: 180px;
+    width: 47em;
+    height: 42em;
+    background: linear-gradient(245deg, var(--light-blue) 40%, var(--hexagon-with-back));
+    opacity: 0.75;
+}
+
+.project_features {
+    position: absolute;
+    top: 199px;
+    left: 111px;
+    width: 60%;
+}
+
+    .project_features ul {
+        padding-left: 0rem;
+        float: left;
+        text-align: left;
+    }
+
+        .project_features ul li {
+            margin-bottom: 10px;
+            list-style: none;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            color: #f5f5f5;
+        }
+
+            .project_features ul li:before {
+                content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-check-circle-fill" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>');
+                margin-right: 20px;
+            }
+
+                .project_features ul li:before svg {
+                    color: #fff;
+                    width: 24px;
+                    height: 24px;
+                }
+
+    .project_features h3 {
+        font-weight: 900;
+        margin-bottom: 30px;
+        color: var(--primary-text-color);
+    }
+
+.project-info-box h4 {
+    font-weight: 900;
+    margin-bottom: 10px;
+    color: var(--primary-text-color)
+}
+
+.project-info-box {
+    color: var(--bs-gray-600);
+}
+
+    .project-info-box li::marker {
+        color: var(--orange);
+    }
+
+    .project-info-box li strong {
+        color: var(--orange);
+    }
+
+@media screen and (max-width: 1200px) {
+    .inner_project_content_hexagon {
+        display: none;
+    }
+
+    .inner_page_header_pic {
+        height: auto;
+    }
+}
+
+@media screen and (max-width: 993px) {
+    .inner_project_wrapper {
+        width: 100%;
+        margin-left: 0;
+        padding: 20px;
+        margin-bottom: 0;
+        margin-top: 50px;
+    }
+
+    .inner_project_content_hexagon {
+        width: 33em;
+        height: 32em;
+        top: 20px;
+    }
+}
+
+@media screen and (max-width:768px) {
+    .inner_project_wrapper_slide .carousel-inner {
+        height: 180px;
+    }
+}

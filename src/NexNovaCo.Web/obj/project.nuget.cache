@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "uP/prVV7rLs=",
+  "success": true,
+  "projectFilePath": "D:\\Mahya\\Codex\\NexNovaCo\\src\\NexNovaCo.Web\\NexNovaCo.Web.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Mahya\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.12\\microsoft.aspnetcore.app.internal.assets.10.0.12.nupkg.sha512",
+    "C:\\Users\\Mahya\\.nuget\\packages\\mudblazor\\9.10.0\\mudblazor.9.10.0.nupkg.sha512"
+  ],
+  "logs": []
+}

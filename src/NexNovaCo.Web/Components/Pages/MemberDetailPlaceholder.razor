@@ -1,0 +1,21 @@
+@page "/team/{Slug}"
+@inject IHomeContentService ContentService
+@inject NavigationManager Navigation
+
+@* Navigation-only placeholder. Full Member Detail migration is explicitly deferred. *@
+<PageTitle>@(_member?.Name ?? "Team member") | NexNovaCo</PageTitle>
+<section class="container migration-placeholder">
+    <h1>@_member?.Name</h1>
+    <p>This member profile has not been migrated yet.</p>
+    <a class="custome_btn" href="team">Back to team</a>
+</section>
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+    private TeamMemberSummary? _member;
+    protected override async Task OnParametersSetAsync()
+    {
+        _member = (await ContentService.GetAsync()).Members.FirstOrDefault(m => m.Slug == Slug);
+        if (_member is null) Navigation.NotFound();
+    }
+}

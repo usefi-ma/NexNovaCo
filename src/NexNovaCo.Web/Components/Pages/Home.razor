@@ -1,18 +1,74 @@
 ﻿@page "/"
 
 @inject IWebHostEnvironment Environment
+@inject IHomeContentService ContentService
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
-@* Phase 1 migration placeholder. Full Home content requires Phase 2 approval. *@
-<PageTitle>Home | NexNovaCo</PageTitle>
-<section class="container migration-placeholder">
-    <h1>Home</h1>
-    <p>Page content will be migrated in a later phase.</p>
+<PageTitle>NexNovaCo | Smart Software, Powerful AI</PageTitle>
+<HeadContent>
+    <meta name="description" content="NexNovaCo is a modern and responsive HTML template designed for tech startups, offering a clean, innovative design and seamless functionality." />
+    <meta name="keywords" content="tech startup, HTML template, startup website, modern design, responsive template, digital agency theme, tech company, business template" />
+    @* Original Home rules are route-local and unchanged. Only lifecycle adaptations follow. *@
+    <link rel="stylesheet" href="@Assets["css/index.css"]" />
+    <link rel="stylesheet" href="@Assets["css/home-blazor.css"]" />
+</HeadContent>
+
+@if (_content is not null)
+{
+    <div class="home-page" @ref="_root">
+        <HomeHero Content="_content.Hero" />
+        <HomeWelcomeSection Content="_content.Welcome" />
+        <HomeServicesSection Heading="_content.ServicesHeading" Items="_content.Services" />
+        <HomeProjectsSection Heading="_content.ProjectsHeading" Items="_content.Projects" />
+        <HomeTeamSection Content="_content.Team" Members="_content.Members" />
+        <HomeStatisticsSection Items="_content.Statistics" />
+        <HomePartnersSection Heading="_content.PartnersHeading" Items="_content.Partners" />
+        <HomeTestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
+    </div>
     @if (Environment.IsDevelopment() && Verification == "foundation")
     {
-        <FoundationDiagnostics />
+        <div class="container py-5"><FoundationDiagnostics /></div>
     }
-</section>
+}
 
 @code {
     [SupplyParameterFromQuery(Name = "verify")] public string? Verification { get; set; }
+    private HomeContent? _content;
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private bool _initialized;
+    private bool _disposed;
+    private readonly CancellationTokenSource _lifetime = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _content = await ContentService.GetAsync(_lifetime.Token); }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_content is null || _initialized || _disposed) return;
+        _initialized = true;
+        var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/home.js");
+        if (_disposed)
+        {
+            await module.DisposeAsync();
+            return;
+        }
+        _module = module;
+        await _module.InvokeVoidAsync("initialize", _root);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+        // Browser-side MutationObserver owns DOM/plugin cleanup, including lost circuits.
+        if (_module is null) return;
+        try { await _module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+    }
 }

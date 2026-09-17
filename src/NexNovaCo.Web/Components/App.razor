@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
     @* Framework resets first; the approved public theme remains authoritative. *@
     <link rel="stylesheet" href="@Assets["css/bootstrap.min.css"]" />
+    <link rel="stylesheet" href="@Assets["css/aos.css"]" />
+    <link rel="stylesheet" href="@Assets["css/owl.carousel.min.css"]" />
+    <link rel="stylesheet" href="@Assets["css/owl.theme.default.min.css"]" />
     <link rel="stylesheet" href="@Assets["css/styles.css"]" />
     <link rel="stylesheet" href="@Assets["css/public-shell.css"]" />
     <link rel="stylesheet" href="@Assets["NexNovaCo.Web.styles.css"]" />
@@ -26,6 +29,10 @@
     <Routes @rendermode="InteractiveServer" />
     <ReconnectModal />
     <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+    @* Vendor code loads once. Only the Home module initializes its scoped widgets. *@
+    <script src="@Assets["js/jquery-3.1.0.js"]"></script>
+    <script src="@Assets["js/owl.carousel.min.js"]"></script>
+    <script src="@Assets["js/countUp.umd.js"]"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 

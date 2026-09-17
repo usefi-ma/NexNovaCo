@@ -20,13 +20,14 @@ $routes = [ordered]@{ '' = 'Home'; about = 'About'; services = 'Services'; proje
 $renderedAssets = [Collections.Generic.HashSet[string]]::new()
 foreach ($route in $routes.GetEnumerator()) {
     $html = (Get-Resource $route.Key).Content
-    Assert-True ($html.Contains("<h1>$($route.Value)</h1>")) "Missing heading at /$($route.Key)"
+    $hasHeading = if ($route.Key -eq '') { $html.Contains('Smart Software') -and $html.Contains('<h1>') } else { $html.Contains("<h1>$($route.Value)</h1>") }
+    Assert-True $hasHeading "Missing heading at /$($route.Key)"
     Assert-True ($html.Contains('aria-label="Primary"') -and $html.Contains('aria-label="Footer"')) "Missing shared navigation at /$($route.Key)"
     Assert-True ($html.Contains('aria-expanded="false"')) "Mobile state missing at /$($route.Key)"
     Assert-True (-not $html.Contains('Foundation diagnostics')) "Diagnostics leaked into normal route /$($route.Key)"
     foreach ($match in [regex]::Matches($html, '(?:src|href)="([^"]+)"')) {
         $path = $match.Groups[1].Value
-        if ($path -match '^(css/|image/|_content/|_framework/|Components/Layout/|NexNovaCo.Web\.)') {
+        if ($path -match '^(css/|js/|image/|_content/|_framework/|Components/Layout/|NexNovaCo.Web\.)') {
             $null = $renderedAssets.Add($path)
         }
     }
@@ -41,11 +42,17 @@ foreach ($folder in @('css', 'js', 'image', 'data')) {
         $relative = [IO.Path]::GetRelativePath((Join-Path $repoRoot 'assets'), $source.FullName).Replace('\', '/')
         $copy = Join-Path $wwwroot $relative
         Assert-True (Test-Path -LiteralPath $copy) "Missing copied asset: $relative"
-        Assert-True ((Get-FileHash -LiteralPath $source.FullName).Hash -eq (Get-FileHash -LiteralPath $copy).Hash) "Changed legacy asset copy: $relative"
+        $same = (Get-FileHash -LiteralPath $source.FullName).Hash -eq (Get-FileHash -LiteralPath $copy).Hash
+        if (-not $same -and $source.Extension -in @('.css', '.js', '.json', '.svg')) {
+            # Git on Windows can check out an unchanged text blob with different line endings.
+            $same = [IO.File]::ReadAllText($source.FullName).Replace("`r`n", "`n") -ceq [IO.File]::ReadAllText($copy).Replace("`r`n", "`n")
+        }
+        Assert-True $same "Changed legacy asset copy: $relative"
         $canonical = Get-Resource $relative
         $alias = Get-Resource "assets/$relative"
-        Assert-True ($canonical.RawContentLength -eq $source.Length) "Incorrect canonical asset: $relative"
-        Assert-True ($alias.RawContentLength -eq $source.Length) "Incorrect alias asset: $relative"
+        $servedLength = (Get-Item -LiteralPath $copy).Length
+        Assert-True ($canonical.RawContentLength -eq $servedLength) "Incorrect canonical asset: $relative"
+        Assert-True ($alias.RawContentLength -eq $servedLength) "Incorrect alias asset: $relative"
         $assetCount++
     }
 }

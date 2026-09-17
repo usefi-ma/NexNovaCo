@@ -1,0 +1,163 @@
+[
+  {
+    "id": "nexconnect",
+    "name": "NexConnect",
+    "secondname": "AI-Powered Customer Management",
+    "subtitle": "A smart CRM system that automates customer interactions, analyzes data, and enhances business relationships with AI-driven insights.",
+    "summary": "NexConnect is a cutting-edge CRM solution designed to revolutionize customer relationship management. By leveraging artificial intelligence, it automates customer interactions, provides deep data-driven insights, and enhances business relationships. With NexConnect, businesses can streamline communication, predict customer needs, and optimize engagement strategies to drive growth and customer satisfaction.",
+    "gallery": [
+      { "src": "assets/image/project/nextConnectProject.jpg", "alt": "NexConnect dashboard" },
+      { "src": "assets/image/project/nextConnectInnerProject.jpg", "alt": "NexConnect analytics" }
+    ],
+    "features": [
+      "Automated Customer Engagement for Faster and Smarter Communication",
+      "Predictive Analytics to Anticipate Customer Needs and Trends",
+      "Seamless Integration with Email, Social Media, and Business Tools",
+      "AI-Driven Personalized Insights for Enhanced Customer Relationships"
+    ],
+    "details": {
+      "client": "NexNovaCo Internal",
+      "category": "CRM / AI Integration",
+      "date": "September 2025",
+      "technologies": "React, Node.js, AI APIs"
+    }
+  },
+
+  {
+    "id": "payflowx",
+    "name": "PayFlowX",
+    "secondname": "Secure & Fast Payment Solution",
+    "subtitle": "A seamless online payment platform that ensures secure transactions, smooth integrations, and an effortless user experience for businesses.",
+    "summary": "PayFlowX is an intelligent online payment platform built for security and speed. It simplifies payment processes for businesses through real-time transaction tracking, multi-currency support, and AI-powered fraud detection. With PayFlowX, companies can deliver a seamless checkout experience and maintain top-level data protection.",
+    "gallery": [
+      { "src": "assets/image/project/payflowx.jpg", "alt": "PayFlowX payment UI" }
+    ],
+    "features": [
+      "Secure Payment Processing with PCI-DSS Compliance",
+      "AI-Driven Fraud Detection and Risk Monitoring",
+      "Multi-Currency & Cross-Border Payment Support",
+      "Easy Integration with E-Commerce and Banking APIs"
+    ],
+    "details": {
+      "client": "TechSphere",
+      "category": "Fintech / Payment Solutions",
+      "date": "June 2025",
+      "technologies": "Next.js, NestJS, Stripe API"
+    }
+  },
+
+  {
+    "id": "medilink",
+    "name": "MediLink",
+    "secondname": "Smart Healthcare Management",
+    "subtitle": "A digital health platform that connects patients and doctors, streamlines medical records, and improves healthcare accessibility with AI-powered solutions.",
+    "summary": "MediLink is an advanced healthcare management system that bridges patients, doctors, and healthcare providers in a unified digital ecosystem. It enables secure medical record sharing, telemedicine appointments, and predictive analytics for patient care — all powered by AI-driven diagnostics.",
+    "gallery": [
+      { "src": "assets/image/project/medilink.jpg", "alt": "MediLink dashboard" }
+    ],
+    "features": [
+      "AI-Assisted Patient Diagnosis and Treatment Recommendations",
+      "Secure Cloud-Based Medical Record Management",
+      "Telemedicine and Remote Appointment Scheduling",
+      "Data Analytics for Hospital Resource Optimization"
+    ],
+    "details": {
+      "client": "HealthBridge",
+      "category": "Healthcare / AI",
+      "date": "May 2025",
+      "technologies": "Angular, Django, TensorFlow"
+    }
+  },
+
+  {
+    "id": "tradesync",
+    "name": "TradeSync",
+    "secondname": "Seamless B2B Trade Management",
+    "subtitle": "A powerful platform designed for businesses to streamline supply chain operations, manage vendor relationships, and optimize procurement processes with AI-driven insights.",
+    "summary": "TradeSync is a B2B trade and supply chain management platform that automates procurement, vendor communication, and logistics tracking. By leveraging machine learning, it identifies cost-saving opportunities, predicts supply chain disruptions, and ensures smooth business operations.",
+    "gallery": [
+      { "src": "assets/image/project/tradesync.jpg", "alt": "TradeSync supply chain dashboard" }
+    ],
+    "features": [
+      "AI-Powered Vendor Management and Procurement Insights",
+      "End-to-End Supply Chain Tracking and Optimization",
+      "Predictive Logistics and Demand Forecasting",
+      "Seamless ERP Integration and Real-Time Analytics"
+    ],
+    "details": {
+      "client": "GlobalTrade Inc.",
+      "category": "B2B / Supply Chain",
+      "date": "April 2025",
+      "technologies": "Vue.js, Node.js, MongoDB, AWS"
+    }
+  },
+
+  {
+    "id": "eduvance",
+    "name": "EduVance",
+    "secondname": "Next-Gen E-Learning Solutions",
+    "subtitle": "An interactive and adaptive e-learning platform that offers personalized learning experiences, smart assessments, and real-time progress tracking for students and educators.",
+    "summary": "EduVance is a modern AI-driven e-learning ecosystem that personalizes education for every learner. It provides intelligent course recommendations, gamified assessments, and detailed analytics for teachers and institutions to improve learning outcomes.",
+    "gallery": [
+      { "src": "assets/image/project/eduvance.jpg", "alt": "EduVance learning interface" }
+    ],
+    "features": [
+      "Personalized Learning Paths Based on AI Recommendations",
+      "Interactive Assessments and Progress Tracking",
+      "Real-Time Analytics for Teachers and Institutions",
+      "Gamification Tools to Enhance Student Engagement"
+    ],
+    "details": {
+      "client": "EduSmart Labs",
+      "category": "Education / AI",
+      "date": "July 2025",
+      "technologies": "React, Firebase, OpenAI API"
+    }
+  },
+
+  {
+    "id": "autotracker",
+    "name": "AutoTracker",
+    "secondname": "Intelligent Fleet & Logistics Monitoring",
+    "subtitle": "A comprehensive fleet management system that provides real-time GPS tracking, predictive maintenance alerts, and data-driven insights for logistics efficiency.",
+    "summary": "AutoTracker is a next-generation logistics monitoring system that combines GPS tracking, AI-based maintenance prediction, and data analytics to optimize fleet operations. It helps logistics companies reduce downtime, improve delivery accuracy, and manage costs effectively.",
+    "gallery": [
+      { "src": "assets/image/project/autotracker.jpg", "alt": "AutoTracker fleet monitoring dashboard" }
+    ],
+    "features": [
+      "Real-Time GPS Vehicle Tracking and Route Optimization",
+      "AI-Based Predictive Maintenance Alerts",
+      "Fuel Efficiency and Driver Behavior Monitoring",
+      "Comprehensive Reporting Dashboard for Fleet Managers"
+    ],
+    "details": {
+      "client": "LogiSmart",
+      "category": "Logistics / Fleet Management",
+      "date": "August 2025",
+      "technologies": "Angular, Node.js, AWS IoT"
+    }
+  },
+
+  {
+    "id": "finvault",
+    "name": "FinVault",
+    "secondname": "Smart Financial Planning & Management",
+    "subtitle": "A secure and AI-powered personal finance platform that helps users track expenses, plan budgets, and optimize savings with automated financial insights.",
+    "summary": "FinVault is an intelligent personal finance and budgeting platform that uses machine learning to analyze spending habits, create savings goals, and deliver actionable insights. It empowers individuals and small businesses to make data-informed financial decisions effortlessly.",
+    "gallery": [
+      { "src": "assets/image/project/finvault.jpg", "alt": "FinVault finance dashboard" }
+    ],
+    "features": [
+      "Automated Budget Tracking and Expense Categorization",
+      "AI-Powered Savings Recommendations",
+      "Financial Goal Planning and Visualization",
+      "Secure Cloud Storage with Bank-Grade Encryption"
+    ],
+    "details": {
+      "client": "WealthFlow",
+      "category": "Finance / AI",
+      "date": "October 2025",
+      "technologies": "Next.js, Python, AWS Lambda"
+    }
+  }
+]

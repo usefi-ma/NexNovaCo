@@ -1,0 +1,98 @@
+[
+  {
+    "id": "emilyjohnson",
+    "name": "Emily Johnson",
+    "role": "Software Engineer",
+    "bio": "Emily Johnson is a dedicated software engineer with a passion for building scalable and efficient solutions. With years of experience in web and application development, she specializes in creating user-friendly interfaces and optimizing backend performance. She thrives in collaborative environments, where she can apply her problem-solving skills to tackle complex challenges. Emily is always eager to explore emerging technologies, ensuring that her work stays innovative and future-ready.",
+    "image": "assets/image/team/emily-johnson.jpg",
+    "skills": [
+      "Full-Stack Application Development",
+      "Database Design & Optimization",
+      "API Integration & System Architecture",
+      "Problem Solving & Code Optimization"
+    ],
+    "email": "Emily@example.com",
+    "linkedin": "https://www.linkedin.com/in/emilyjohnson",
+    "telegram": ""
+  },
+  {
+    "id": "emmawilliams",
+    "name": "Emma Williams",
+    "role": "Marketing Analyst",
+    "bio": "Emma Williams leverages data-driven insights and innovative strategies to design marketing campaigns that deliver measurable growth. Her expertise includes digital marketing analytics, SEO optimization, and conversion rate improvement. She is passionate about understanding customer behavior through data and turning insights into impactful strategies.",
+    "image": "assets/image/team/emma-williams.jpg",
+    "skills": [
+      "Digital Marketing Strategy",
+      "SEO & Content Optimization",
+      "Data Analytics & Reporting",
+      "Customer Behavior Analysis"
+    ],
+    "email": "Emma@example.com",
+    "linkedin": "https://www.linkedin.com/in/emmawilliams",
+    "telegram": ""
+  },
+  {
+    "id": "sophialee",
+    "name": "Sophia Lee",
+    "role": "UI/UX Designer",
+    "bio": "Sophia Lee crafts intuitive, user-focused designs that balance aesthetics and usability. She excels at wireframing, prototyping, and creating engaging visual experiences. With a deep understanding of design systems and user psychology, Sophia transforms complex ideas into seamless digital experiences.",
+    "image": "assets/image/team/sophia-lee.jpg",
+    "skills": [
+      "User Experience Research",
+      "Wireframing & Prototyping",
+      "Design System Development",
+      "Adobe XD / Figma / Sketch"
+    ],
+    "email": "Sophia@example.com",
+    "linkedin": "https://www.linkedin.com/in/sophialee",
+    "telegram": ""
+  },
+  {
+    "id": "danielkim",
+    "name": "Daniel Kim",
+    "role": "DevOps Engineer",
+    "bio": "Daniel Kim streamlines deployments and enhances system reliability through automation and monitoring. He specializes in CI/CD pipelines, containerization, and cloud infrastructure. His focus on scalability and uptime ensures smooth operation of high-traffic platforms.",
+    "image": "assets/image/team/daniel-kim.jpg",
+    "skills": [
+      "CI/CD Automation",
+      "Docker & Kubernetes",
+      "AWS Infrastructure Management",
+      "Monitoring & System Optimization"
+    ],
+    "email": "Daniel@example.com",
+    "linkedin": "https://www.linkedin.com/in/danielkim",
+    "telegram": ""
+  },
+  {
+    "id": "lenaalvarez",
+    "name": "Lena Alvarez",
+    "role": "Data Scientist",
+    "bio": "Lena Alvarez transforms raw data into actionable insights using machine learning and statistical models. She works with big data technologies to uncover trends and improve decision-making across business domains.",
+    "image": "assets/image/team/lena-alvarez.jpg",
+    "skills": [
+      "Machine Learning & AI Modeling",
+      "Data Cleaning & Preprocessing",
+      "Python, R & TensorFlow",
+      "Statistical Analysis & Visualization"
+    ],
+    "email": "Lena@example.com",
+    "linkedin": "https://www.linkedin.com/in/lenaalvarez",
+    "telegram": ""
+  },
+  {
+    "id": "jamespark",
+    "name": "James Park",
+    "role": "Project Manager",
+    "bio": "James Park ensures seamless coordination across teams and successful project delivery. He has extensive experience in agile methodologies, stakeholder communication, and resource management.",
+    "image": "assets/image/team/james-park.jpg",
+    "skills": [
+      "Agile Project Management",
+      "Cross-Team Collaboration",
+      "Risk & Resource Management",
+      "Process Optimization"
+    ],
+    "email": "James@example.com",
+    "linkedin": "https://www.linkedin.com/in/jamespark",
+    "telegram": ""
+  }
+]

@@ -1,14 +1,46 @@
 ﻿@inherits LayoutComponentBase
 
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
 <MudThemeProvider />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-@Body
+<a class="skip-link" href="#main-content">Skip to content</a>
+<SiteHeader />
+<main id="main-content" tabindex="-1">
+    @Body
+</main>
+<SiteFooter />
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private IJSObjectReference? _shellModule;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _shellModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/public-shell.js");
+            await _shellModule.InvokeVoidAsync("initialize");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_shellModule is null) return;
+        try
+        {
+            await _shellModule.InvokeVoidAsync("dispose");
+            await _shellModule.DisposeAsync();
+        }
+        catch (JSDisconnectedException) { /* The Interactive Server circuit has ended. */ }
+    }
+}

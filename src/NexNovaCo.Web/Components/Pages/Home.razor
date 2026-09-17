@@ -1,7 +1,18 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+@inject IWebHostEnvironment Environment
 
-<h1>Hello, world!</h1>
+@* Phase 1 migration placeholder. Full Home content requires Phase 2 approval. *@
+<PageTitle>Home | NexNovaCo</PageTitle>
+<section class="container migration-placeholder">
+    <h1>Home</h1>
+    <p>Page content will be migrated in a later phase.</p>
+    @if (Environment.IsDevelopment() && Verification == "foundation")
+    {
+        <FoundationDiagnostics />
+    }
+</section>
 
-Welcome to your new app.
+@code {
+    [SupplyParameterFromQuery(Name = "verify")] public string? Verification { get; set; }
+}

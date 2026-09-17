@@ -1,0 +1,20 @@
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+
+@* Opt-in Development-only smoke check, mounted by Home. Not public page content. *@
+<section class="foundation-diagnostics" aria-label="Foundation diagnostics">
+    <h2>Foundation diagnostics</h2>
+    <MudSelect T="string" Label="Provider check" @bind-Value="_selection">
+        <MudSelectItem T="string" Value="@("Popover works")">Popover works</MudSelectItem>
+        <MudSelectItem T="string" Value="@("Server interactivity works")">Server interactivity works</MudSelectItem>
+    </MudSelect>
+    <button class="custome_btn" type="button" @onclick="ShowSnackbar">Check snackbar</button>
+    <button class="custome_btn" type="button" @onclick="ShowDialog">Check dialog</button>
+</section>
+
+@code {
+    private string? _selection;
+    private void ShowSnackbar() => Snackbar.Add("MudBlazor snackbar works.", Severity.Success);
+    private async Task ShowDialog() => await Dialogs.ShowMessageBoxAsync(
+        "Foundation check", "MudBlazor dialog works.", yesText: "Close");
+}

@@ -1,0 +1,62 @@
+/* Load after MudBlazor, Bootstrap and the unchanged styles.css.
+   Only the Home header rules and Blazor shell adaptations belong here. */
+body.public-site {
+    background-color: #f4f9fc;
+}
+
+.public-site .main_menu {
+    position: absolute;
+    width: 100%;
+    padding: 0;
+    /* Above the public footer, below MudBlazor's dialog/popover layers. */
+    z-index: 1100;
+}
+
+.public-site .header_top {
+    width: 80%;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+}
+
+.public-site .brand_container span { color: var(--primary-text-color); }
+.public-site .header_top .menu a { color: var(--menu-link); }
+.public-site .header_top .menu a.active,
+.public-site .header_top .menu a:hover { color: var(--orange); }
+.public-site .fixed .brand_container span,
+.public-site .fixed .menu a { color: #fff; }
+.public-site .fixed .menu a.active,
+.public-site .fixed .menu a:hover { color: var(--orange); }
+
+/* A real button replaces the checkbox/label without changing its footprint. */
+.public-site .menu-btn { border: 0; padding: 0; background: transparent; line-height: 1; }
+.public-site .menu-btn svg { fill: var(--menu-link); }
+.public-site .fixed .menu-btn svg,
+.public-site .is-open .menu-btn svg { fill: #fff; }
+.public-site a:focus-visible,
+.public-site button:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; }
+
+.public-site #main-content { min-height: 65vh; padding-top: 90px; }
+.public-site #main-content:focus,
+.public-site h1:focus { outline: none; }
+.migration-placeholder { padding-top: 90px; padding-bottom: 90px; }
+.migration-placeholder h1 { color: var(--primary-text-color); font-weight: 900; }
+.public-site .gotop { text-decoration: none; }
+.public-site .gotop.is-visible { display: flex; }
+
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 1400; padding: 12px; background: #fff; color: var(--primary-text-color); }
+.skip-link:focus { top: 12px; }
+.foundation-diagnostics { margin-top: 32px; max-width: 440px; }
+
+/* Keep the theme's existing 1400px switch and full-screen menu geometry. */
+@media (max-width: 1400px) {
+    .public-site .header_top .menu ul { visibility: hidden; }
+    .public-site .header_top .menu.is-open ul { left: 0; visibility: visible; }
+    .public-site .header_top .menu.is-open ul li a { margin-left: 0; color: #fff; }
+    .public-site .header_top .menu.is-open ul li a.active,
+    .public-site .header_top .menu.is-open ul li a:hover { color: var(--orange); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .public-site .menu ul,
+    .public-site .menu a,
+    .public-site .gotop { transition: none; }
+}

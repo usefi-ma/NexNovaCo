@@ -1,0 +1,43 @@
+@implements IDisposable
+@inject NavigationManager Navigation
+
+@* Home's approved header; page-specific heroes are deferred to Phase 2. *@
+<header class="container-fluid main_menu" @onkeydown="HandleKeyDown">
+    <div class="row header_top">
+        <div class="col-3">
+            <div class="brand_container">
+                <NavLink href="" Match="NavLinkMatch.All" aria-label="NexNovaCo home" @onclick="CloseMenu">
+                    <img src="image/logo.png" alt="NexNovaCo logo" />
+                    <span>NexNovaCo</span>
+                </NavLink>
+            </div>
+        </div>
+        <nav class="menu col-9 @(_isOpen ? "is-open" : null)" aria-label="Primary">
+            <MobileNavigation @ref="_mobileNavigation" IsOpen="_isOpen" OnToggle="ToggleMenu" />
+            <PrimaryNavigation Id="primary-navigation" OnNavigate="CloseMenu" />
+        </nav>
+    </div>
+</header>
+
+@code {
+    private bool _isOpen;
+    private MobileNavigation? _mobileNavigation;
+
+    protected override void OnInitialized() => Navigation.LocationChanged += LocationChanged;
+    private void ToggleMenu() => _isOpen = !_isOpen;
+    private void CloseMenu() => _isOpen = false;
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape" && _isOpen)
+        {
+            CloseMenu();
+            if (_mobileNavigation is not null) await _mobileNavigation.FocusAsync();
+        }
+    }
+
+    private void LocationChanged(object? sender, LocationChangedEventArgs args)
+        => _ = InvokeAsync(() => { CloseMenu(); StateHasChanged(); });
+
+    public void Dispose() => Navigation.LocationChanged -= LocationChanged;
+}

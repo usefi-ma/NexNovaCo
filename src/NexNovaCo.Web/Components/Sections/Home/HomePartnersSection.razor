@@ -1,0 +1,20 @@
+<section class="partnership" aria-label="@Heading.Title">
+    <div class="container">
+        <div class="row partnership_row">
+            <div class="col-12 partnership_header"><SectionHeader Content="Heading" /></div>
+        </div>
+        <div class="row">
+            <ThemeCarousel Kind="partners" Label="Our partners" @key="Items">
+                @for (var i = 0; i < Items.Count; i++)
+                {
+                    <div class="item" data-aos="fade-up" data-aos-delay="@(i * 100)"><PartnerCard Content="Items[i]" /></div>
+                }
+            </ThemeCarousel>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public SectionHeading Heading { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<Partner> Items { get; set; } = default!;
+}

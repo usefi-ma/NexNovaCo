@@ -1,0 +1,30 @@
+<section class="about" aria-label="@Content.Title">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 col-lg-12 col-xxl-7">
+                <div class="content">
+                    <div class="row justify-content-center">
+                        <div class="col-md-10">
+                            <h2 data-aos="fade-up" data-aos-delay="0">@Content.Title</h2>
+                            <h5 data-aos="fade-up" data-aos-delay="100">@Content.Introduction</h5>
+                            @for (var i = 0; i < Content.Paragraphs.Count; i++)
+                            {
+                                <p data-aos="fade-up" data-aos-delay="@((i + 2) * 100)">@Content.Paragraphs[i]</p>
+                            }
+                            <a class="custome_btn" data-aos="fade-up" data-aos-delay="400" href="@Content.CtaHref">@Content.CtaLabel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-5 position-relative about_pic" data-aos="fade-left" aria-hidden="true">
+                <div class="hexagon back_hexagon"></div>
+                <div class="hexagon white_hexagon"></div>
+                <div class="hexagon image_hexagon"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public WelcomeContent Content { get; set; } = default!;
+}

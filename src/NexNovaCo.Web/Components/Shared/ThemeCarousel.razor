@@ -1,0 +1,22 @@
+@* A static rendering boundary for Owl's temporary wrappers/clones. Razor owns all card content.
+   Do not add Blazor events/stateful children here. Change content by remounting with @key, not diffing
+   plugin-owned DOM. The Home module destroys Owl when this root leaves the document. *@
+<div class="owl-carousel owl-theme @ThemeClass" data-carousel-kind="@Kind"
+     role="region" aria-roledescription="carousel" aria-label="@Label">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Kind { get; set; } = default!;
+    [Parameter, EditorRequired] public string Label { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    private bool _rendered;
+    private string ThemeClass => Kind switch {
+        "projects" => "owl-carousel_project",
+        "partners" => "owl-carousel_partners",
+        "testimonials" => "owl-carousel_testimonial",
+        _ => throw new InvalidOperationException($"Unsupported theme carousel: {Kind}")
+    };
+    protected override void OnAfterRender(bool firstRender) => _rendered = true;
+    protected override bool ShouldRender() => !_rendered;
+}

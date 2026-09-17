@@ -1,0 +1,10 @@
+<div class="number_content">
+    <h3 class="number" data-count-value="@Content.Value" aria-label="@Content.Value">
+        <span aria-hidden="true" data-count-display>@Content.Value</span>
+    </h3>
+    <span class="number_title">@Content.Label</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Statistic Content { get; set; } = default!;
+}

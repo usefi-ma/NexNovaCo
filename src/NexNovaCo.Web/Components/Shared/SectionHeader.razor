@@ -1,0 +1,18 @@
+@* The shared title/description pattern only; section wrappers own layout and color. *@
+@if (UseThirdLevelHeading)
+{
+    <h3 data-aos="fade-up" data-aos-delay="0">@Content.Title</h3>
+}
+else
+{
+    <h2 data-aos="fade-up" data-aos-delay="0">@Content.Title</h2>
+}
+@if (!string.IsNullOrEmpty(Content.Description))
+{
+    <p data-aos="fade-up" data-aos-delay="100">@Content.Description</p>
+}
+
+@code {
+    [Parameter, EditorRequired] public SectionHeading Content { get; set; } = default!;
+    [Parameter] public bool UseThirdLevelHeading { get; set; }
+}

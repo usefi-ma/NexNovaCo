@@ -1,0 +1,22 @@
+<section class="project" aria-label="@Heading.Title">
+    <div class="container-fluid container-xxl">
+        <div class="row">
+            <div class="col-12 col-md-10 col-lg-10 col-xl-10 col-xxl-12 m-auto">
+                <div class="project_title"><SectionHeader Content="Heading" UseThirdLevelHeading="true" /></div>
+            </div>
+            <ThemeCarousel Kind="projects" Label="Featured projects" @key="Items">
+                @for (var i = 0; i < Items.Count; i++)
+                {
+                    <div class="item project_item" data-aos="fade-up" data-aos-delay="@(i * 100)">
+                        <ProjectCard Content="Items[i]" />
+                    </div>
+                }
+            </ThemeCarousel>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public SectionHeading Heading { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<ProjectSummary> Items { get; set; } = default!;
+}

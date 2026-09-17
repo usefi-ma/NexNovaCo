@@ -1,0 +1,35 @@
+<section class="testimonial" aria-label="Client testimonials">
+    <div class="container-fluid h-100">
+        <div class="row testimonial_container">
+            <div class="col-12 col-md-12 col-lg-6 p-0 h-100">
+                <ThemeCarousel Kind="testimonials" Label="Client testimonials" @key="Items">
+                    @foreach (var item in Items)
+                    {
+                        <div class="item"><TestimonialCard Content="item" /></div>
+                    }
+                </ThemeCarousel>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="row testimonial_shape_row">
+                    <div class="col-lg-11 col-xl-10 p-0 testimonial_shape">
+                        <div class="pentagon_out">
+                            <div class="pentagon_middle" data-aos="fade-right">
+                                <div class="testimonial_shape_content">
+                                    <h2 data-aos="fade-up" data-aos-delay="0">@Brand.Title</h2>
+                                    <hr data-aos="fade-up" data-aos-delay="100" />
+                                    <p data-aos="fade-up" data-aos-delay="200">@Brand.Description</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1 col-xl-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Testimonial> Items { get; set; } = default!;
+    [Parameter, EditorRequired] public SectionHeading Brand { get; set; } = default!;
+}

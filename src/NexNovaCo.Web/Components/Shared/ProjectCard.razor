@@ -1,0 +1,13 @@
+<div class="project_img"><img src="@Content.ImagePath" alt="@(Content.Name + " Project")" loading="lazy" /></div>
+<div class="project_desc">
+    <div class="project_hexagon">
+        <h2>@Content.Name</h2>
+        <h5>@Content.Tagline</h5>
+        <p>@Content.Description</p>
+        <a class="custome_btn" href="@Content.DetailHref" aria-label="@("Read more about " + Content.Name)">Read More</a>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ProjectSummary Content { get; set; } = default!;
+}

@@ -1,0 +1,19 @@
+@if (string.IsNullOrWhiteSpace(Content.Href))
+{
+    <div class="partnership_link">@Logo</div>
+}
+else
+{
+    <a class="partnership_link" href="@Content.Href" aria-label="@Content.Name">@Logo</a>
+}
+<div class="partnership_content">
+    <h4>@Content.Name</h4>
+    <p>@Content.Description</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Partner Content { get; set; } = default!;
+    private RenderFragment Logo => @<div class="partnership_logo @(Content.HasLogoBackground ? "logo_back" : null)">
+        <img src="@Content.ImagePath" alt="@(Content.Name + " logo")" loading="lazy" />
+    </div>;
+}

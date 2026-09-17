@@ -1,6 +1,7 @@
 using NexNovaCo.Web.Components;
 
 using MudBlazor.Services;
+using NexNovaCo.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
+builder.Services.AddSingleton<IHomeContentService, HomeContentService>();
 
 var app = builder.Build();
 

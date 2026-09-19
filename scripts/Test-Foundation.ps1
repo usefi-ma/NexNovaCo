@@ -20,7 +20,9 @@ $routes = [ordered]@{ '' = 'Home'; about = 'About'; services = 'Services'; proje
 $renderedAssets = [Collections.Generic.HashSet[string]]::new()
 foreach ($route in $routes.GetEnumerator()) {
     $html = (Get-Resource $route.Key).Content
-    $hasHeading = if ($route.Key -eq '') { $html.Contains('Smart Software') -and $html.Contains('<h1>') } else { $html.Contains("<h1>$($route.Value)</h1>") }
+    $hasHeading = if ($route.Key -eq '') { $html.Contains('Smart Software') -and $html.Contains('<h1>') }
+        elseif ($route.Key -eq 'services') { $html.Contains('What We Offer') -and $html.Contains('services-page') }
+        else { $html.Contains("<h1>$($route.Value)</h1>") }
     Assert-True $hasHeading "Missing heading at /$($route.Key)"
     Assert-True ($html.Contains('aria-label="Primary"') -and $html.Contains('aria-label="Footer"')) "Missing shared navigation at /$($route.Key)"
     Assert-True ($html.Contains('aria-expanded="false"')) "Mobile state missing at /$($route.Key)"

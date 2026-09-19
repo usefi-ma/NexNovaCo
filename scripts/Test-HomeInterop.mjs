@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { initialize } from '../src/NexNovaCo.Web/wwwroot/js/home.js';
 
 class Element extends EventTarget {
+    offsetTop = 100;
     dataset = {};
     style = {};
     attributes = new Map();
@@ -50,7 +51,8 @@ function fixture(reduced = false) {
     jquery.fn = { owlCarousel: { Constructor: { Plugins: { AutoHeight: {} } } } };
     const windowMock = new EventTarget();
     Object.assign(windowMock, {
-        jQuery: jquery, innerHeight: 900, matchMedia: () => media,
+        jQuery: jquery, innerHeight: 900, scrollY: 0, matchMedia: () => media,
+        requestAnimationFrame: () => 1, cancelAnimationFrame: () => {},
         countUp: { CountUp: class {
             constructor() { this.starts = 0; this.resets = 0; countInstances.push(this); }
             start() { this.starts++; }
@@ -72,6 +74,9 @@ function fixture(reduced = false) {
         observe() {}
         disconnect() { this.disconnected = true; }
     };
+    globalThis.ResizeObserver = class {
+        observe() {} disconnect() {}
+    };
     return { root, carousel, nav, stage, animated, media, counter, display, calls, intersections, mutations, countInstances,
         instance: () => instance,
         remove() { root.isConnected = false; mutations[0].callback(); } };
@@ -82,11 +87,11 @@ test('initialization is idempotent; detach destroys the plugin and disconnects o
     initialize(f.root);
     initialize(f.root);
     assert.equal(f.calls.filter(x => x === 'init').length, 1);
-    assert.equal(f.intersections.length, 2);
+    assert.equal(f.intersections.length, 1);
     assert.equal(f.mutations.length, 1);
     assert.equal(f.root.dataset.homeEnhanced, 'true');
     assert.equal(f.carousel.dataset.autoplay, 'playing');
-    f.intersections[1].callback([{ isIntersecting: true, target: f.counter }]);
+    f.intersections[0].callback([{ isIntersecting: true, target: f.counter }]);
     assert.equal(f.countInstances[0].starts, 1);
     f.remove();
     assert.equal(f.calls.filter(x => x === 'destroy.owl.carousel').length, 1);
@@ -110,7 +115,7 @@ test('reduced motion disables autoplay/counting and shows final readable content
     assert.equal(f.root.dataset.reducedMotion, 'true');
     assert.equal(f.display.textContent, '3,000');
     assert.ok(f.animated.classes.has('aos-animate'));
-    f.intersections[1].callback([{ isIntersecting: true, target: f.counter }]);
+    f.intersections[0].callback([{ isIntersecting: true, target: f.counter }]);
     assert.equal(f.countInstances.length, 0);
     f.media.matches = false;
     f.media.dispatchEvent(new Event('change'));

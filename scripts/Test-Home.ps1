@@ -74,7 +74,7 @@ foreach ($image in $images) {
     $path = [regex]::Match($image.Value, '\bsrc="([^"]+)"').Groups[1].Value
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -UseBasicParsing
 }
-foreach ($path in @('js/home.js', 'js/countUp.umd.js', 'js/countUp.LICENSE.md', 'css/home-blazor.css')) {
+foreach ($path in @('js/home.js', 'js/carousels.js', 'js/countUp.umd.js', 'js/countUp.LICENSE.md', 'css/home-blazor.css', 'css/carousel-blazor.css')) {
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -UseBasicParsing
 }
 Write-Output "PASS: eight ordered Home sections, one H1, typed featured subsets/canonical JSON values, nine detail placeholders, two detail 404s, $($images.Count) images/alt text, Home assets, and no obsolete Home script/loader."

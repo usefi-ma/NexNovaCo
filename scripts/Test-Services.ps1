@@ -87,7 +87,7 @@ foreach ($image in [regex]::Matches($html, '<img\b[^>]*>')) {
     $path = [regex]::Match($image.Value, '\bsrc="([^"]+)"').Groups[1].Value
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -UseBasicParsing
 }
-foreach ($path in @('css/service.css', 'css/services-blazor.css', 'js/services.js', 'js/reveal.js')) {
+foreach ($path in @('css/service.css', 'css/inner-page-blazor.css', 'css/services-blazor.css', 'js/services.js', 'js/reveal.js')) {
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -UseBasicParsing
 }
 Write-Output 'PASS: six ordered Services sections, approved text/pricing features, six canonical cards shared with Home, three benefits, five process steps, three disabled pricing actions, six accessible FAQ panels, one H1, images and route-local assets.'

@@ -11,7 +11,7 @@ function fixture(reduced = false) {
         classList: { add: value => classes.add(value), toggle: (value, enabled) => enabled ? classes.add(value) : classes.delete(value) },
         getBoundingClientRect: () => ({ top: 1000 })
     };
-    const root = { isConnected: true, parentNode: {}, dataset: {}, querySelectorAll: selector => selector === '[data-aos]' ? [animated] : [] };
+    const root = Object.assign(new EventTarget(), { isConnected: true, parentNode: {}, dataset: {}, querySelectorAll: selector => selector === '[data-aos]' ? [animated] : [] });
     const browser = new EventTarget();
     Object.assign(browser, { innerHeight: 900, scrollY: 0, matchMedia: () => media,
         requestAnimationFrame: callback => { frames.set(1, callback); return 1; },

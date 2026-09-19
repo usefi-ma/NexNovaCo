@@ -3,84 +3,25 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initialize } from '../src/NexNovaCo.Web/wwwroot/js/home.js';
 
-class Element extends EventTarget {
-    offsetTop = 100;
-    dataset = {};
-    style = {};
-    attributes = new Map();
-    classes = new Set();
-    textContent = '';
-    classList = {
-        add: value => this.classes.add(value),
-        toggle: (value, enabled) => enabled ? this.classes.add(value) : this.classes.delete(value)
-    };
-    setAttribute(name, value) { this.attributes.set(name, value); }
-    getBoundingClientRect() { return { top: 100 }; }
-    querySelectorAll() { return []; }
-    append(child) { this.child = child; }
-    remove() { this.removed = true; }
-    contains(node) { return node === this; }
-}
+import { fixture } from './fixtures/CarouselFixture.mjs';
 
-function fixture(reduced = false) {
-    const media = new EventTarget();
-    media.matches = reduced;
-    const intersections = [], mutations = [], calls = [], countInstances = [];
-    const animated = new Element();
-    animated.dataset.aosDelay = '100';
-    const display = new Element(), counter = new Element();
-    counter.dataset.countValue = '3000';
-    counter.querySelector = () => display;
-    const carousel = new Element(), nav = new Element(), stage = new Element();
-    carousel.dataset.carouselKind = 'projects';
-    carousel.querySelector = selector => selector === '.owl-nav' ? nav : selector === '.owl-stage-outer' ? stage : null;
-    const root = new Element();
-    root.isConnected = true;
-    root.parentNode = {};
-    root.querySelectorAll = selector => ({
-        '[data-carousel-kind]': [carousel], '[data-aos]': [animated], '[data-count-value]': [counter]
-    }[selector] ?? []);
-    let instance;
-    const wrapper = {
-        on() { return this; }, off() { calls.push('off'); return this; },
-        owlCarousel(options) { calls.push('init'); instance = { settings: { ...options, items: 3 }, items: () => Array(5) }; return this; },
-        data() { return instance; },
-        trigger(name) { calls.push(name); if (name === 'destroy.owl.carousel') instance = null; return this; }
-    };
-    const jquery = () => wrapper;
-    jquery.fn = { owlCarousel: { Constructor: { Plugins: { AutoHeight: {} } } } };
-    const windowMock = new EventTarget();
-    Object.assign(windowMock, {
-        jQuery: jquery, innerHeight: 900, scrollY: 0, matchMedia: () => media,
-        requestAnimationFrame: () => 1, cancelAnimationFrame: () => {},
-        countUp: { CountUp: class {
-            constructor() { this.starts = 0; this.resets = 0; countInstances.push(this); }
-            start() { this.starts++; }
-            reset() { this.resets++; }
-        } }
-    });
-    const documentMock = new EventTarget();
-    documentMock.hidden = false;
-    documentMock.createElement = () => new Element();
-    globalThis.window = windowMock;
-    globalThis.document = documentMock;
-    globalThis.IntersectionObserver = class {
-        constructor(callback) { this.callback = callback; intersections.push(this); }
-        observe() {} unobserve() {}
-        disconnect() { this.disconnected = true; }
-    };
-    globalThis.MutationObserver = class {
-        constructor(callback) { this.callback = callback; mutations.push(this); }
-        observe() {}
-        disconnect() { this.disconnected = true; }
-    };
-    globalThis.ResizeObserver = class {
-        observe() {} disconnect() {}
-    };
-    return { root, carousel, nav, stage, animated, media, counter, display, calls, intersections, mutations, countInstances,
-        instance: () => instance,
-        remove() { root.isConnected = false; mutations[0].callback(); } };
-}
+test('responsive carousel refresh reveals replacement loop slides and detaches the refresh listener', () => {
+    const f = fixture();
+    f.animated.offsetTop = 1200;
+    initialize(f.root);
+    assert.equal(f.animated.classes.has('aos-animate'), false);
+    const replacement = f.replaceAnimated();
+    f.refreshCarousel();
+    assert.ok(replacement.classes.has('aos-init'));
+    assert.ok(replacement.classes.has('aos-animate'), 'New visible clones must not stay transparent');
+    assert.equal(replacement.style.transitionDelay, '100ms');
+    assert.equal(f.animated.classes.has('aos-animate'), false, 'Discarded clones are no longer tracked');
+    f.remove();
+    const detached = f.replaceAnimated();
+    f.root.dispatchEvent(new Event('theme:carousel-refreshed'));
+    f.refreshCarousel();
+    assert.equal(detached.classes.has('aos-init'), false, 'Both refresh listeners are removed');
+});
 
 test('initialization is idempotent; detach destroys the plugin and disconnects observers', () => {
     const f = fixture();

@@ -22,6 +22,7 @@ foreach ($route in $routes.GetEnumerator()) {
     $html = (Get-Resource $route.Key).Content
     $hasHeading = if ($route.Key -eq '') { $html.Contains('Smart Software') -and $html.Contains('<h1>') }
         elseif ($route.Key -eq 'services') { $html.Contains('What We Offer') -and $html.Contains('services-page') }
+        elseif ($route.Key -eq 'about') { $html.Contains('About Us') -and $html.Contains('about-page') }
         else { $html.Contains("<h1>$($route.Value)</h1>") }
     Assert-True $hasHeading "Missing heading at /$($route.Key)"
     Assert-True ($html.Contains('aria-label="Primary"') -and $html.Contains('aria-label="Footer"')) "Missing shared navigation at /$($route.Key)"

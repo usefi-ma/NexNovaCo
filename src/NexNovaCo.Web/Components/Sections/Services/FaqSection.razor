@@ -1,0 +1,18 @@
+<section class="FAQ">
+    <div class="container">
+        <div class="row p-2"><div class="col-12 col-lg-9"><SectionHeader Content="Heading" /></div></div>
+        <div class="accordion">
+            @for (var index = 0; index < Questions.Count; index++)
+            {
+                <div @key="Questions[index].Question" class="accordion-item" data-aos="fade-up" data-aos-delay="@(index * 100)">
+                    <FaqItem Content="Questions[index]" InitiallyExpanded="@(index == 0)" />
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public SectionHeading Heading { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<FaqContent> Questions { get; set; } = [];
+}

@@ -1,0 +1,9 @@
+<div class="features_wrapper">
+    <div class="features_icon_wrapper" aria-hidden="true"></div>
+    <h3 class="h4">@Content.Title</h3>
+    <p>@Content.Description</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public BenefitContent Content { get; set; } = default!;
+}

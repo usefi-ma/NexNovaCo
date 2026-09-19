@@ -1,3 +1,5 @@
+import { createReveal } from './reveal.js';
+
 // Transitional Home enhancement. All entity content is rendered by Razor, never fetched/generated here.
 // ThemeCarousel freezes its rendered subtree while Owl temporarily wraps/clones it.
 const sessions = new WeakMap();
@@ -112,23 +114,7 @@ export function initialize(root) {
         root.querySelectorAll('[data-carousel-kind]').forEach(element => cleanup.push(createCarousel(element, motion)));
     }
 
-    // Preserve the bundled AOS CSS/transforms/delays without its global, accumulating refresh listeners.
-    const animated = [...root.querySelectorAll('[data-aos]')];
-    const reveal = (element, visible) => {
-        element.classList.toggle('aos-animate', visible || motion.matches);
-        element.style.transitionDelay = visible && !motion.matches ? `${Number(element.dataset.aosDelay) || 0}ms` : '0ms';
-    };
-    const animationObserver = new IntersectionObserver(entries => {
-        for (const entry of entries) {
-            // Like AOS mirror:false, elements remain revealed after scrolling above the viewport.
-            reveal(entry.target, entry.boundingClientRect.top < window.innerHeight - 120);
-        }
-    }, { rootMargin: '0px 0px -120px 0px' });
-    for (const element of animated) {
-        element.classList.add('aos-init');
-        reveal(element, element.getBoundingClientRect().top < window.innerHeight - 120);
-        animationObserver.observe(element);
-    }
+    const disposeReveal = createReveal(root, motion);
 
     const counterObserver = new IntersectionObserver(entries => {
         for (const entry of entries) {
@@ -145,7 +131,6 @@ export function initialize(root) {
     const applyMotion = () => {
         root.dataset.reducedMotion = String(motion.matches);
         if (motion.matches) {
-            for (const element of animated) reveal(element, true);
             for (const counter of counters) counter.reset();
             root.querySelectorAll('[data-count-value]').forEach(element => {
                 element.querySelector('[data-count-display]').textContent = Number(element.dataset.countValue).toLocaleString('en-US');
@@ -160,7 +145,7 @@ export function initialize(root) {
     const removalObserver = new MutationObserver(() => { if (!root.isConnected) dispose(); });
     const dispose = () => {
         removalObserver.disconnect();
-        animationObserver.disconnect();
+        disposeReveal();
         counterObserver.disconnect();
         motion.removeEventListener('change', applyMotion);
         window.removeEventListener('pagehide', dispose);

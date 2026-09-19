@@ -10,6 +10,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<IHomeContentService, HomeContentService>();
+builder.Services.AddSingleton<IServicesContentService, ServicesContentService>();
 
 var app = builder.Build();
 

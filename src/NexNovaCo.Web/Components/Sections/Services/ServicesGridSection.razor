@@ -1,0 +1,18 @@
+<section class="service" id="Service" aria-label="Our services">
+    <h2 class="visually-hidden">Our services</h2>
+    <div class="container-fluid container-lg container-xl container-xxl">
+        <div class="row justify-content-center">
+            @for (var index = 0; index < Items.Count; index++)
+            {
+                var item = Items[index];
+                <div @key="item.Id" class="col-12 col-sm-6 col-md-4 col-lg-4 col-xxl-3 @(item.Id == "strategy" ? "service_last" : null)" data-aos="fade-up" data-aos-delay="@(index * 100)">
+                    <ServiceCard Content="item" />
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ServiceSummary> Items { get; set; } = [];
+}

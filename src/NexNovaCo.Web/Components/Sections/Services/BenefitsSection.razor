@@ -1,0 +1,22 @@
+<section class="features">
+    <div class="hexagon features_hexagon" data-aos="fade-left" data-aos-delay="0" aria-hidden="true"></div>
+    <div class="hexagon features_inner_hexagon" aria-hidden="true"></div>
+    <div class="container">
+        <div class="row mb-5 p-2"><div class="col-12 col-xl-9"><SectionHeader Content="Heading" /></div></div>
+        <div class="row justify-content-center p-2">
+            @for (var index = 0; index < Items.Count; index++)
+            {
+                <div @key="Items[index].Title" class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-3" data-aos="fade-up" data-aos-delay="@(index * 100)">
+                    <BenefitCard Content="Items[index]" />
+                </div>
+            }
+            @* Original empty fourth column reserves space for the decorative image. *@
+            <div class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-3" aria-hidden="true"></div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public SectionHeading Heading { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<BenefitContent> Items { get; set; } = [];
+}

@@ -1,8 +1,62 @@
 @page "/services"
+@inject IServicesContentService ContentService
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
-@* Phase 1 migration placeholder. Full Services content requires Phase 2 approval. *@
 <PageTitle>Services | NexNovaCo</PageTitle>
-<section class="container migration-placeholder">
-    <h1>Services</h1>
-    <p>Page content will be migrated in a later phase.</p>
-</section>
+<HeadContent>
+    <link rel="stylesheet" href="@Assets["css/service.css"]" />
+    <link rel="stylesheet" href="@Assets["css/services-blazor.css"]" />
+</HeadContent>
+
+@if (_content is not null)
+{
+    <div class="services-page" @ref="_root">
+        <InnerPageHero Content="_content.Hero" />
+        <ServicesGridSection Items="_content.Services" />
+        <BenefitsSection Heading="_content.BenefitsHeading" Items="_content.Benefits" />
+        <ProcessSection Heading="_content.ProcessHeading" Steps="_content.Steps" />
+        <PricingSection Heading="_content.PricingHeading" Plans="_content.Plans" />
+        <FaqSection Heading="_content.FaqHeading" Questions="_content.Questions" />
+    </div>
+}
+
+@code {
+    private ServicesContent? _content;
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private bool _initialized;
+    private bool _disposed;
+    private readonly CancellationTokenSource _lifetime = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _content = await ContentService.GetAsync(_lifetime.Token); }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_content is null || _initialized || _disposed) return;
+        _initialized = true;
+        var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/services.js");
+        if (_disposed)
+        {
+            await module.DisposeAsync();
+            return;
+        }
+        _module = module;
+        await _module.InvokeVoidAsync("initialize", _root);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+        // MutationObserver owns DOM cleanup; no late interop into a detached subtree.
+        if (_module is null) return;
+        try { await _module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+    }
+}

@@ -1,0 +1,18 @@
+<section class="pricing">
+    <div class="container">
+        <div class="row mb-5 p-2"><div class="col-12"><SectionHeader Content="Heading" /></div></div>
+        <div class="row">
+            @for (var index = 0; index < Plans.Count; index++)
+            {
+                <div @key="Plans[index].Name" class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-4" data-aos="fade-up" data-aos-delay="@(index * 100)">
+                    <PricingCard Content="Plans[index]" />
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public SectionHeading Heading { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<PricingPlan> Plans { get; set; } = [];
+}

@@ -1,0 +1,19 @@
+<div class="price_item @Content.Treatment.ToString().ToLowerInvariant()">
+    <h3>@Content.Name</h3>
+    <h4>@Content.Subtitle</h4>
+    <p class="price">@Content.DisplayPrice</p>
+    <ul>
+        @foreach (var feature in Content.Features)
+        {
+            <li>@feature</li>
+        }
+    </ul>
+    <p>Ideal For: @Content.IdealFor</p>
+    <button type="button" class="custome_btn" disabled aria-describedby="@_noticeId" title="Demo pricing — ordering is not available">@Content.CtaLabel</button>
+    <span id="@_noticeId" class="visually-hidden">Demo pricing only. Ordering is not available.</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public PricingPlan Content { get; set; } = default!;
+    private readonly string _noticeId = $"pricing-notice-{Guid.NewGuid():N}";
+}

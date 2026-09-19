@@ -1,0 +1,32 @@
+<section class="how_it_works">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 how_it_works_mobile_header"><SectionHeader Content="Heading" /></div>
+            <div class="main_hexagon_wrapper">
+                <div class="main_horizental_hexagon horizental_hexagon">
+                    <div class="center_hexagon hexagon"><h2>@Heading.Title</h2></div>
+                </div>
+                <ol class="process-steps" aria-label="Process steps">
+                    @foreach (var step in Steps.OrderBy(step => step.Number))
+                    {
+                        <li @key="step.Number" class="outer_horizental_hexagon horizental_hexagon @PositionClass(step.Number)">
+                            <ProcessStep Content="step" />
+                        </li>
+                    }
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public SectionHeading Heading { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<ProcessStepContent> Steps { get; set; } = [];
+
+    // The approved diagram has five slots. Content owns their order, not positioning CSS.
+    private static string PositionClass(int number) => "outer_horizental_hexagon_" + (number switch
+    {
+        1 => "top_left", 2 => "top_right", 3 => "bottom_right", 4 => "bottom_center", 5 => "bottom_left",
+        _ => throw new ArgumentOutOfRangeException(nameof(number), "The approved process diagram supports steps 1–5.")
+    });
+}

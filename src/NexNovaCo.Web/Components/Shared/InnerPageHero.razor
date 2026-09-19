@@ -1,0 +1,27 @@
+@* Inner-page composition stays separate from HomeHero. The page stylesheet owns the image
+   and geometry; the shared shell owns navigation. *@
+<section class="inner_page_header">
+    <div class="col-md-1 col-lg-6 col-xl-7 col-xxl-7 col-xxxl-7 inner_page_header_content">
+        <div class="hexagon hexagon_content" aria-hidden="true"></div>
+        <div class="rectangle_content">
+            <div class="container inner-hero-copy">
+                <div class="row d-flex align-items-center">
+                    <div class="col col-md-10 header_content">
+                        <h1 data-aos="fade-right" data-aos-delay="0"><span class="inner-hero-desktop-heading">@Content.Title</span><span class="inner-hero-mobile-heading">@Content.MobileTitle</span></h1>
+                        <p data-aos="fade-right" data-aos-delay="100">@Content.Description</p>
+                        <a href="@Content.CtaHref" class="custome_btn" data-aos="fade-right" data-aos-delay="200">@Content.CtaLabel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-11 col-lg-6 col-xl-5 col-xxl-5 col-xxxl-5 inner_page_header_pic">
+        <p class="inner-hero-mobile-title" aria-hidden="true">@Content.MobileTitle</p>
+        <div class="hexagon hexagon_with_back" aria-hidden="true"></div>
+        <div class="hexagon hexagon_with_back_back" aria-hidden="true"></div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public InnerPageHeroContent Content { get; set; } = default!;
+}

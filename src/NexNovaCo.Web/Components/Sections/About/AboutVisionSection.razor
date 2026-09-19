@@ -1,0 +1,26 @@
+<section class="vision">
+    <div class="container-fluid h-100">
+        <div class="row h-100 flex-wrap-reverse">
+            <div class="col-12 col-sm-10 col-md-10 col-lg-10 col-xl-4 align-self-center m-auto">
+                <div class="vision_content">
+                    <h2 class="mb-4" data-aos="fade-right" data-aos-delay="0">@Content.Title</h2>
+                    @for (var i = 0; i < Content.Paragraphs.Count; i++)
+                    {
+                        <p data-aos="fade-right" data-aos-delay="@((i + 1) * 100)">@Content.Paragraphs[i]</p>
+                    }
+                    <a href="@Content.CtaHref" class="custome_btn" data-aos="fade-right" data-aos-delay="300">@Content.CtaLabel</a>
+                </div>
+            </div>
+            <div class="col-12 col-md-12 col-lg-12 col-xl-8 pe-0">
+                <div class="right_vision_container">
+                    <div class="right_vision" aria-hidden="true"></div>
+                    <div class="right_vision_long"><img src="@Content.ImagePath" alt="@Content.ImageAlt" loading="lazy" /></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public AboutVisionContent Content { get; set; } = default!;
+}

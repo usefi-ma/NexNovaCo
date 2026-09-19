@@ -11,6 +11,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<IHomeContentService, HomeContentService>();
 builder.Services.AddSingleton<IServicesContentService, ServicesContentService>();
+builder.Services.AddSingleton<IAboutContentService, AboutContentService>();
 
 var app = builder.Build();
 

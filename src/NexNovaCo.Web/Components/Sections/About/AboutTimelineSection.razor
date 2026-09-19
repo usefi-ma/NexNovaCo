@@ -1,0 +1,33 @@
+<section class="history">
+    <div class="container">
+        <div class="row"><div class="col-12 hisory_header"><SectionHeader Content="Content.Heading" /></div></div>
+        <ol class="row history_boxes about-timeline" aria-label="Company milestones">
+            @for (var i = 0; i < Content.Milestones.Count; i++)
+            {
+                var milestone = Content.Milestones[i];
+                var year = milestone.Year.ToString("D4", System.Globalization.CultureInfo.InvariantCulture);
+                <li @key="milestone.Year" class="@SlotClass(i)" data-aos="fade-up" data-aos-delay="@((i + 2) * 100)">
+                    <h3 class="visually-hidden">@year</h3>
+                    @if (i == 1) { <div class="history_content"><p>@milestone.Description</p></div> }
+                    @* Split numerals are decorative; the full year is the accessible heading. *@
+                    <div class="hexagon" aria-hidden="true"><h2 class="up">@year[..2]</h2><h2 class="down">@year[2..]</h2></div>
+                    @if (i != 1) { <div class="history_content"><p>@milestone.Description</p></div> }
+                </li>
+            }
+        </ol>
+        <div class="row mt-4">
+            <div class="col-12 col-md-12 text-center"><a href="@Content.CtaHref" class="custome_btn" data-aos="fade-up" data-aos-delay="500">@Content.CtaLabel</a></div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public AboutTimelineContent Content { get; set; } = default!;
+    private static string SlotClass(int index) => index switch
+    {
+        0 => "col-12 col-sm-12 col-md-6 col-lg-5 col-xl-4 col-xxl-4 left_hisory_hexagon",
+        1 => "col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 col-xxl-3 center_hisory_hexagon",
+        2 => "col-12 col-sm-12 col-md-6 col-lg-6 col-xl-5 col-xxl-5 right_hisory_hexagon",
+        _ => throw new ArgumentOutOfRangeException(nameof(index), "The approved timeline supports three milestones.")
+    };
+}

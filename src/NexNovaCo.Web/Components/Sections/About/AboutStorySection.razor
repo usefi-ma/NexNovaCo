@@ -1,0 +1,21 @@
+<section class="About" id="About">
+    <div class="container">
+        <div class="row">
+            <h2 data-aos="fade-up" data-aos-delay="0">@Content.Title</h2>
+            <p class="sub_title" data-aos="fade-up" data-aos-delay="100">@Content.Subtitle</p>
+            <div class="col-12" data-aos="fade-up" data-aos-delay="200">
+                @foreach (var paragraph in Content.Introduction) { <p>@paragraph</p> }
+            </div>
+        </div>
+        <div class="row" data-aos="fade-up" data-aos-delay="300">
+            <div class="col-12 col-md-6">
+                @foreach (var paragraph in Content.Detail) { <p>@paragraph</p> }
+            </div>
+            <div class="col-12 col-md-6"><p>@Content.Closing</p></div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public AboutStoryContent Content { get; set; } = default!;
+}

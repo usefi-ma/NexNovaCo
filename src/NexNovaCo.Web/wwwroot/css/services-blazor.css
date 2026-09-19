@@ -1,46 +1,4 @@
-/* Route-local adaptations; approved service.css and styles.css remain unchanged. */
-.public-site #main-content:has(.services-page) { padding-top: 0; }
-.public-site:has(.services-page) { letter-spacing: normal; background: #fff; }
-html:has(.services-page) { scrollbar-width: auto; }
-html:has(.services-page)::-webkit-scrollbar { width: revert; height: revert; }
-
-/* Shared shell takes the original inner header's place without duplicating navigation. */
-.public-site:has(.services-page) .header_top { width: 58.33333333%; margin: 0; box-shadow: none; }
-.public-site:has(.services-page) .header_top > .col-3 { width: 30%; padding: 0; }
-.public-site:has(.services-page) .header_top > .menu { width: 70%; padding-left: 0; padding-right: 0; }
-.public-site:has(.services-page) .brand_container span,
-.public-site:has(.services-page) .header_top .menu a { color: #fff; }
-.public-site:has(.services-page) .header_top .menu a.active,
-.public-site:has(.services-page) .header_top .menu a:hover { color: var(--orange); }
-.public-site:has(.services-page) .menu-btn svg { fill: #fff; }
-.public-site:has(.services-page) .header_top.fixed { width: 80%; }
-@media (min-width: 1401px) {
-    .services-page .rectangle_content { padding-top: 90px; }
-}
-@media (max-width: 1400px) {
-    .public-site:has(.services-page) .header_top > .menu { padding-right: 18px; }
-}
-
-/* One logical H1; the second title in the source was a mobile-only visual duplicate. */
-.inner-hero-mobile-heading, .inner-hero-mobile-title { display: none; }
-@media (max-width: 992px) {
-    .services-page .rectangle_content .inner-hero-copy {
-        display: block; position: absolute; width: 1px; height: 1px; padding: 0;
-        margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
-    }
-    .inner-hero-copy .header_content > p, .inner-hero-copy .header_content > a,
-    .inner-hero-desktop-heading { display: none; }
-    .inner-hero-mobile-heading { display: inline; }
-    .inner-hero-mobile-title {
-        display: block; position: absolute; color: #fff; margin: 250px auto 0;
-        text-align: right; z-index: 1; right: 200px; font-weight: 900; font-size: 50px;
-        font-family: "Lato", sans-serif; line-height: 1.2;
-    }
-}
-@media (max-width: 768px) {
-    .inner-hero-mobile-title { text-align: center; left: 0; right: 0; }
-}
-
+/* Services-specific adaptations; shared hero rules live in inner-page-blazor.css. */
 /* Content is available during SSR or if enhancement is unavailable. */
 .services-page:not([data-services-enhanced]) [data-aos] { opacity: 1; transform: none; pointer-events: auto; }
 .services-page [data-aos] { transition-duration: 1000ms; }

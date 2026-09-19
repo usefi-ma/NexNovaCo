@@ -1,7 +1,7 @@
 // Preserve the approved AOS CSS/transforms/delays without global AOS listeners.
 // Caller owns lifecycle; this helper never fetches, creates, or reorders content.
 export function createReveal(root, motion) {
-    const animated = [...root.querySelectorAll('[data-aos]')];
+    let animated = [];
     const reveal = (element, visible) => {
         element.classList.toggle('aos-animate', visible || motion.matches);
         element.style.transitionDelay = visible && !motion.matches ? `${Number(element.dataset.aosDelay) || 0}ms` : '0ms';
@@ -22,17 +22,24 @@ export function createReveal(root, motion) {
     const schedule = () => {
         if (!frame) frame = window.requestAnimationFrame(() => { frame = 0; refresh(); });
     };
-    animated.forEach(element => element.classList.add('aos-init'));
+    const refreshTargets = () => {
+        // Owl replaces loop clones at responsive breakpoints, even when root height is unchanged.
+        animated = [...root.querySelectorAll('[data-aos]')];
+        animated.forEach(element => element.classList.add('aos-init'));
+        refresh();
+    };
+    root.addEventListener('theme:carousel-refreshed', refreshTargets);
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
     motion.addEventListener('change', refresh);
     // Handles font loading and FAQ expansion without an unbounded mutation/refresh loop.
     const resizeObserver = new ResizeObserver(schedule);
     resizeObserver.observe(root);
-    refresh();
+    refreshTargets();
     return () => {
         window.cancelAnimationFrame(frame);
         resizeObserver.disconnect();
+        root.removeEventListener('theme:carousel-refreshed', refreshTargets);
         window.removeEventListener('scroll', schedule);
         window.removeEventListener('resize', schedule);
         motion.removeEventListener('change', refresh);

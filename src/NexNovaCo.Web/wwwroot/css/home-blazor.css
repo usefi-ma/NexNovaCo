@@ -15,23 +15,6 @@ html:has(.home-page)::-webkit-scrollbar { width: revert; height: revert; }
 .home-page [data-aos] { transition-duration: 1000ms; }
 .home-page [data-aos][data-aos-duration="600"] { transition-duration: 600ms; }
 
-/* Progressive fallback if a vendor cannot load; plugin initialization replaces this grid. */
-.home-page .owl-carousel:not(.owl-loaded) { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.home-page .owl-carousel_testimonial:not(.owl-loaded) { display: block; }
-.home-page .owl-carousel_testimonial:not(.owl-loaded) > .item:not(:first-child) { display: none; }
-.home-page .owl-carousel_partners:not(.owl-loaded) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-
-/* Same navigation row; one additional keyboard-accessible pause/play control. */
-.home-page .owl-theme .owl-nav .carousel-pause {
-    width: 35px; height: 35px; line-height: 35px; padding: 0;
-    border-radius: 50%; border: 0; margin: 5px;
-    color: var(--orange); background: rgba(204, 119, 34, 0.1);
-    box-shadow: 5px 5px 30px 0 rgba(204, 119, 34, 0.1);
-}
-.home-page .owl-theme .owl-nav .carousel-pause:hover { background: var(--orange); color: #fff; }
-.home-page .owl-nav button:focus-visible,
-.home-page .owl-dots button:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
-
 /* The original fixed-height testimonial stage pushes controls beneath the footer.
    Keep the panel/photography height intact, but make its controls reachable inside it. */
 @media (min-width: 769px) {
@@ -43,12 +26,6 @@ html:has(.home-page)::-webkit-scrollbar { width: revert; height: revert; }
     }
 }
 
-@media (max-width: 999px) {
-    .home-page .owl-carousel:not(.owl-loaded) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 599px) {
-    .home-page .owl-carousel:not(.owl-loaded) { grid-template-columns: minmax(0, 1fr); }
-}
 @media (prefers-reduced-motion: reduce) {
     .home-page [data-aos] { opacity: 1; transform: none; transition: none; }
     .home-page .service_box, .home-page .team_member_box,

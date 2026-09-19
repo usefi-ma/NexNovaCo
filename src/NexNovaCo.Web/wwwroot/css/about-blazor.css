@@ -1,0 +1,10 @@
+/* About-only semantic/lifecycle adaptations; approved about.css is unchanged. */
+.about-page:not([data-about-enhanced]) [data-aos] { opacity: 1; transform: none; pointer-events: auto; }
+.about-page [data-aos] { transition-duration: 1000ms; }
+.about-page .about-timeline { list-style: none; padding: 0; margin-bottom: 0; }
+.about-page .left_mision .mission-brand-title { font: 900 38px/1.2 "Lato", sans-serif; margin-bottom: .5rem; }
+@media (prefers-reduced-motion: reduce) {
+    .about-page [data-aos] { opacity: 1; transform: none; transition: none; }
+    .about-page .custome_btn, .about-page .partnership_logo,
+    .about-page .partnership_link, .about-page .mision_item { transition: none; }
+}

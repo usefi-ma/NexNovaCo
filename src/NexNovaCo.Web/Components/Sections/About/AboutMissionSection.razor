@@ -1,0 +1,41 @@
+<section class="mision" aria-label="@Content.Title">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col-12 col-sm-10 col-md-6 col-lg-6 col-xl-4 ps-0">
+                <div class="left_mision_container">
+                    <div class="left_mision" data-aos="fade-right" data-aos-delay="0">
+                        <p class="mission-brand-title" data-aos="fade-right" data-aos-delay="0">@Content.Brand.Title</p>
+                        <p data-aos="fade-right" data-aos-delay="100">@Content.Brand.Description</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-6 col-xl-4 m-auto">
+                <div class="mision_content" data-aos="fade-up" data-aos-delay="0">
+                    <h2 class="mb-4">@Content.Title</h2>
+                    @foreach (var paragraph in Content.Paragraphs) { <p>@paragraph</p> }
+                </div>
+            </div>
+            <div class="col-12 col-md-12 col-lg-9 col-xl-4 m-auto">
+                <div class="mision_content" role="list" aria-label="Our commitments">
+                    @for (var i = 0; i < Content.Commitments.Count; i++)
+                    {
+                        <div class="row" role="listitem">
+                            <div class="col-3 col-md-2 col-lg-3 mision_item" aria-hidden="true">
+                                <div class="hexagon" data-aos="flip-left" data-aos-delay="@(i * 100)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16" focusable="false">
+                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-9" data-aos="fade-up" data-aos-delay="@(i * 100)"><span>@Content.Commitments[i]</span></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public AboutMissionContent Content { get; set; } = default!;
+}

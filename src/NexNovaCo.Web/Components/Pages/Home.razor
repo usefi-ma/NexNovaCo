@@ -11,6 +11,7 @@
     <meta name="keywords" content="tech startup, HTML template, startup website, modern design, responsive template, digital agency theme, tech company, business template" />
     @* Original Home rules are route-local and unchanged. Only lifecycle adaptations follow. *@
     <link rel="stylesheet" href="@Assets["css/index.css"]" />
+    <link rel="stylesheet" href="@Assets["css/carousel-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/home-blazor.css"]" />
 </HeadContent>
 
@@ -23,7 +24,7 @@
         <HomeProjectsSection Heading="_content.ProjectsHeading" Items="_content.Projects" />
         <HomeTeamSection Content="_content.Team" Members="_content.Members" />
         <HomeStatisticsSection Items="_content.Statistics" />
-        <HomePartnersSection Heading="_content.PartnersHeading" Items="_content.Partners" />
+        <PartnersSection Heading="_content.PartnersHeading" Items="_content.Partners" />
         <HomeTestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
     </div>
     @if (Environment.IsDevelopment() && Verification == "foundation")

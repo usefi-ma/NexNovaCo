@@ -1,0 +1,68 @@
+@* The source gallery is manual Bootstrap fade, not Owl. Razor owns slides and state;
+   existing Bootstrap CSS supplies the approved frame/arrows, without Bootstrap JS. *@
+@if (Images.Count > 0)
+{
+    <div class="carousel slide carousel-fade inner_project_wrapper_slide project-gallery"
+         role="region" aria-roledescription="carousel" aria-label="@($"{ProjectName} gallery")"
+         tabindex="@(Images.Count > 1 ? "0" : null)" @onkeydown="OnKeyDown"
+         @onpointerdown="OnPointerDown" @onpointerup="OnPointerUp" @onpointercancel="ClearPointer">
+        <div class="carousel-inner">
+            @for (var i = 0; i < Images.Count; i++)
+            {
+                var image = Images[i];
+                <div class="carousel-item @(i == _active ? "active" : null)" role="group" aria-roledescription="slide"
+                     aria-label="@($"{i + 1} of {Images.Count}")" aria-hidden="@(i != _active ? "true" : "false")" inert="@(i != _active)">
+                    <img src="@image.Source" alt="@image.Alt" loading="lazy" draggable="false" @ondragstart:preventDefault="true" />
+                </div>
+            }
+        </div>
+        @if (Images.Count > 1)
+        {
+            <button class="carousel-control-prev" type="button" @onclick="Previous" aria-label="Previous project image">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            </button>
+            <button class="carousel-control-next" type="button" @onclick="Next" aria-label="Next project image">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            </button>
+            <span class="visually-hidden" role="status" aria-live="polite">Image @(_active + 1) of @Images.Count</span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ProjectImage> Images { get; set; } = default!;
+    [Parameter, EditorRequired] public string ProjectName { get; set; } = default!;
+    private IReadOnlyList<ProjectImage>? _previousImages;
+    private int _active;
+    private (long Id, double X, double Y)? _pointer;
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(Images, _previousImages)) return;
+        _previousImages = Images;
+        _active = 0;
+        _pointer = null;
+    }
+    private void Previous() { if (Images.Count > 1) _active = (_active + Images.Count - 1) % Images.Count; }
+    private void Next() { if (Images.Count > 1) _active = (_active + 1) % Images.Count; }
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "ArrowLeft") Previous();
+        if (args.Key == "ArrowRight") Next();
+    }
+    private void OnPointerDown(PointerEventArgs args)
+    {
+        if (args.IsPrimary && args.PointerType is "touch" or "pen") _pointer = (args.PointerId, args.ClientX, args.ClientY);
+    }
+    private void OnPointerUp(PointerEventArgs args)
+    {
+        var start = _pointer;
+        _pointer = null;
+        if (start is null || start.Value.Id != args.PointerId) return;
+        var dx = args.ClientX - start.Value.X;
+        var dy = args.ClientY - start.Value.Y;
+        if (Math.Abs(dx) <= 40 || Math.Abs(dx) <= Math.Abs(dy)) return;
+        if (dx < 0) Next(); else Previous();
+    }
+    private void ClearPointer() => _pointer = null;
+}

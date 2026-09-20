@@ -1,0 +1,23 @@
+/* Approved inner-project.css owns geometry, cropping and <=1200px Features hiding. */
+.project-detail-page:not([data-project-detail-enhanced]) [data-aos] { opacity: 1; transform: none; pointer-events: auto; }
+.project-detail-page [data-aos] { transition-duration: 1000ms; }
+
+/* Preserve the former H1/H4/H3 typography with one logical hero H1. */
+.project-detail-page .project-detail-heading { font-size: calc(1.375rem + 1.5vw); font-weight: 900; margin-bottom: 20px; color: var(--primary-text-color); }
+.project-detail-page .project-metadata-heading { font-size: calc(1.275rem + .3vw); font-weight: 900; margin-bottom: 10px; color: var(--primary-text-color); }
+.project-detail-page .project_features h2 { font-size: calc(1.3rem + .6vw); font-weight: 900; margin-bottom: 30px; color: var(--primary-text-color); }
+@media (min-width: 1200px) {
+    .project-detail-page .project-detail-heading { font-size: 2.5rem; }
+    .project-detail-page .project-metadata-heading { font-size: 1.5rem; }
+    .project-detail-page .project_features h2 { font-size: 1.75rem; }
+}
+
+/* Keep the existing Bootstrap fade and control geometry, with Razor-owned active state.
+   Mounted slides overlap via Bootstrap's float/margin; inactive slides are inert/aria-hidden. */
+.project-detail-page .project-gallery { touch-action: pan-y pinch-zoom; }
+.project-detail-page .project-gallery .carousel-item { display: block; pointer-events: none; }
+.project-detail-page .project-gallery .carousel-item.active { pointer-events: auto; }
+.project-detail-page .project-gallery:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+    .project-detail-page [data-aos] { opacity: 1; transform: none; transition: none; }
+}

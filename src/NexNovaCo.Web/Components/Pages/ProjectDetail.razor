@@ -1,0 +1,44 @@
+@page "/projects/{Slug}"
+@inject IProjectCatalog ProjectCatalog
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>@(_project?.Summary.Name ?? "Project") | NexNovaCo</PageTitle>
+<HeadContent>
+    <link rel="stylesheet" href="@Assets["css/inner-project.css"]" />
+    <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
+    <link rel="stylesheet" href="@Assets["css/project-detail-blazor.css"]" />
+</HeadContent>
+
+@if (_project is not null)
+{
+    @* Remount gallery/reveals when only the route parameter changes. *@
+    <ProjectDetailContent Content="_project" @key="_project.Summary.Slug" />
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+    private Models.ProjectDetail? _project;
+    private readonly CancellationTokenSource _lifetime = new();
+    private int _request;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var request = ++_request;
+        _project = null;
+        try
+        {
+            var project = await ProjectCatalog.GetDetailAsync(Slug, _lifetime.Token);
+            if (request != _request || _lifetime.IsCancellationRequested) return;
+            _project = project;
+            if (project is null) Navigation.NotFound();
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+    }
+
+    public void Dispose()
+    {
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+    }
+}

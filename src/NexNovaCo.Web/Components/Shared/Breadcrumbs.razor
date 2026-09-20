@@ -1,0 +1,13 @@
+<nav aria-label="Breadcrumb" class="breadcrumb" data-aos="fade-up" data-aos-delay="100">
+    <ol class="breadcrumb bg-transparent p-0 mb-2">
+        <li class="breadcrumb-item"><a href="">Home</a></li>
+        <li class="breadcrumb-item"><a href="@ParentHref">@ParentLabel</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@CurrentLabel</li>
+    </ol>
+</nav>
+
+@code {
+    [Parameter, EditorRequired] public string ParentHref { get; set; } = default!;
+    [Parameter, EditorRequired] public string ParentLabel { get; set; } = default!;
+    [Parameter, EditorRequired] public string CurrentLabel { get; set; } = default!;
+}

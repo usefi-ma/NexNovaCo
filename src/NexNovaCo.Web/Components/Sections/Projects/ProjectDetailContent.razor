@@ -1,0 +1,73 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="project-detail-page" @ref="_root">
+    <InnerPageHero Content="Hero" />
+    <section class="inner_project" id="inner-project" aria-label="Project overview">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-2 col-lg-2 col-xl-1 sidebar" aria-hidden="true"></div>
+                <div class="col-12 col-lg-10 col-xl-7">
+                    <div class="inner_project_wrapper">
+                        <ProjectGallery Images="Content.Gallery" ProjectName="@Content.Summary.Name" />
+                        <h2 class="project-detail-heading" data-aos="fade-up" data-aos-delay="0">@Content.Summary.Tagline</h2>
+                        <Breadcrumbs ParentHref="projects" ParentLabel="Projects" CurrentLabel="@Content.Summary.Name" />
+                        <p data-aos="fade-up" data-aos-delay="200">@Content.FullDescription</p>
+                        <div class="project-info-box" data-aos="fade-up" data-aos-delay="300">
+                            <h3 class="project-metadata-heading">Project Details</h3>
+                            <ul>
+                                @if (!string.IsNullOrWhiteSpace(Content.Metadata.Client)) { <li><strong>Client:</strong> @Content.Metadata.Client</li> }
+                                @if (!string.IsNullOrWhiteSpace(Content.Metadata.Category)) { <li><strong>Category:</strong> @Content.Metadata.Category</li> }
+                                @if (!string.IsNullOrWhiteSpace(Content.Metadata.Date)) { <li><strong>Date:</strong> @Content.Metadata.Date</li> }
+                                @if (!string.IsNullOrWhiteSpace(Content.Metadata.Technologies)) { <li><strong>Technologies:</strong> @Content.Metadata.Technologies</li> }
+                            </ul>
+                        </div>
+                        <div class="text_center w-100">
+                            <a href="projects" class="custome_btn" data-aos="fade-left" data-aos-delay="400">View More Projects?</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4 col-xl-4 inner_page_header_pic">
+                    <aside class="hexagon inner_project_content_hexagon" aria-labelledby="project-features-heading" data-aos="fade-left" data-aos-delay="0">
+                        <div class="project_features">
+                            <h2 id="project-features-heading" data-aos="fade-up" data-aos-delay="100">Features of the project</h2>
+                            <ul>
+                                @for (var i = 0; i < Content.Features.Count; i++)
+                                {
+                                    <li data-aos="fade-up" data-aos-delay="@((i + 1) * 100)">@Content.Features[i]</li>
+                                }
+                            </ul>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Models.ProjectDetail Content { get; set; } = default!;
+    private InnerPageHeroContent Hero => new(Content.Summary.Name, Content.Summary.Name,
+        Content.Summary.Description, "Explore the project", $"{Content.Summary.DetailHref}#inner-project");
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private bool _disposed;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _disposed) return;
+        var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/project-detail.js");
+        if (_disposed) { await module.DisposeAsync(); return; }
+        _module = module;
+        await module.InvokeVoidAsync("initialize", _root);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        // The removal observer handles visual cleanup even if the circuit disconnects.
+        if (_module is null) return;
+        try { await _module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+    }
+}

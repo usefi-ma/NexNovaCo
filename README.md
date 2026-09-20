@@ -1,6 +1,6 @@
 # NexNovaCo — Blazor public-site migration
 
-Phase 7: the approved Home, Services, About, Projects listing, Project Detail, Team and Member Detail now render through reusable Razor sections on the .NET 10 / global Interactive Server / **MudBlazor 9.10.0** foundation. Only Contact remains a public-page placeholder. No database, CMS, authentication or business backend has been added. Remaining public-site migration work stays on `feature/blazor-public-site`.
+Phase 8: all eight approved public page types, including Contact, now render through reusable Razor sections on the .NET 10 / global Interactive Server / **MudBlazor 9.10.0** foundation. Contact uses typed content and a Blazor-owned, explicitly demo-only form. No database, CMS, authentication or business backend has been added. Work stays on `feature/blazor-public-site`; final public-site QA and merge require approval.
 
 ## Run locally
 
@@ -26,12 +26,13 @@ src/NexNovaCo.Web/
     Routes.razor              # Router, layout, heading focus
     Layout/                   # MainLayout, header/navigation/footer, reconnect UI
     Shared/                   # Typed cards, headings, carousel boundary, shell helpers
-    Pages/                    # Seven migrated pages, Contact placeholder, infrastructure
+    Pages/                    # Eight migrated public page types and infrastructure
     Sections/Home/            # Home-only sections, including its dedicated hero
     Sections/Services/        # Grid, benefits, process, pricing and FAQ
     Sections/About/           # Story, vision, timeline and mission
     Sections/Projects/        # Project grid/pagination, detail composition and manual gallery
     Sections/Team/            # Team intro/grid and canonical member profile
+    Sections/Contact/         # Contact info, EditForm and titled map embed
     Sections/Shared/          # PartnersSection and TestimonialsSection
   Models/                     # Typed page content and canonical summary/detail contracts
   Services/                   # Replaceable providers and service/partner/project/member/testimonial catalogs
@@ -53,6 +54,9 @@ scripts/Test-ProjectDetailInterop.mjs
 scripts/Test-Team.ps1
 scripts/Test-MemberDetail.ps1
 scripts/Test-TeamInterop.mjs
+scripts/Test-Contact.ps1
+scripts/Test-ContactInterop.mjs
+tests/NexNovaCo.Contact.Tests/ # Dependency-free model/demo-service validation checks
 scripts/fixtures/CarouselFixture.mjs
 scripts/Serve-StaticReference.mjs
 docs/phase-1-verification.md
@@ -62,6 +66,7 @@ docs/phase-4-verification.md
 docs/phase-5-verification.md
 docs/phase-6-verification.md
 docs/phase-7-verification.md
+docs/phase-8-verification.md
 ```
 
 The original root HTML and `assets/` stay in place as the approved static reference. The .NET template's standard `Components/App.razor` and `Components/Routes.razor` locations are intentional. No WebAssembly/client project exists.
@@ -74,7 +79,7 @@ Public routes: `/`, `/about`, `/services`, `/projects`, `/projects/{slug}`, `/te
 
 ## Styling and assets
 
-CSS order is **MudBlazor → existing Bootstrap → AOS/Owl CSS → unchanged styles.css → public-shell.css → Blazor isolated styles**. Route-local HeadContent then loads the unchanged page stylesheet (`index.css`, `service.css`, `about.css`, `project.css`, `inner-project.css`, `team.css` or `member.css`), applicable shared adaptations, and its small `*-blazor.css` file. `inner-page-blazor.css` holds the Services/About/Projects/Project Detail/Team hero and shell adaptations; the distinct Member Detail header uses only `member-blazor.css`. `carousel-blazor.css` holds shared fallback grids and accessible controls. Home and Projects share small `project-card-blazor.css` and `testimonials-blazor.css` semantic typography/control adaptations; their original page styles still own card geometry. The isolated styles only cover template error/reconnect UI. Public components use HTML, not MudBlazor cards/buttons/drawers. Lato/Poppins remain Google Fonts dependencies, as in the static baseline; no Roboto font link was introduced.
+CSS order is **MudBlazor → existing Bootstrap → AOS/Owl CSS → unchanged styles.css → public-shell.css → Blazor isolated styles**. Route-local HeadContent then loads the unchanged page stylesheet (`index.css`, `service.css`, `about.css`, `project.css`, `inner-project.css`, `team.css`, `member.css` or `contact.css`), applicable shared adaptations, and its small `*-blazor.css` file. `inner-page-blazor.css` holds the Services/About/Projects/Project Detail/Team/Contact hero and shell adaptations; the distinct Member Detail header uses only `member-blazor.css`. `carousel-blazor.css` holds shared fallback grids and accessible controls. Home and Projects share small `project-card-blazor.css` and `testimonials-blazor.css` semantic typography/control adaptations; their original page styles still own card geometry. The isolated styles only cover template error/reconnect UI. Public components use HTML, not MudBlazor cards/buttons/drawers. Lato/Poppins remain Google Fonts dependencies, as in the static baseline; no Roboto font link was introduced.
 
 `public-shell.css` carries only the Home header rules formerly embedded in `index.css`, small semantic-button/state adaptations, accessibility focus styles, and placeholder spacing. It keeps the existing 1400px navigation breakpoint, 90px header, orange accents, and footer rules. The hamburger is blue on the pale foundation header at all mobile-menu widths so it remains visible without a hero behind it. Header stacking is below MudBlazor's overlay layers. No mass `!important`, new breakpoint system, or hexagon/asset redesign was introduced. Home loads its original hero geometry through route-local CSS.
 
@@ -84,7 +89,7 @@ Bootstrap and AOS/Owl CSS are active. jQuery 3.1.0, Owl Carousel 2.3.4 and a loc
 
 ## JavaScript boundary
 
-All eight legacy JavaScript files remain unchanged in Git. The global `script.js`, contact handling and project/member DOM binding are dormant. `home.js`, `about.js` and `projects.js` use shared `carousels.js` inside their route roots and destroy observers/plugins when detached. CountUp stays Home-only. All seven migrated pages share `reveal.js`: existing AOS CSS effects use layout offsets, coalesced scroll/resize work and a ResizeObserver. A route-local carousel refresh event updates reveal targets when Owl replaces responsive loop clones. Each route removes its listeners when detached; initialization is idempotent. `services.js`, `project-detail.js` and the Team/Member `team.js` module own only their reveal lifecycles. FAQ expansion and the Project Detail gallery are native Blazor state, with no Bootstrap JavaScript. A static `ThemeCarousel` rendering boundary prevents Blazor from diffing Owl's temporary wrappers/clones. Do not add stateful/event-bound children inside it; remount changed content with a new key. Project Detail does not use that Owl boundary: its approved gallery is a manual Bootstrap fade, retained through Bootstrap CSS and Razor-owned controls. No JavaScript fetches or generates entity content on Blazor routes. See the phase records for lifecycle limitations and transitional dependencies.
+All eight legacy JavaScript files remain unchanged in Git. The global `script.js`, legacy `contact.js` and project/member DOM binding are dormant. `home.js`, `about.js` and `projects.js` use shared `carousels.js` inside their route roots and destroy observers/plugins when detached. CountUp stays Home-only. All eight migrated page types share `reveal.js`: existing AOS CSS effects use layout offsets, coalesced scroll/resize work and a ResizeObserver. A route-local carousel refresh event updates reveal targets when Owl replaces responsive loop clones. Each route removes its listeners when detached; initialization is idempotent. `services.js`, `project-detail.js`, the Team/Member `team.js` module and `contact-page.js` own only their reveal lifecycles. FAQ expansion, the Project Detail gallery and Contact validation/submission/reset are native Blazor state, with no Bootstrap JavaScript. A static `ThemeCarousel` rendering boundary prevents Blazor from diffing Owl's temporary wrappers/clones. Do not add stateful/event-bound children inside it; remount changed content with a new key. Project Detail does not use that Owl boundary: its approved gallery is a manual Bootstrap fade, retained through Bootstrap CSS and Razor-owned controls. No JavaScript fetches or generates entity content on Blazor routes. See the phase records for lifecycle limitations and transitional dependencies.
 
 The new `public-shell.js` module only adds the existing scroll-driven fixed-header/back-to-top behavior, honors reduced motion, and removes event listeners when the layout is disposed. Mobile navigation is Blazor state, not a checkbox or jQuery handler. MudBlazor and `_framework/blazor.web.js` are loaded normally; providers run inside the interactive layout.
 
@@ -101,12 +106,16 @@ With the app running, use PowerShell 7:
 ./scripts/Test-ProjectDetail.ps1
 ./scripts/Test-Team.ps1
 ./scripts/Test-MemberDetail.ps1
+./scripts/Test-Contact.ps1
 node --test scripts/Test-*Interop.mjs
+dotnet run --project tests/NexNovaCo.Contact.Tests
 ```
 
-The eight read-only HTTP suites cover routes, asset integrity/serving, approved content, shared canonical service/partner/project/member cards and testimonials, featured JSON subsets, all seven Project Detail pages/eight ordered gallery images, all six Member Detail profiles/24 ordered skills, safe invalid slugs, decorative pagination, pricing/FAQ/timeline semantics and images. Eighteen Node tests cover interop lifecycle/reduced-motion/resize logic, including Home → Projects → About → Projects, Projects → Detail → Projects → another Detail, and Home → Team → Member → Team → another Member. Text asset comparisons tolerate only Windows checkout line-ending differences; binary comparisons remain exact. They do not replace interactive browser tests or exercise Razor gallery events. For approved comparisons, run `node scripts/Serve-StaticReference.mjs` and open `http://127.0.0.1:5140/team.html`, `member.html?id=emilyjohnson`, `inner-project.html?id=nexconnect`, `project.html`, `about.html` or `service.html`; this loopback-only helper serves root HTML and approved assets, not repository metadata.
+The nine available read-only HTTP suites cover routes, asset integrity/serving, approved content, shared canonical cards, detail records, Contact field/map semantics and images. Twenty available Node tests cover interop lifecycle/reduced-motion/resize logic, including cross-route carousel navigation and Contact reveal cleanup. The dependency-free Contact console harness runs 21 checks against the production model/service source: required fields, whitespace, email, optional subject, exact demo result, cancellation and reset. Text asset comparisons tolerate only Windows checkout line-ending differences; binary comparisons remain exact. These checks do not replace interactive browser testing.
 
-In **Development only**, open `http://localhost:5138/?verify=foundation` to exercise a MudSelect/popover, snackbar and dialog below Home. This opt-in component is absent from normal pages and Production, even with the query parameter. See [Phase 1](docs/phase-1-verification.md), [Phase 2](docs/phase-2-verification.md), [Phase 3](docs/phase-3-verification.md), [Phase 4](docs/phase-4-verification.md), [Phase 5](docs/phase-5-verification.md), [Phase 6](docs/phase-6-verification.md) and [Phase 7](docs/phase-7-verification.md) for verification evidence.
+Phase 8 specifically ran Foundation and Contact HTTP suites, the two Contact Node tests and the 21 C# checks; previous pages received only lightweight HTTP/browser smoke checks, not another full multi-breakpoint comparison. For approved comparisons, run `node scripts/Serve-StaticReference.mjs` and open `http://127.0.0.1:5140/contact.html` (or the other original root HTML pages). This loopback-only helper serves root HTML and approved assets, not repository metadata.
+
+In **Development only**, open `http://localhost:5138/?verify=foundation` to exercise a MudSelect/popover, snackbar and dialog below Home. This opt-in component is absent from normal pages and Production, even with the query parameter. See [Phase 1](docs/phase-1-verification.md), [Phase 2](docs/phase-2-verification.md), [Phase 3](docs/phase-3-verification.md), [Phase 4](docs/phase-4-verification.md), [Phase 5](docs/phase-5-verification.md), [Phase 6](docs/phase-6-verification.md), [Phase 7](docs/phase-7-verification.md) and [Phase 8](docs/phase-8-verification.md) for verification evidence.
 
 ## Home content boundary
 
@@ -114,7 +123,7 @@ In **Development only**, open `http://localhost:5138/?verify=foundation` to exer
 
 ## Next phase — approval required
 
-Recommended Phase 8: inspect and migrate the approved Contact page using Razor, the existing shell and suitable shared hero components. Preserve its responsive layout, contact information and accessible form semantics. Keep submission explicitly demo-only until an email/backend destination and data-handling requirements are separately approved; do not claim messages are sent or stored. Re-run all existing regressions. Do not begin without approval. Database/CMS, admin/dashboard, authentication, email and newsletter services remain deferred. Keep the static reference.
+Recommended next step: an approved final public-site QA and merge review, including known static-design limitations, accessibility advisories, demo content and deployment configuration. Do not merge or begin dashboard work without approval. Database/CMS, admin/dashboard, authentication, email and newsletter services remain deferred. Keep the static reference.
 
 ## Services content boundary
 
@@ -149,3 +158,11 @@ Original fixed card heights remain for visual parity and fit the approved copy a
 `TeamMemberCard` is reused directly, with one typed `Context` parameter: the default `Featured` keeps Home's horizontal portrait hexagon, while `Listing` uses Team's approved vertical hexagon. Original route CSS owns all card geometry. Team reuses `InnerPageHero`; Member Detail intentionally preserves its distinct clipped header, overlapping portrait, centered profile and responsive skills columns. It reuses `Breadcrumbs` and `SocialLinks`, including the original per-icon reveal timing. Configured email/LinkedIn destinations retain accessible names; unconfigured Telegram stays decorative and unfocusable. No profile destinations were invented.
 
 `/team/{slug}` resolves exact canonical IDs, guards stale asynchronous results, keys the profile by slug, and uses `NavigationManager.NotFound()` for missing records. Profile title, H1, breadcrumb, role, biography, skills and links are Razor-bound. There is no member JSON fetch/DOM mutation in browser code. The source's weak white menu-icon contrast at 1366px on the clipped Member header is documented rather than redesigned in this migration; see Phase 7's visual limitations.
+
+## Contact content and submission boundary
+
+`IContactContentService` supplies the approved hero, contact information, labels/placeholders and map configuration as typed records. The source phone/email/address remain demo content, not verified business details. The existing Calgary Tower embed is a typed `Uri`, not arbitrary iframe HTML; its presentation, lazy loading and URL are preserved, with an accessible title added.
+
+`ContactForm` uses `EditForm`, `ContactFormModel` and data annotations. First Name, Last Name, Email and Message reject blank/whitespace values; Subject remains optional. The source email expression is retained, with trimmed email input. Validation messages are associated with fields; a focused live status region replaces the source SweetAlert modal. The textarea starts empty. Successful submission clears all five fields while retaining the rendered form/reveal nodes.
+
+`IContactFormService` is the replacement point for a separately approved future delivery service. The stateless demo implementation validates the model and returns **“Demo form submitted successfully. No message was sent.”** It performs no HTTP/email calls, persistence or logging of submitted values. Form values exist in the normal Interactive Server circuit; this is not a client-only form or a real delivery system. Submit is disabled before interactivity and while awaiting a result. No legacy form listeners, SweetAlert dependency or new backend were introduced. `contact-blazor.css` is scoped to Contact; it preserves source typography for semantic H2 headings and adds validation/status/focus/reveal adaptations only.

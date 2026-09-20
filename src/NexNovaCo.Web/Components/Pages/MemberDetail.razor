@@ -1,0 +1,41 @@
+@page "/team/{Slug}"
+@inject IMemberCatalog MemberCatalog
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>@(_member?.Summary.Name ?? "Team member") | NexNovaCo</PageTitle>
+<HeadContent>
+    <link rel="stylesheet" href="@Assets["css/member.css"]" />
+    <link rel="stylesheet" href="@Assets["css/member-blazor.css"]" />
+</HeadContent>
+
+@if (_member is not null)
+{
+    <MemberProfileContent Content="_member" @key="_member.Summary.Slug" />
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+    private Models.MemberDetail? _member;
+    private readonly CancellationTokenSource _lifetime = new();
+    private int _request;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var request = ++_request;
+        _member = null;
+        try
+        {
+            var member = await MemberCatalog.GetDetailAsync(Slug, _lifetime.Token);
+            if (request != _request || _lifetime.IsCancellationRequested) return;
+            _member = member;
+            if (member is null) Navigation.NotFound();
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+    }
+    public void Dispose()
+    {
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+    }
+}

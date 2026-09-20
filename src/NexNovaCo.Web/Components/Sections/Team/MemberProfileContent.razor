@@ -1,0 +1,76 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="member-detail-page" @ref="_root">
+    @* The source profile header is intentionally distinct from InnerPageHero. *@
+    <div class="member_header">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="member_header_back" aria-hidden="true"></div>
+                <Breadcrumbs ParentHref="team" ParentLabel="Team" CurrentLabel="@Content.Summary.Name" RevealDelay="0" />
+            </div>
+        </div>
+    </div>
+    <section class="member_desc" aria-labelledby="member-name">
+        <div class="container">
+            <div class="row">
+                <div class="member_img hexagon" data-aos="fade-up" data-aos-delay="0">
+                    <img class="team-image" src="@Content.Summary.ImagePath" alt="@Content.Summary.Name" loading="lazy" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <h1 id="member-name" data-aos="fade-up" data-aos-delay="0">@Content.Summary.Name</h1>
+                    <p class="member-role" data-aos="fade-up" data-aos-delay="100">@Content.Summary.Role</p>
+                    <hr data-aos="fade-up" data-aos-delay="200" />
+                    <p data-aos="fade-up" data-aos-delay="300">@Content.Biography</p>
+                </div>
+            </div>
+            <div class="row skills">
+                <div class="col-12 col-md-12">
+                    <h2 id="member-skills-heading" data-aos="fade-up" data-aos-delay="400">Skills</h2>
+                    <hr data-aos="fade-up" data-aos-delay="500" />
+                </div>
+            </div>
+            <div class="row skills" role="list" aria-labelledby="member-skills-heading">
+                @for (var column = 0; column < 2; column++)
+                {
+                    <div class="col-12 col-sm-6 col-md-6 @(column == 0 ? "text-sm-end" : "text-sm-start")" role="presentation" data-aos="fade-up" data-aos-delay="600">
+                        @foreach (var skill in Content.Skills.Skip(column * ColumnSize).Take(ColumnSize))
+                        {
+                            <p role="listitem">@skill</p>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="row">
+                <SocialLinks Name="@Content.Summary.Name" Email="@Content.Summary.Email" LinkedIn="@Content.Summary.LinkedIn" Telegram="@Content.Summary.Telegram" RevealDelay="700" />
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Models.MemberDetail Content { get; set; } = default!;
+    private int ColumnSize => (Content.Skills.Count + 1) / 2;
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private bool _disposed;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _disposed) return;
+        var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/team.js");
+        if (_disposed) { await module.DisposeAsync(); return; }
+        _module = module;
+        await module.InvokeVoidAsync("initialize", _root);
+    }
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        // Client-side removal/pagehide cleanup also works if the server circuit disconnects.
+        if (_module is null) return;
+        try { await _module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+    }
+}

@@ -1,0 +1,35 @@
+/* The original profile header is not an inner-page hero. Adapt only the shared shell. */
+.public-site #main-content:has(.member-detail-page) { padding-top: 0; }
+.public-site:has(.member-detail-page) { letter-spacing: normal; }
+html:has(.member-detail-page) { scrollbar-width: auto; }
+html:has(.member-detail-page)::-webkit-scrollbar { width: revert; height: revert; }
+.public-site:has(.member-detail-page) .header_top { width: 100%; height: 80px; margin: 0; box-shadow: none; }
+.public-site:has(.member-detail-page) .header_top > .col-3 { position: absolute; left: 5%; width: 20%; padding: 0; z-index: 2; }
+.public-site:has(.member-detail-page) .header_top > .menu { width: 100%; padding: 0; }
+.public-site:has(.member-detail-page) .brand_container span,
+.public-site:has(.member-detail-page) .header_top .menu a { color: #fff; }
+.public-site:has(.member-detail-page) .header_top .menu a.active,
+.public-site:has(.member-detail-page) .header_top .menu a:hover { color: var(--orange); }
+.public-site:has(.member-detail-page) .menu-btn svg { fill: #fff; }
+@media (min-width: 1401px) {
+    .member-detail-page .member_header > .container-fluid > .row { padding-top: 80px; }
+}
+@media (max-width: 1400px) {
+    .public-site:has(.member-detail-page) .header_top > .menu { padding-right: 18px; }
+}
+@media (max-width: 1200px) {
+    .public-site:has(.member-detail-page) .header_top > .col-3 { left: 0; }
+}
+
+/* Equivalent source H2/H4 typography with a real profile H1 and Skills H2. */
+.member-detail-page .member_desc h1 { font-size: 38px; font-weight: 900; color: var(--primary-text-color); }
+.member-detail-page .member_desc .member-role,
+.member-detail-page .member_desc h2 { font-family: "Lato", sans-serif; font-size: calc(1.275rem + .3vw); font-weight: 500; line-height: 1.2; margin-bottom: .5rem; color: var(--bs-gray-700); }
+@media (min-width: 1200px) {
+    .member-detail-page .member_desc .member-role, .member-detail-page .member_desc h2 { font-size: 1.5rem; }
+}
+.member-detail-page:not([data-team-enhanced]) [data-aos] { opacity: 1; transform: none; pointer-events: auto; }
+.member-detail-page [data-aos] { transition-duration: 1000ms; }
+@media (prefers-reduced-motion: reduce) {
+    .member-detail-page [data-aos] { opacity: 1; transform: none; transition: none; }
+}

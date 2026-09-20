@@ -1,0 +1,5 @@
+/* A tagline describes the project; it is not a skipped-level heading. Preserve its H5 appearance. */
+.public-site .project_desc .project_hexagon .project-tagline {
+    font: 500 1.25rem/1.2 "Lato", sans-serif;
+    color: var(--bs-gray-100); margin-bottom: 15px;
+}

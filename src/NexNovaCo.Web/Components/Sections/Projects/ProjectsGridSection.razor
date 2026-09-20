@@ -1,0 +1,21 @@
+<section class="project" id="Project" aria-label="Project portfolio">
+    <div class="container-fluid container-xl">
+        <div class="row">
+            @for (var i = 0; i < Items.Count; i++)
+            {
+                <div class="col-12 col-sm-6 col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="@(i * 100)" @key="Items[i].Slug">
+                    <article class="item project_item" aria-label="@Items[i].Name"><ProjectCard Content="Items[i]" /></article>
+                </div>
+            }
+        </div>
+        @* Approved decorative sample only: no links, tab stops or invented page-changing state. *@
+        <div class="pagination" aria-hidden="true">
+            <span>&laquo;</span><span>1</span><span class="active">2</span><span>3</span>
+            <span>4</span><span>5</span><span>6</span><span>&raquo;</span>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ProjectSummary> Items { get; set; } = default!;
+}

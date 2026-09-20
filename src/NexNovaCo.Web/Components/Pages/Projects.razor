@@ -1,8 +1,63 @@
 @page "/projects"
+@inject IProjectsContentService ContentService
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
-@* Phase 1 migration placeholder. Full Projects content requires Phase 2 approval. *@
 <PageTitle>Projects | NexNovaCo</PageTitle>
-<section class="container migration-placeholder">
-    <h1>Projects</h1>
-    <p>Page content will be migrated in a later phase.</p>
-</section>
+<HeadContent>
+    <link rel="stylesheet" href="@Assets["css/project.css"]" />
+    <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
+    <link rel="stylesheet" href="@Assets["css/project-card-blazor.css"]" />
+    <link rel="stylesheet" href="@Assets["css/carousel-blazor.css"]" />
+    <link rel="stylesheet" href="@Assets["css/testimonials-blazor.css"]" />
+    <link rel="stylesheet" href="@Assets["css/projects-blazor.css"]" />
+</HeadContent>
+
+@if (_content is not null)
+{
+    <div class="projects-page" @ref="_root">
+        <InnerPageHero Content="_content.Hero" />
+        <ProjectsGridSection Items="_content.Projects" />
+        <TestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
+    </div>
+}
+
+@code {
+    private ProjectsContent? _content;
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private bool _initialized;
+    private bool _disposed;
+    private readonly CancellationTokenSource _lifetime = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _content = await ContentService.GetAsync(_lifetime.Token); }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_content is null || _initialized || _disposed) return;
+        _initialized = true;
+        var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/projects.js");
+        if (_disposed)
+        {
+            await module.DisposeAsync();
+            return;
+        }
+        _module = module;
+        await _module.InvokeVoidAsync("initialize", _root);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+        // Client-side observers clean plugin-owned DOM without late interop on detached nodes.
+        if (_module is null) return;
+        try { await _module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+    }
+}

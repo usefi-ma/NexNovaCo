@@ -1,0 +1,10 @@
+/* Listing-only lifecycle/semantic adaptations; approved project.css is unchanged. */
+.projects-page:not([data-projects-enhanced]) [data-aos] { opacity: 1; transform: none; pointer-events: auto; }
+.projects-page [data-aos] { transition-duration: 1000ms; }
+/* Decorative pagination never responds like a real control. */
+.projects-page .pagination { pointer-events: none; user-select: none; }
+@media (prefers-reduced-motion: reduce) {
+    .projects-page [data-aos] { opacity: 1; transform: none; transition: none; }
+    .projects-page .project_item, .projects-page .project_hexagon,
+    .projects-page .custome_btn { transition: none; }
+}

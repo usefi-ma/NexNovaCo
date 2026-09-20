@@ -15,17 +15,6 @@ html:has(.home-page)::-webkit-scrollbar { width: revert; height: revert; }
 .home-page [data-aos] { transition-duration: 1000ms; }
 .home-page [data-aos][data-aos-duration="600"] { transition-duration: 600ms; }
 
-/* The original fixed-height testimonial stage pushes controls beneath the footer.
-   Keep the panel/photography height intact, but make its controls reachable inside it. */
-@media (min-width: 769px) {
-    .home-page .owl-carousel_testimonial .owl-nav {
-        position: absolute; left: 0; right: 0; bottom: 28px; margin: 0;
-    }
-    .home-page .owl-carousel_testimonial .owl-dots {
-        position: absolute; left: 0; right: 0; bottom: 4px;
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     .home-page [data-aos] { opacity: 1; transform: none; transition: none; }
     .home-page .service_box, .home-page .team_member_box,

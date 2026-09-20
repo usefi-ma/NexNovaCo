@@ -9,9 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
+builder.Services.AddSingleton<IProjectCatalog, ProjectCatalog>();
 builder.Services.AddSingleton<IHomeContentService, HomeContentService>();
 builder.Services.AddSingleton<IServicesContentService, ServicesContentService>();
 builder.Services.AddSingleton<IAboutContentService, AboutContentService>();
+builder.Services.AddSingleton<IProjectsContentService, ProjectsContentService>();
 
 var app = builder.Build();
 

@@ -8,24 +8,20 @@ namespace NexNovaCo.Web.Services;
 /// editorial Home copy and featured ordering come from index.html. Replace this DI implementation
 /// later, not the rendering components. Content is snapshotted once per application lifetime.
 /// </summary>
-public sealed class HomeContentService(IWebHostEnvironment environment) : IHomeContentService
+public sealed class HomeContentService(IWebHostEnvironment environment, IProjectCatalog projectCatalog) : IHomeContentService
 {
-    private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(environment.WebRootPath));
+    private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(environment.WebRootPath, projectCatalog));
 
     public Task<HomeContent> GetAsync(CancellationToken cancellationToken = default)
         => _content.Value.WaitAsync(cancellationToken);
 
-    private static async Task<HomeContent> LoadAsync(string webRoot)
+    private static async Task<HomeContent> LoadAsync(string webRoot, IProjectCatalog projectCatalog)
     {
-        var projects = await ReadAsync<ProjectJson>(webRoot, "projects.json");
+        var projects = await projectCatalog.GetAsync();
         var members = await ReadAsync<MemberJson>(webRoot, "member.json");
-        // Listing covers intentionally differ from detail galleries (notably NexConnect).
+        // Home keeps its original five featured identities from the same catalog as the listing.
         var featuredProjects = new[] { "nexconnect", "payflowx", "medilink", "tradesync", "eduvance" }
-            .Select(id => {
-                var project = projects.Single(p => p.Id == id);
-                return new ProjectSummary(project.Id, project.Name, project.SecondName, project.Subtitle,
-                    $"image/project/{project.Id}.jpg");
-            }).ToArray();
+            .Select(id => projects.Single(project => project.Slug == id)).ToArray();
         // These short editorial teasers are not duplicate roles/bios; entity identity stays in JSON.
         var featuredMembers = new (string Id, string Introduction)[] {
             ("emilyjohnson", "Passionate about building scalable and efficient software solutions."),
@@ -58,13 +54,7 @@ public sealed class HomeContentService(IWebHostEnvironment environment) : IHomeC
             featuredMembers,
             [new("PROJECTS", 450), new("CLIENTS", 3000), new("EMPLOYEES", 1000), new("AWARDS", 26)],
             PartnerCatalog.Heading, PartnerCatalog.All,
-            [new("Olivia Carter, COO at Alpha Co",
-                ["Partnering with NexNovaCo was a game-changer for our business. Their AI-driven web and mobile solutions streamlined our operations and gave us a competitive edge. The team is professional, responsive, and truly innovative — we saw measurable growth within just months of implementation.",
-                 "We were particularly impressed by their attention to detail and ability to translate our complex requirements into user-friendly, scalable software. NexNovaCo didn't just deliver a solution — they delivered real value."]),
-             new("Daniel Kim, Marketing Director at Tech Co",
-                ["Working with NexNovaCo transformed our digital presence. Their AI-based analytics tools gave us deep insights into customer behavior, helping us improve engagement and retention dramatically. The process was smooth and collaborative from start to finish.",
-                 "What stood out most was their commitment to quality and their genuine passion for innovation. NexNovaCo became more than a vendor — they became a strategic partner in our growth."])],
-            new("NexNovaCo", "NexNovaCo delivers innovative AI-driven, web, and mobile solutions, empowering businesses with cutting-edge technology for growth and success."));
+            TestimonialCatalog.All, TestimonialCatalog.Brand);
     }
 
     private static async Task<T[]> ReadAsync<T>(string root, string name)
@@ -75,7 +65,6 @@ public sealed class HomeContentService(IWebHostEnvironment environment) : IHomeC
     }
 
     // Narrow JSON projections; detail-page data is intentionally not modeled in this phase.
-    private sealed record ProjectJson(string Id, string Name, string SecondName, string Subtitle);
     private sealed record MemberJson(string Id, string Name, string Role, string Image,
         string? Email, string? LinkedIn, string? Telegram);
 }

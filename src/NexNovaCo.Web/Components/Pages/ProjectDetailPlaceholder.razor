@@ -1,5 +1,5 @@
 @page "/projects/{Slug}"
-@inject IHomeContentService ContentService
+@inject IProjectCatalog ProjectCatalog
 @inject NavigationManager Navigation
 
 @* Navigation-only placeholder. Full Project Detail migration is explicitly deferred. *@
@@ -15,7 +15,7 @@
     private ProjectSummary? _project;
     protected override async Task OnParametersSetAsync()
     {
-        _project = (await ContentService.GetAsync()).Projects.FirstOrDefault(p => p.Slug == Slug);
+        _project = (await ProjectCatalog.GetAsync()).FirstOrDefault(p => p.Slug == Slug);
         if (_project is null) Navigation.NotFound();
     }
 }

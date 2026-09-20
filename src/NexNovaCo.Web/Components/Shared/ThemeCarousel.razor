@@ -1,6 +1,6 @@
 @* A static rendering boundary for Owl's temporary wrappers/clones. Razor owns all card content.
    Do not add Blazor events/stateful children here. Change content by remounting with @key, not diffing
-   plugin-owned DOM. The Home module destroys Owl when this root leaves the document. *@
+   plugin-owned DOM. The owning route module destroys Owl when this root leaves the document. *@
 <div class="owl-carousel owl-theme @ThemeClass" data-carousel-kind="@Kind"
      role="region" aria-roledescription="carousel" aria-label="@Label">
     @ChildContent

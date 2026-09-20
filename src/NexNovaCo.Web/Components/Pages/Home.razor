@@ -12,6 +12,8 @@
     @* Original Home rules are route-local and unchanged. Only lifecycle adaptations follow. *@
     <link rel="stylesheet" href="@Assets["css/index.css"]" />
     <link rel="stylesheet" href="@Assets["css/carousel-blazor.css"]" />
+    <link rel="stylesheet" href="@Assets["css/project-card-blazor.css"]" />
+    <link rel="stylesheet" href="@Assets["css/testimonials-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/home-blazor.css"]" />
 </HeadContent>
 
@@ -25,7 +27,7 @@
         <HomeTeamSection Content="_content.Team" Members="_content.Members" />
         <HomeStatisticsSection Items="_content.Statistics" />
         <PartnersSection Heading="_content.PartnersHeading" Items="_content.Partners" />
-        <HomeTestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
+        <TestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
     </div>
     @if (Environment.IsDevelopment() && Verification == "foundation")
     {

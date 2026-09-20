@@ -2,6 +2,8 @@
 
 Completed 2026-09-19. Scope: `/projects` only, on the existing .NET 10 / Interactive Server / MudBlazor 9.10.0 foundation. Project Detail remains a navigation-only placeholder. The original `project.html`, `assets/css/project.css`, global theme styles, project JSON, Home cards, testimonial/carousel implementation and detail stub were inspected before implementation.
 
+Follow-up: the separately approved 768px testimonial fix is complete; see [section 16](#16-approved-follow-up--projects-testimonial-breakpoint-fix). Sections 1–15 preserve the original Phase 5 results, including the defect as it existed then.
+
 ## 1. Git status
 
 - Branch throughout: `feature/blazor-public-site`.
@@ -170,3 +172,47 @@ Project Detail, Team, Member Detail and Contact remain placeholders. No database
 ## 15. Recommendation for Phase 6
 
 Inspect approved `inner-project.html`, its stylesheet/interaction script and every canonical JSON detail record before implementation. Reuse `/projects/{slug}` and canonical IDs, but introduce a detail-specific typed model/provider for only the fields actually rendered by the approved detail page. Keep listing covers separate from gallery images; reuse the current shared shell/hero only where the detail composition genuinely matches. Preserve unknown-slug 404s and add direct-link, back-navigation, gallery, lifecycle, accessibility and four-width tests. Continue on this branch with explicit approval. **Phase 6 has not started.**
+
+## 16. Approved follow-up — Projects testimonial breakpoint fix
+
+Verified 2026-09-19, starting from clean `1c83a2f` on `feature/blazor-public-site`. Scope is only the testimonial readability defect, its regression guard and this documentation. No Phase 6 or Project Detail work.
+
+### Root cause
+
+The original reference and the pre-fix Blazor page both reproduce the failure at 768px, but not 767px or 769px. In the unchanged `wwwroot/css/styles.css`, lines 1008–1027 apply through `max-width:768px`: the section gets `project-bg.png` with `cover`, while `.testimonial .testimonial_content` becomes transparent via `background:unset`. Body paragraphs and the quote SVG remain explicitly white (lines 901–915), not accidentally inherited white.
+
+The later-loaded, unchanged `wwwroot/css/project.css`, lines 183–187, applies `.testimonial { background:#fff; }` from `min-width:768px`. At exactly 768px both inclusive queries match. Equal selector specificity and later source order make that shorthand replace the section image with white, also resetting its background sizing/repeat. Transparent slides then expose white behind white copy and the quote icon. At 767px the page rule does not apply; at 769px the shared mobile rule does not apply, so slides retain their dark backgrounds.
+
+This is the two theme media queries overlapping, not Bootstrap's grid breakpoint, inherited text color, Owl state or the shared Blazor carousel adapters.
+
+### Targeted fix and regression guard
+
+- `src/NexNovaCo.Web/wwwroot/css/projects-blazor.css`: within the existing `max-width:768px` range, `.projects-page .testimonial` restores only `background: url(../image/home/project-bg.png) no-repeat` and `background-size:cover`. This matches the working mobile treatment and leaves widths above 768px untouched. The route stylesheet already loads last; no component, text color, layout, breakpoint system, global override or `!important` change is needed.
+- `scripts/Test-Projects.ps1`: guard the served route-scoped rule, stylesheet order after `project.css`, and absence of the Projects adaptation on Home. These assertions complement browser checks; they do not measure rendered contrast.
+- `README.md` and this record: replace the current unresolved status and document the approved follow-up. Original static references, all 82 copied legacy assets and shared components remain unchanged.
+
+### Visual verification
+
+Chrome responsive emulation, 1000px height, using Computer Use screenshots and visible UI. Compared the original reference at 767/768/769px before fixing, then checked the rebuilt Blazor page at all six widths. Screenshots were inspected inline; no pixel-diff or numeric overflow assertion is claimed.
+
+| Width | Result after fix |
+| --- | --- |
+| 1440px | Pass: readable white quote/body on original dark slide, two-column brand panel and controls preserved. |
+| 1366px | Pass: original desktop testimonial/brand geometry and readable body preserved. |
+| 769px | Pass: original dark slide background and horizontal quote/body arrangement preserved. |
+| 768px | Pass: restored dark section background; both Olivia and Daniel quotes readable, mobile arrangement and controls preserved. |
+| 767px | Pass: unchanged mobile background, readable body/quote, attribution and controls. |
+| 390px | Pass: readable phone wrapping, quote, attribution, controls and stacked footer. |
+
+No horizontal overflow was observed at any checked width or on the Home/About/Services regression views.
+
+### Runtime and regression verification
+
+- Debug and Release builds: zero warnings/errors. All five HTTP suites pass, including the new CSS guard and 82-asset integrity check. All 12 Node interop tests pass.
+- Home: desktop testimonial composition and 768px styling remain intact; autoplay, pause (label becomes Play), Next and Left keyboard navigation work.
+- About: has a partners carousel, not a testimonial section. At 768px its three visible partners, autoplay, pause, Next and Left navigation remain functional.
+- Services: hero/grid/footer remain intact at 768px; server-side FAQ opens by click and closes with Space.
+- Projects: both testimonials remain readable at 768px; pause, Next and Left work. Internal navigation Projects → Home → Projects → About → Projects → Services succeeds; Projects Next still works after remount with exactly one control set.
+- Interactive Server: FAQ interactions succeed after the route sequence; console shows the live `_blazor` WebSocket connection, no errors and no warnings. One verbose forced-reflow timing message is not a console warning. Chrome Issues has zero page errors/breaking changes; existing image-dimension and form id/name advisories remain outside this fix.
+
+The focused fix is committed on the existing branch; the handoff supplies its hash and final working-tree status. **Phase 6 remains unstarted and requires approval.**

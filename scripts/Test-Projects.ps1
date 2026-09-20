@@ -80,6 +80,13 @@ for ($i = 0; $i -lt 2; $i++) { Assert-True ($testimonials[$i].Value -ceq $homeTe
 Assert-True ([regex]::Matches($html, 'data-carousel-kind=').Count -eq 1 -and $html.Contains('data-carousel-kind="testimonials"')) 'Only testimonials should be a carousel'
 Assert-True (-not $html.Contains('data-count-value')) 'Projects must not initialize Home counters'
 Assert-True ($html.Contains('href="projects#Project"') -and $html.Contains('id="Project"')) 'Hero requires a working route-safe listing anchor'
+# Guard the served, route-scoped correction for the inclusive 768px media-query overlap.
+# Browser checks at 767/768/769 remain necessary; this is not a layout/contrast engine.
+$projectsCss = (Invoke-WebRequest -Uri ([Uri]::new($baseUri, 'css/projects-blazor.css')) -UseBasicParsing).Content
+Assert-True ([regex]::IsMatch($projectsCss, '@media\s*\(max-width:\s*768px\)\s*\{\s*\.projects-page\s+\.testimonial\s*\{\s*background:\s*url\(\.\./image/home/project-bg\.png\)\s+no-repeat;\s*background-size:\s*cover;\s*\}\s*\}')) 'Projects must restore the existing mobile testimonial background through 768px, scoped to this route'
+$styleLinks = @([regex]::Matches($html, '<link\b[^>]*rel="stylesheet"[^>]*>') | ForEach-Object { $_.Value })
+Assert-True (($styleLinks -join "`n") -match '(?s)css/project\.[^"]*css.*css/projects-blazor\.[^"]*css') 'Projects adaptation must load after the original page stylesheet'
+Assert-True (-not $homeHtml.Contains('css/projects-blazor.')) 'Projects-only adaptation must not load on Home'
 foreach ($obsolete in @('inner-project.html', 'project.html', 'src="js/script.js"', 'src="js/aos.js"', 'src="js/inner-project.js"', 'src="js/bootstrap')) {
     Assert-True (-not $html.Contains($obsolete)) "Obsolete Projects URL/script: $obsolete"
 }

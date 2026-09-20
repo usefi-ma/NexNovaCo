@@ -1,0 +1,122 @@
+@inject IContactFormService FormService
+@implements IDisposable
+
+<div class="contact_form">
+    <EditForm EditContext="_editContext" FormName="contact-demo" id="contactForm"
+              OnValidSubmit="SubmitAsync" OnInvalidSubmit="ShowErrors" novalidate aria-labelledby="contact-form-heading">
+        <DataAnnotationsValidator />
+        <h2 id="contact-form-heading" data-aos="fade-up" data-aos-delay="0">@Content.Heading</h2>
+        <div class="form-row row">
+            <div class="form-group col-md-6" data-aos="fade-up" data-aos-delay="0">
+                <label for="firstName">@Content.FirstName.Label</label>
+                <div class="input-group">
+                    <svg aria-hidden="true" width="16" height="16" fill="currentColor" class="bi bi-person-fill form_icon" viewBox="0 0 16 16"> <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"></path> </svg>
+                    <InputText @bind-Value="_model.FirstName" type="text" class="form-control ps-5" id="firstName" name="firstName"
+                               placeholder="@Content.FirstName.Placeholder" autocomplete="given-name" required aria-describedby="firstName-error" />
+                </div>
+                <div id="firstName-error"><ValidationMessage For="@(() => _model.FirstName)" /></div>
+            </div>
+            <div class="form-group col-md-6" data-aos="fade-up" data-aos-delay="0">
+                <label for="lastName">@Content.LastName.Label</label>
+                <div class="input-group">
+                    <svg aria-hidden="true" width="16" height="16" fill="currentColor" class="bi bi-person-fill form_icon" viewBox="0 0 16 16"> <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"></path> </svg>
+                    <InputText @bind-Value="_model.LastName" type="text" class="form-control ps-5" id="lastName" name="lastName"
+                               placeholder="@Content.LastName.Placeholder" autocomplete="family-name" required aria-describedby="lastName-error" />
+                </div>
+                <div id="lastName-error"><ValidationMessage For="@(() => _model.LastName)" /></div>
+            </div>
+        </div>
+        <div class="form-row row">
+            <div class="form-group col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <label for="email">@Content.Email.Label</label>
+                <div class="input-group">
+                    <svg aria-hidden="true" width="16" height="16" fill="currentColor" class="bi bi-envelope-fill form_icon" viewBox="0 0 16 16"> <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586zm3.436-.586L16 11.801V4.697z"></path> </svg>
+                    <InputText @bind-Value="_model.Email" type="email" class="form-control ps-5" id="email" name="email"
+                               placeholder="@Content.Email.Placeholder" autocomplete="email" required aria-describedby="email-error" />
+                </div>
+                <div id="email-error"><ValidationMessage For="@(() => _model.Email)" /></div>
+            </div>
+            <div class="form-group col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <label for="subject">@Content.Subject.Label</label>
+                <div class="input-group">
+                    <svg aria-hidden="true" width="16" height="16" fill="currentColor" class="bi bi-pencil-square form_icon" viewBox="0 0 16 16"> <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path> <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"></path> </svg>
+                    <InputText @bind-Value="_model.Subject" type="text" class="form-control ps-5" id="subject" name="subject"
+                               placeholder="@Content.Subject.Placeholder" autocomplete="off" aria-describedby="subject-error" />
+                </div>
+                <div id="subject-error"><ValidationMessage For="@(() => _model.Subject)" /></div>
+            </div>
+        </div>
+        <div class="form-group" data-aos="fade-up" data-aos-delay="300">
+            <label for="message">@Content.Message.Label</label>
+            <div class="input-group message">
+                <svg aria-hidden="true" width="16" height="16" fill="currentColor" class="bi bi-chat-dots-fill form_icon" viewBox="0 0 16 16"> <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"></path> </svg>
+                <InputTextArea @bind-Value="_model.Message" class="form-control ps-5" id="message" name="message"
+                               placeholder="@Content.Message.Placeholder" rows="5" required aria-describedby="message-error" />
+            </div>
+            <div id="message-error"><ValidationMessage For="@(() => _model.Message)" /></div>
+        </div>
+        <div class="form-group text-center" data-aos="fade-up" data-aos-delay="400">
+            <button type="submit" class="custome_btn" id="SubmitButton" disabled="@(!_interactive || _sending)">@Content.SubmitLabel</button>
+        </div>
+    </EditForm>
+    <div aria-live="polite" aria-atomic="true">
+        @if (_status is not null)
+        {
+            <p class="contact-feedback" role="@(_hasErrors ? "alert" : "status")" tabindex="-1" @ref="_feedback">@_status</p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ContactFormContent Content { get; set; } = default!;
+    private ContactFormModel _model = new();
+    private EditContext _editContext = default!;
+    private readonly CancellationTokenSource _lifetime = new();
+    private ElementReference _feedback;
+    private string? _status;
+    private bool _interactive, _sending, _hasErrors, _focusFeedback;
+
+    protected override void OnInitialized() => _editContext = new(_model);
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) { _interactive = true; StateHasChanged(); }
+        if (_focusFeedback)
+        {
+            _focusFeedback = false;
+            await _feedback.FocusAsync();
+        }
+    }
+    private void ShowErrors()
+    {
+        _hasErrors = true;
+        _status = Content.InvalidMessage;
+        _focusFeedback = true;
+    }
+    private async Task SubmitAsync()
+    {
+        if (_sending) return;
+        _sending = true;
+        try
+        {
+            var result = await FormService.SubmitAsync(_model, _lifetime.Token);
+            if (_lifetime.IsCancellationRequested) return;
+            _hasErrors = !result.Succeeded;
+            _status = result.Message;
+            if (result.Succeeded)
+            {
+                // Keep the rendered inputs/reveal nodes stable; valid submission has no errors.
+                _model.Reset();
+                _editContext.MarkAsUnmodified();
+                _editContext.NotifyValidationStateChanged();
+            }
+            _focusFeedback = true;
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        finally { _sending = false; }
+    }
+    public void Dispose()
+    {
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+    }
+}

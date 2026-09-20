@@ -1,0 +1,18 @@
+<section class="map" aria-labelledby="contact-map-heading" data-aos="fade-up" data-aos-delay="0">
+    <div class="container-fluid">
+        <div class="row">
+            <h2 id="contact-map-heading" data-aos="fade-up" data-aos-delay="0">@Content.Heading</h2>
+            <p class="text-muted mb-5" data-aos="fade-up" data-aos-delay="100">@Content.Description</p>
+        </div>
+    </div>
+    <div class="map_container">
+        <div class="opacity_div">
+            <iframe id="CompanyMap" src="@Content.EmbedUrl.AbsoluteUri" title="@Content.Title"
+                    allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public ContactMapContent Content { get; set; } = default!;
+}

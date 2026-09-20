@@ -1,30 +1,30 @@
 /* Shared adaptations for approved inner-page heroes; original theme CSS is unchanged. */
-.public-site #main-content:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) { padding-top: 0; }
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) { letter-spacing: normal; background: #fff; }
-html:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) { scrollbar-width: auto; }
-html:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page))::-webkit-scrollbar { width: revert; height: revert; }
+.public-site #main-content:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) { padding-top: 0; }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) { letter-spacing: normal; background: #fff; }
+html:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) { scrollbar-width: auto; }
+html:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page))::-webkit-scrollbar { width: revert; height: revert; }
 
 /* Shared shell takes the original inner header's place without duplicating navigation. */
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .header_top { width: 58.33333333%; margin: 0; box-shadow: none; }
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .header_top > .col-3 { width: 30%; padding: 0; }
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .header_top > .menu { width: 70%; padding-left: 0; padding-right: 0; }
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .brand_container span,
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .header_top .menu a { color: #fff; }
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .header_top .menu a.active,
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .header_top .menu a:hover { color: var(--orange); }
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .menu-btn svg { fill: #fff; }
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .header_top.fixed { width: 80%; }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top { width: 58.33333333%; margin: 0; box-shadow: none; }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top > .col-3 { width: 30%; padding: 0; }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top > .menu { width: 70%; padding-left: 0; padding-right: 0; }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .brand_container span,
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top .menu a { color: #fff; }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top .menu a.active,
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top .menu a:hover { color: var(--orange); }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .menu-btn svg { fill: #fff; }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top.fixed { width: 80%; }
 @media (min-width: 1401px) {
-    :is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page) .rectangle_content { padding-top: 90px; }
+    :is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page) .rectangle_content { padding-top: 90px; }
 }
 @media (max-width: 1400px) {
-    .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page)) .header_top > .menu { padding-right: 18px; }
+    .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top > .menu { padding-right: 18px; }
 }
 
 /* One logical H1; the second title in the source was a mobile-only visual duplicate. */
 .inner-hero-mobile-heading, .inner-hero-mobile-title { display: none; }
 @media (max-width: 992px) {
-    :is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page) .rectangle_content .inner-hero-copy {
+    :is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page) .rectangle_content .inner-hero-copy {
         display: block; position: absolute; width: 1px; height: 1px; padding: 0;
         margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
     }

@@ -1,0 +1,16 @@
+/* Preserve source H3 typography while giving the page logical H2 sections. */
+.contact-page .contact_info h2, .contact-page .map h2 { margin-bottom: 30px; font-weight: 900; font-size: 2.5rem; color: var(--primary-text-color); }
+.contact-page .left_mision h2 { font-size: 38px; margin-bottom: 20px; color: #fff; }
+.contact-page .map h2 { text-align: center; }
+.contact-page .contact_form input:focus-visible,
+.contact-page .contact_form textarea:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.contact-page .contact_form .validation-message { color: #b42318; font-size: .875rem; margin-top: 5px; }
+.contact-page .contact_form .invalid { box-shadow: inset 0 0 0 1px #b42318; }
+.contact-page .contact-feedback { padding: 12px; border-left: 3px solid var(--orange); color: var(--primary-text-color); background: #f4f9fc; }
+.contact-page .contact-feedback:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.contact-page:not([data-contact-enhanced]) [data-aos] { opacity: 1; transform: none; pointer-events: auto; }
+.contact-page [data-aos] { transition-duration: 1000ms; }
+@media (prefers-reduced-motion: reduce) {
+    .contact-page [data-aos] { opacity: 1; transform: none; transition: none; }
+    .contact-page .custome_btn { transition: none; }
+}

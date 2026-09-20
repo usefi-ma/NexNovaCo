@@ -1,8 +1,64 @@
 @page "/contact"
+@inject IContactContentService ContentService
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
-@* Phase 1 migration placeholder. Full Contact content requires Phase 2 approval. *@
 <PageTitle>Contact | NexNovaCo</PageTitle>
-<section class="container migration-placeholder">
-    <h1>Contact</h1>
-    <p>Page content will be migrated in a later phase.</p>
-</section>
+<HeadContent>
+    <link rel="stylesheet" href="@Assets["css/contact.css"]" />
+    <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
+    <link rel="stylesheet" href="@Assets["css/contact-blazor.css"]" />
+</HeadContent>
+
+@if (_content is not null)
+{
+    <div class="contact-page" @ref="_root">
+        <InnerPageHero Content="_content.Hero" />
+        <section class="contact_info" id="Contact" aria-label="Contact information and form">
+            <div class="container-fluid h-100">
+                <div class="row h-100 flex-wrap-reverse">
+                    <div class="col-12 col-sm-9 col-md-8 col-lg-5 col-xl-4 ps-0">
+                        <ContactInfoPanel Content="_content.Info" />
+                    </div>
+                    <div class="col-12 col-md-12 col-lg-7 col-xl-8">
+                        <ContactForm Content="_content.Form" />
+                    </div>
+                </div>
+            </div>
+        </section>
+        <ContactMap Content="_content.Map" />
+    </div>
+}
+
+@code {
+    private ContactContent? _content;
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private bool _initialized;
+    private bool _disposed;
+    private readonly CancellationTokenSource _lifetime = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _content = await ContentService.GetAsync(_lifetime.Token); }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_content is null || _initialized || _disposed) return;
+        _initialized = true;
+        var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/contact-page.js");
+        if (_disposed) { await module.DisposeAsync(); return; }
+        _module = module;
+        await module.InvokeVoidAsync("initialize", _root);
+    }
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+        if (_module is null) return;
+        try { await _module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+    }
+}

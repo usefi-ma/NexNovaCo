@@ -44,7 +44,7 @@ export function fixture(reduced = false, kind = 'projects') {
             return this;
         },
         off() { calls.push('off'); handlers.clear(); return this; },
-        owlCarousel(options) { calls.push('init'); instance = { settings: { ...options, items: kind === 'partners' ? 4 : 3 }, items: () => Array(kind === 'partners' ? 6 : 5) }; return this; },
+        owlCarousel(options) { calls.push('init'); instance = { settings: { ...options, items: kind === 'partners' ? 4 : kind === 'testimonials' ? 1 : 3 }, items: () => Array(kind === 'partners' ? 6 : kind === 'testimonials' ? 2 : 5) }; return this; },
         data() { return instance; },
         trigger(name) { calls.push(name); if (name === 'destroy.owl.carousel') instance = null; return this; }
     };

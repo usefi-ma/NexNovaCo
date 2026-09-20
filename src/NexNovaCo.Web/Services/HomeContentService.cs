@@ -1,4 +1,3 @@
-using System.Text.Json;
 using NexNovaCo.Web.Models;
 
 namespace NexNovaCo.Web.Services;
@@ -8,32 +7,22 @@ namespace NexNovaCo.Web.Services;
 /// editorial Home copy and featured ordering come from index.html. Replace this DI implementation
 /// later, not the rendering components. Content is snapshotted once per application lifetime.
 /// </summary>
-public sealed class HomeContentService(IWebHostEnvironment environment, IProjectCatalog projectCatalog) : IHomeContentService
+public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog) : IHomeContentService
 {
-    private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(environment.WebRootPath, projectCatalog));
+    private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
     public Task<HomeContent> GetAsync(CancellationToken cancellationToken = default)
         => _content.Value.WaitAsync(cancellationToken);
 
-    private static async Task<HomeContent> LoadAsync(string webRoot, IProjectCatalog projectCatalog)
+    private static async Task<HomeContent> LoadAsync(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog)
     {
         var projects = await projectCatalog.GetAsync();
-        var members = await ReadAsync<MemberJson>(webRoot, "member.json");
+        var members = await memberCatalog.GetAsync();
         // Home keeps its original five featured identities from the same catalog as the listing.
         var featuredProjects = new[] { "nexconnect", "payflowx", "medilink", "tradesync", "eduvance" }
             .Select(id => projects.Single(project => project.Slug == id)).ToArray();
-        // These short editorial teasers are not duplicate roles/bios; entity identity stays in JSON.
-        var featuredMembers = new (string Id, string Introduction)[] {
-            ("emilyjohnson", "Passionate about building scalable and efficient software solutions."),
-            ("emmawilliams", "Leverages data-driven insights and innovative strategies."),
-            ("sophialee", "Crafts user-focused interfaces with sleek, modern design principles."),
-            ("danielkim", "Streamlines deployments and enhances system reliability at scale.")
-        }.Select(feature => {
-            var member = members.Single(m => m.Id == feature.Id);
-            return new TeamMemberSummary(member.Id, member.Name, member.Role, feature.Introduction,
-                member.Image.StartsWith("assets/", StringComparison.Ordinal) ? member.Image[7..] : member.Image,
-                member.Email, member.LinkedIn, member.Telegram);
-        }).ToArray();
+        var featuredMembers = new[] { "emilyjohnson", "emmawilliams", "sophialee", "danielkim" }
+            .Select(id => members.Single(member => member.Slug == id)).ToArray();
 
         return new HomeContent(
             new("Smart Software", "Powerful AI", "Endless Innovation",
@@ -57,14 +46,4 @@ public sealed class HomeContentService(IWebHostEnvironment environment, IProject
             TestimonialCatalog.All, TestimonialCatalog.Brand);
     }
 
-    private static async Task<T[]> ReadAsync<T>(string root, string name)
-    {
-        await using var stream = File.OpenRead(Path.Combine(root, "data", name));
-        return await JsonSerializer.DeserializeAsync<T[]>(stream, new JsonSerializerOptions(JsonSerializerDefaults.Web))
-            ?? throw new InvalidDataException($"The canonical content file {name} was empty.");
-    }
-
-    // Narrow JSON projections; detail-page data is intentionally not modeled in this phase.
-    private sealed record MemberJson(string Id, string Name, string Role, string Image,
-        string? Email, string? LinkedIn, string? Telegram);
 }

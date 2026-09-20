@@ -10,6 +10,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<IProjectCatalog, ProjectCatalog>();
+builder.Services.AddSingleton<IMemberCatalog, MemberCatalog>();
+builder.Services.AddSingleton<ITeamContentService, TeamContentService>();
 builder.Services.AddSingleton<IHomeContentService, HomeContentService>();
 builder.Services.AddSingleton<IServicesContentService, ServicesContentService>();
 builder.Services.AddSingleton<IAboutContentService, AboutContentService>();

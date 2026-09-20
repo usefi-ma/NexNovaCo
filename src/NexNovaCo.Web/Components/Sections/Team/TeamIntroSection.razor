@@ -1,0 +1,35 @@
+<div class="row team_container">
+    <div class="col-12 col-md-6 col-xl-6 col-xxl-6 col-xxxl-5 position-relative team_hexagon" data-aos="fade-right" data-aos-delay="0" aria-hidden="true">
+        <div class="hexagon back_hexagon"></div>
+        <div class="hexagon white_hexagon"></div>
+        <div class="hexagon image_hexagon"></div>
+    </div>
+    <div class="col-12 col-md-12 col-xl-6 col-lg-12 col-xxl-6 col-xxxl-6 team_content">
+        <div class="content">
+            <div class="container">
+                <div class="row">
+                    <div class="team_desc">
+                        <p class="section-subtitle" data-aos="fade-left" data-aos-delay="0">@Eyebrow</p>
+                        <h2 class="mb-4 team_title" data-aos="fade-left" data-aos-delay="0">@Content.Title</h2>
+                        <p data-aos="fade-left" data-aos-delay="100">@Content.Introduction</p>
+                        <div data-aos="fade-left" data-aos-delay="200">
+                            <div class="highlight">
+                                <svg aria-hidden="true" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M12 12a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1h-1.388q0-.527.062-1.054.093-.558.31-.992t.559-.683q.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 9 7.558V11a1 1 0 0 0 1 1zm-6 0a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1H4.612q0-.527.062-1.054.094-.558.31-.992.217-.434.559-.683.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 3 7.558V11a1 1 0 0 0 1 1z" />
+                                </svg>
+                                <span>@Content.Highlight</span>
+                            </div>
+                        </div>
+                        <p data-aos="fade-left" data-aos-delay="300">@Content.Description</p>
+                        <a href="@Content.CtaHref" class="custome_btn" data-aos="fade-left" data-aos-delay="400">@Content.CtaLabel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public TeamSectionContent Content { get; set; } = default!;
+    [Parameter, EditorRequired] public string Eyebrow { get; set; } = default!;
+}

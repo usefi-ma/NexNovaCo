@@ -1,6 +1,6 @@
 <div class="team_member_box">
     <div class="team_member_header">
-        <div class="team_back horizental_hexagon">
+        <div class="team_back @(Context == TeamMemberCardContext.Listing ? "hexagon" : "horizental_hexagon")">
             <a href="@Content.ProfileHref"><img class="team-image" src="@Content.ImagePath" alt="@Content.Name" loading="lazy" /></a>
         </div>
     </div>
@@ -14,4 +14,5 @@
 
 @code {
     [Parameter, EditorRequired] public TeamMemberSummary Content { get; set; } = default!;
+    [Parameter] public TeamMemberCardContext Context { get; set; } = TeamMemberCardContext.Featured;
 }

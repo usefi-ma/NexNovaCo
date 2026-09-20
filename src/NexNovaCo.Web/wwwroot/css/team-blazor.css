@@ -1,0 +1,7 @@
+/* team.css owns card geometry, portrait shape sizing and existing responsive layout. */
+.team-page:not([data-team-enhanced]) [data-aos] { opacity: 1; transform: none; pointer-events: auto; }
+.team-page [data-aos] { transition-duration: 1000ms; }
+@media (prefers-reduced-motion: reduce) {
+    .team-page [data-aos] { opacity: 1; transform: none; transition: none; }
+    .team-page .team_member_box, .team-page .team_member_header { transition: none; }
+}

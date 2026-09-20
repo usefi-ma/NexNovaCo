@@ -24,6 +24,7 @@ foreach ($route in $routes.GetEnumerator()) {
         elseif ($route.Key -eq 'services') { $html.Contains('What We Offer') -and $html.Contains('services-page') }
         elseif ($route.Key -eq 'about') { $html.Contains('About Us') -and $html.Contains('about-page') }
         elseif ($route.Key -eq 'projects') { $html.Contains('Our Projects') -and $html.Contains('projects-page') }
+        elseif ($route.Key -eq 'team') { $html.Contains('Our Team') -and $html.Contains('team-page') }
         else { $html.Contains("<h1>$($route.Value)</h1>") }
     Assert-True $hasHeading "Missing heading at /$($route.Key)"
     Assert-True ($html.Contains('aria-label="Primary"') -and $html.Contains('aria-label="Footer"')) "Missing shared navigation at /$($route.Key)"

@@ -62,7 +62,8 @@ foreach ($slug in @('emilyjohnson', 'emmawilliams', 'sophialee', 'danielkim')) {
     foreach ($value in @($member.name, $member.role, $member.image.Replace('assets/', ''), "team/$slug", $member.email, $member.linkedIn)) {
         if ($value) { Assert-True ($html.Contains($value)) "Non-canonical/missing member content: $value" }
     }
-    Assert-True ((Get-Page "team/$slug").Contains("<h1>$($member.name)</h1>")) "Missing profile placeholder: $slug"
+    $profile = Get-Page "team/$slug"
+    Assert-True ($profile.Contains("<title>$($member.name) | NexNovaCo</title>") -and $profile.Contains('class="member-detail-page"')) "Missing Member Detail route: $slug"
 }
 foreach ($path in @('projects/not-a-project', 'team/not-a-member')) {
     $response = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -SkipHttpErrorCheck
@@ -78,4 +79,4 @@ foreach ($image in $images) {
 foreach ($path in @('js/home.js', 'js/carousels.js', 'js/countUp.umd.js', 'js/countUp.LICENSE.md', 'css/home-blazor.css', 'css/carousel-blazor.css', 'css/project-card-blazor.css', 'css/testimonials-blazor.css')) {
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -UseBasicParsing
 }
-Write-Output "PASS: eight ordered Home sections, one H1, typed featured subsets/canonical JSON values, five Project Detail routes, four member placeholders, two detail 404s, $($images.Count) images/alt text, Home assets, and no obsolete Home script/loader."
+Write-Output "PASS: eight ordered Home sections, one H1, typed featured subsets/canonical JSON values, five Project Detail routes, four Member Detail routes, two detail 404s, $($images.Count) images/alt text, Home assets, and no obsolete Home script/loader."

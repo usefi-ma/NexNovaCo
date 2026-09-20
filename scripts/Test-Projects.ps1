@@ -53,8 +53,8 @@ for ($i = 0; $i -lt $cards.Count; $i++) {
     Assert-True ($card.Contains("aria-label=""Read more about $($project.name)""")) 'Read More requires a descriptive label'
     Assert-True (-not $card.Contains('target="_blank"')) 'Detail route should use normal app navigation'
     $detail = Get-Page "projects/$($project.id)"
-    Assert-True ($detail.Contains("<h1>$($project.name)</h1>") -and $detail.Contains('This project detail page has not been migrated yet.')) 'Detail must remain a working placeholder'
-    Assert-True (-not $detail.Contains('id="projectGallery"') -and -not [regex]::IsMatch($detail, '<script[^>]+src="[^"]*inner-project')) 'Full detail behavior leaked into Phase 5'
+    Assert-True ($detail.Contains("<title>$($project.name) | NexNovaCo</title>") -and $detail.Contains('class="project-detail-page"')) 'Listing link must resolve to the canonical Project Detail'
+    Assert-True (-not $detail.Contains('migration-placeholder') -and -not [regex]::IsMatch($detail, '<script[^>]+src="[^"]*inner-project')) 'Detail must render in Razor without the legacy DOM binder'
 }
 $missing = Invoke-WebRequest -Uri ([Uri]::new($baseUri, 'projects/not-a-project')) -SkipHttpErrorCheck
 Assert-True ($missing.StatusCode -eq 404 -and $missing.Content.Contains('Page not found')) 'Unknown slug must return the 404 shell'
@@ -98,4 +98,4 @@ foreach ($image in [regex]::Matches($html, '<img\b[^>]*>')) {
 foreach ($path in @('css/project.css', 'css/projects-blazor.css', 'css/inner-page-blazor.css', 'css/project-card-blazor.css', 'css/carousel-blazor.css', 'css/testimonials-blazor.css', 'js/projects.js', 'js/carousels.js', 'js/reveal.js')) {
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -UseBasicParsing
 }
-Write-Output 'PASS: three ordered Projects sections, seven canonical cards in approved order, five cards identical to Home, seven detail placeholders and unknown-slug 404, decorative pagination, two shared testimonials, one H1, clean routes, images and shared/route assets.'
+Write-Output 'PASS: three ordered Projects sections, seven canonical cards in approved order, five cards identical to Home, seven Project Detail routes and unknown-slug 404, decorative pagination, two shared testimonials, 768px background guard, one H1, clean routes, images and shared/route assets.'

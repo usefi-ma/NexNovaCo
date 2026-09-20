@@ -54,7 +54,8 @@ foreach ($slug in @('nexconnect', 'payflowx', 'medilink', 'tradesync', 'eduvance
     foreach ($value in @($project.name, $project.secondName, $project.subtitle, "projects/$slug")) {
         Assert-True ($html.Contains($value)) "Non-canonical/missing project content: $value"
     }
-    Assert-True ((Get-Page "projects/$slug").Contains("<h1>$($project.name)</h1>")) "Missing detail placeholder: $slug"
+    $detail = Get-Page "projects/$slug"
+    Assert-True ($detail.Contains("<title>$($project.name) | NexNovaCo</title>") -and $detail.Contains('class="project-detail-page"')) "Missing Project Detail route: $slug"
 }
 foreach ($slug in @('emilyjohnson', 'emmawilliams', 'sophialee', 'danielkim')) {
     $member = $members | Where-Object id -EQ $slug
@@ -77,4 +78,4 @@ foreach ($image in $images) {
 foreach ($path in @('js/home.js', 'js/carousels.js', 'js/countUp.umd.js', 'js/countUp.LICENSE.md', 'css/home-blazor.css', 'css/carousel-blazor.css', 'css/project-card-blazor.css', 'css/testimonials-blazor.css')) {
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -UseBasicParsing
 }
-Write-Output "PASS: eight ordered Home sections, one H1, typed featured subsets/canonical JSON values, nine detail placeholders, two detail 404s, $($images.Count) images/alt text, Home assets, and no obsolete Home script/loader."
+Write-Output "PASS: eight ordered Home sections, one H1, typed featured subsets/canonical JSON values, five Project Detail routes, four member placeholders, two detail 404s, $($images.Count) images/alt text, Home assets, and no obsolete Home script/loader."

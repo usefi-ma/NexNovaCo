@@ -1,5 +1,7 @@
 # Dashboard Phase 1 — Identity, EF Core, and SQLite
 
+Historical Phase 1 report. [Dashboard Phase 2](dashboard-phase-2-home-hero.md) now adds one Home Hero table/editor and extends the test suite; authentication/bootstrap instructions below still apply.
+
 Scope: authentication and a protected Dashboard foundation only. No public registration, recovery, email confirmation, MFA, OAuth, CMS entities/editors, uploads, or content migration.
 
 ## Git and versions

@@ -33,7 +33,9 @@ var identityConnection = new SqliteConnectionStringBuilder(
 if (!Path.IsPathRooted(identityConnection.DataSource))
     identityConnection.DataSource = Path.GetFullPath(identityConnection.DataSource, builder.Environment.ContentRootPath);
 Directory.CreateDirectory(Path.GetDirectoryName(identityConnection.DataSource)!);
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(identityConnection.ConnectionString));
+// The factory also registers a scoped context for Identity's normal HTTP/scoped stores.
+// CMS operations create/dispose their own context instead of retaining one for a circuit.
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseSqlite(identityConnection.ConnectionString));
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
     options.User.RequireUniqueEmail = true;
@@ -65,7 +67,8 @@ builder.Services.AddSingleton<IMemberCatalog, MemberCatalog>();
 builder.Services.AddSingleton<ITeamContentService, TeamContentService>();
 builder.Services.AddSingleton<IContactContentService, ContactContentService>();
 builder.Services.AddSingleton<IContactFormService, DemoContactFormService>();
-builder.Services.AddSingleton<IHomeContentService, HomeContentService>();
+builder.Services.AddScoped<IHomeHeroContentService, HomeHeroContentService>();
+builder.Services.AddScoped<IHomeContentService, HomeContentService>();
 builder.Services.AddSingleton<IServicesContentService, ServicesContentService>();
 builder.Services.AddSingleton<IAboutContentService, AboutContentService>();
 builder.Services.AddSingleton<IProjectsContentService, ProjectsContentService>();

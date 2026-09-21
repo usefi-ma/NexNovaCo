@@ -1,10 +1,12 @@
 # NexNovaCo — Blazor public-site migration
 
-The public-site migration and Phase 9 hardening are merged into `main`. All eight approved public page types remain anonymous on .NET 10 / Interactive Server / **MudBlazor 9.10.0**. Dashboard Phase 1 adds ASP.NET Core Identity, EF Core/SQLite, static HTTP login/logout, and an Admin-only `/dashboard` on the long-lived `feature/dashboard-cms` branch. No CMS editing or business backend has been added. See the [Dashboard authentication setup and verification](docs/dashboard-phase-1-authentication.md) and the earlier [production-hardening report](docs/phase-9-production-hardening.md).
+The public-site migration and Phase 9 hardening are merged into `main`. All eight approved public page types remain anonymous on .NET 10 / Interactive Server / **MudBlazor 9.10.0**. Dashboard Phases 1–2 add ASP.NET Core Identity, EF Core/SQLite, static HTTP login/logout, an Admin-only `/dashboard`, and the first small CMS editor at `/dashboard/home/hero` on the long-lived `feature/dashboard-cms` branch. Only Home Hero text/CTA editing is implemented; other content and the public design remain unchanged. See [Home Hero setup and verification](docs/dashboard-phase-2-home-hero.md), [authentication setup](docs/dashboard-phase-1-authentication.md), and the earlier [production-hardening report](docs/phase-9-production-hardening.md).
 
 ## Run locally
 
 Development initializes the private SQLite Identity database through migrations. It creates no default user: configure your own bootstrap credentials using the [User Secrets instructions](docs/dashboard-phase-1-authentication.md#recommended-net-user-secrets-development-only) before signing in at `/admin/login`. Missing credentials do not affect anonymous public pages. Production account/form flows require HTTPS, including Secure antiforgery cookies.
+
+On the next Development startup, the additive Home Hero migration applies to the same database and initializes approved copy only if the singleton is missing. Existing Admin accounts and saved Hero edits are retained. Stop/restart an existing Visual Studio debugging session to load the new build; no database reset is needed.
 
 Install the verified .NET SDK 10.0.401 (or a compatible servicing patch), then run from the repository root:
 

@@ -3,16 +3,19 @@ using NexNovaCo.Web.Models;
 namespace NexNovaCo.Web.Services;
 
 /// <summary>
-/// Temporary, read-only content provider. Canonical entity values come from the approved JSON;
-/// editorial Home copy and featured ordering come from index.html. Replace this DI implementation
-/// later, not the rendering components. Content is snapshotted once per application lifetime.
+/// Only Hero content is CMS-backed. All other Home content retains its approved static sources.
+/// Hero is read for every request/navigation; saved edits are never held in the static snapshot.
 /// </summary>
-public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog) : IHomeContentService
+public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog,
+    IHomeHeroContentService heroContent) : IHomeContentService
 {
     private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
-    public Task<HomeContent> GetAsync(CancellationToken cancellationToken = default)
-        => _content.Value.WaitAsync(cancellationToken);
+    public async Task<HomeContent> GetAsync(CancellationToken cancellationToken = default)
+    {
+        var content = await _content.Value.WaitAsync(cancellationToken);
+        return content with { Hero = await heroContent.GetAsync(cancellationToken) };
+    }
 
     private static async Task<HomeContent> LoadAsync(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog)
     {
@@ -25,9 +28,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             .Select(id => members.Single(member => member.Slug == id)).ToArray();
 
         return new HomeContent(
-            new("Smart Software", "Powerful AI", "Endless Innovation",
-                "We build high-performance web, mobile, and AI-driven applications to help businesses grow.",
-                "Discover Our Services", "services"),
+            HomeHeroDefaults.Content,
             new("Welcome to NexNovaCo",
                 "Whether you're a startup bringing a bold new idea to life or an enterprise looking to enhance your digital presence, our team is committed to delivering tailored solutions that align with your unique needs.",
                 ["From intuitive user experiences to powerful backend systems, we build software that is not only functional but also optimized for performance, security, and growth.",

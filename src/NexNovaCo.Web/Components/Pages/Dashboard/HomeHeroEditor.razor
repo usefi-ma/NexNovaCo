@@ -1,0 +1,79 @@
+@page "/dashboard/home/hero"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IHomeHeroContentService HeroService
+@inject ILogger<HomeHeroEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Home Hero | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-2">Home Hero</MudText>
+<MudText Class="mb-4">Edit the text and button in the public Home Hero. Changes go live when saved. The image and design remain unchanged.</MudText>
+
+@if (_error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert>
+}
+@if (_saved)
+{
+    <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Home Hero updated successfully.</MudAlert>
+}
+@if (_model is not null)
+{
+    <MudPaper Class="pa-6" Elevation="1">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="home-hero">
+            <DataAnnotationsValidator />
+            <MudTextField @bind-Value="_model.OpeningLine" For="@(() => _model.OpeningLine)" Label="Opening line" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-4" />
+            <MudTextField @bind-Value="_model.EmphasisLine" For="@(() => _model.EmphasisLine)" Label="Emphasis line" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-4" />
+            <MudTextField @bind-Value="_model.ClosingLine" For="@(() => _model.ClosingLine)" Label="Closing line" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-4" />
+            <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" Variant="Variant.Outlined" MaxLength="500" Lines="3" Immediate="true" Disabled="_saving" Class="mb-4" />
+            <MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-4" />
+            <MudTextField @bind-Value="_model.CtaHref" For="@(() => _model.CtaHref)" Label="CTA route" HelperText="A public site route, such as /services. External URLs are not supported." Variant="Variant.Outlined" MaxLength="200" Immediate="true" Disabled="_saving" Class="mb-4" />
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving">@(_saving ? "Saving…" : "Save")</MudButton>
+        </EditForm>
+    </MudPaper>
+}
+<div><a class="admin-public-link" href="/" data-enhance-nav="false" @onclick="OpenHome" @onclick:preventDefault>View Home Page</a></div>
+
+@code {
+    private HomeHeroEditModel? _model;
+    private string? _error;
+    private bool _saving;
+    private bool _saved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _model = await HeroService.GetForEditAsync(); }
+        catch (Exception exception) when (IsExpectedFailure(exception))
+        {
+            Logger.LogError(exception, "Unable to load the Home Hero editor.");
+            _error = "Home Hero could not be loaded. Refresh the page to try again, or contact the site administrator.";
+        }
+    }
+
+    private void ClearSaved() => _saved = false;
+    private void OpenHome() => Navigation.NavigateTo("/", forceLoad: true);
+
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            await HeroService.UpdateAsync(_model);
+            _saved = true;
+        }
+        catch (Exception exception) when (IsExpectedFailure(exception))
+        {
+            Logger.LogError(exception, "Unable to save Home Hero content.");
+            _error = "Home Hero could not be saved. Your changes are still in this form. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+
+    private static bool IsExpectedFailure(Exception exception) =>
+        exception is DbException or DbUpdateException or KeyNotFoundException or UnauthorizedAccessException or ValidationException;
+}

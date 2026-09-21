@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject NavigationManager Navigation
 
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -13,9 +14,17 @@
     </MudAppBar>
     <MudMainContent Class="pa-6 pt-20" id="dashboard-content" tabindex="-1">
         <nav aria-label="Dashboard">
-            <MudNavMenu><MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink></MudNavMenu>
+            <MudNavMenu>
+                <MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+                <MudNavLink Href="/dashboard/home/hero" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home Hero</MudNavLink>
+            </MudNavMenu>
         </nav>
         @Body
-        <a class="admin-public-link" href="/" data-enhance-nav="false">View public website</a>
+        <a class="admin-public-link" href="/" data-enhance-nav="false" @onclick="OpenPublicSite" @onclick:preventDefault>View public website</a>
     </MudMainContent>
 </MudLayout>
+
+@code {
+    // data-enhance-nav only controls SSR enhancement, not interactive Router interception.
+    private void OpenPublicSite() => Navigation.NavigateTo("/", forceLoad: true);
+}

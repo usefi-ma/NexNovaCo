@@ -20,12 +20,12 @@ namespace NexNovaCo.Auth.Tests;
 internal static class AuthChecks
 {
     private static int _checks;
-    private static void Check(bool condition, string message)
+    internal static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);
         _checks++;
     }
-    private static string NewPassword() => "Aa1!" + Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
+    internal static string NewPassword() => "Aa1!" + Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
     private static Dictionary<string, string> Form(string html)
     {
         var result = new Dictionary<string, string>();
@@ -37,7 +37,7 @@ internal static class AuthChecks
         }
         return result;
     }
-    private static async Task<HttpResponseMessage> Login(HttpClient client, string email, string password, string query = "")
+    internal static async Task<HttpResponseMessage> Login(HttpClient client, string email, string password, string query = "")
     {
         var html = await client.GetStringAsync("/admin/login" + query);
         var form = Form(html);
@@ -115,11 +115,11 @@ internal static class AuthChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 1, "Expected one applied initial Identity migration.");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 2, "Expected Identity and Home Hero migrations.");
             Check(!db.Database.HasPendingModelChanges(), "Migration and runtime model must agree.");
             var tables = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table'").ToListAsync();
             Check(new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetUserLogins", "AspNetUserTokens", "AspNetRoleClaims" }.All(tables.Contains), "Identity tables missing.");
-            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x == "sqlite_sequence"), "Unexpected non-Identity schema.");
+            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings"), "Unexpected schema beyond Identity and Home Hero.");
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var admin = await users.FindByEmailAsync(AuthFactory.Email);
             Check(admin is not null && await users.IsInRoleAsync(admin, "Admin"), "Admin must exist and have Admin role.");
@@ -184,20 +184,21 @@ internal static class AuthChecks
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             Check(await db.Users.CountAsync() == 0 && await db.Roles.CountAsync() == 1, "Missing credentials must create the role, not a default user.");
         }
-        Console.WriteLine($"PASS: {_checks} auth checks (HTTP login/logout, antiforgery, roles, lockout, migration/bootstrap, secure cookies and anonymous public routes). No secrets or hashes printed.");
+        await HomeHeroChecks.RunAsync();
+        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, Home Hero persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
     }
 }
 
-internal sealed class AuthFactory(string password, string environment = "Development") : WebApplicationFactory<global::Program>
+internal sealed class AuthFactory(string password, string environment = "Development", string? databasePath = null) : WebApplicationFactory<global::Program>
 {
     public const string Email = "admin@example.invalid";
     public string Password { get; } = password;
-    private readonly string _directory = Path.Combine(Path.GetTempPath(), "NexNovaCo.Auth.Tests", Guid.NewGuid().ToString("N"));
+    public string DatabasePath { get; } = databasePath ?? Path.Combine(Path.GetTempPath(), "NexNovaCo.Auth.Tests", Guid.NewGuid().ToString("N"), "identity.db");
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseContentRoot(Path.GetFullPath("../../../../../src/NexNovaCo.Web", AppContext.BaseDirectory));
         builder.UseEnvironment(environment);
-        builder.UseSetting("ConnectionStrings:IdentityConnection", "Data Source=" + Path.Combine(_directory, "identity.db"));
+        builder.UseSetting("ConnectionStrings:IdentityConnection", "Data Source=" + DatabasePath);
         builder.UseSetting("AdminUser:Email", Email);
         builder.UseSetting("AdminUser:Password", Password);
         builder.UseSetting("Identity:InitializeDatabase", "true");

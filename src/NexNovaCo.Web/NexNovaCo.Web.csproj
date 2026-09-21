@@ -6,12 +6,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <UserSecretsId>NexNovaCo-Web-Development-Identity</UserSecretsId>
     <!-- Keep symbols in build output for debugging, not in the deployable directory. -->
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="[9.10.0]" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="[10.0.12]" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="[10.0.12]" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="[10.0.12]" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +23,9 @@
     <Content Update="wwwroot/js/script.js;wwwroot/js/inner-project.js;wwwroot/js/member.js;wwwroot/js/contact.js;wwwroot/js/bootstrap.min.js;wwwroot/js/aos.js"
              CopyToPublishDirectory="Never" />
     <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
+    <!-- Runtime Identity data is private, never a build/publish asset. -->
+    <Content Remove="App_Data/**;**/*.db;**/*.db-shm;**/*.db-wal;**/*.db-journal" />
+    <None Remove="App_Data/**;**/*.db;**/*.db-shm;**/*.db-wal;**/*.db-journal" />
   </ItemGroup>
 
 </Project>

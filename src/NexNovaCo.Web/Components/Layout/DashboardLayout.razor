@@ -1,0 +1,21 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Primary">
+        <MudText Typo="Typo.h6">NexNovaCo</MudText>
+        <MudSpacer />
+        <AuthorizeView><Authorized Context="auth"><span class="admin-identity">@auth.User.Identity?.Name</span></Authorized></AuthorizeView>
+        <AdminLogout />
+    </MudAppBar>
+    <MudMainContent Class="pa-6 pt-20" id="dashboard-content" tabindex="-1">
+        <nav aria-label="Dashboard">
+            <MudNavMenu><MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink></MudNavMenu>
+        </nav>
+        @Body
+        <a class="admin-public-link" href="/" data-enhance-nav="false">View public website</a>
+    </MudMainContent>
+</MudLayout>

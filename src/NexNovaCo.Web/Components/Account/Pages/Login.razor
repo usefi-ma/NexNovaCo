@@ -1,0 +1,66 @@
+@page "/admin/login"
+@attribute [AllowAnonymous]
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+<PageTitle>Admin login | NexNovaCo</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+
+<MudPaper Class="admin-login-panel pa-6" Elevation="2">
+    <img class="admin-logo" src="image/logo.png" alt="NexNovaCo logo" />
+    <MudText Typo="Typo.h4" HtmlTag="h1">Admin login</MudText>
+    <MudText Class="mt-2 mb-6">NexNovaCo Dashboard</MudText>
+    @if (_error is not null)
+    {
+        <p class="admin-error" role="alert">@_error</p>
+    }
+    @* Static SSR POST: Identity writes the cookie on this HTTP response, never on a circuit. *@
+    <EditForm Model="Input" method="post" FormName="admin-login" OnValidSubmit="LoginAsync" Enhance="false">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="admin-error" role="alert" />
+        <div class="admin-field">
+            <label for="admin-email">Email</label>
+            <InputText id="admin-email" @bind-Value="Input.Email" type="email" autocomplete="username" required maxlength="254" />
+        </div>
+        <div class="admin-field">
+            <label for="admin-password">Password</label>
+            <InputText id="admin-password" @bind-Value="Input.Password" type="password" autocomplete="current-password" required maxlength="256" />
+        </div>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Log in</MudButton>
+    </EditForm>
+    <a class="admin-public-link" href="/" data-enhance-nav="false">Return to public website</a>
+</MudPaper>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromForm] private LoginInput Input { get; set; } = default!;
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+        if (HttpContext.User.IsInRole(IdentityDatabaseInitializer.AdminRole))
+            Navigation.NavigateTo("/dashboard", forceLoad: true);
+    }
+
+    private async Task LoginAsync()
+    {
+        var result = await SignInManager.PasswordSignInAsync(Input.Email.Trim(), Input.Password,
+            isPersistent: false, lockoutOnFailure: true);
+        Input.Password = "";
+        if (result.Succeeded)
+        {
+            // This phase has exactly one Dashboard destination. Never trust a supplied return URL.
+            Navigation.NavigateTo("/dashboard", forceLoad: true);
+            return;
+        }
+        // Identical response for unknown users, wrong passwords, lockout, or disallowed sign-in.
+        _error = "Unable to sign in. Check your credentials and try again later.";
+    }
+
+    public sealed class LoginInput
+    {
+        [Required, EmailAddress, StringLength(254)] public string Email { get; set; } = "";
+        [Required, DataType(DataType.Password), StringLength(256)] public string Password { get; set; } = "";
+    }
+}

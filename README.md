@@ -1,8 +1,10 @@
 # NexNovaCo — Blazor public-site migration
 
-Phases 1–8 and final public-site QA are merged into `main`. All eight approved public page types render through reusable Razor sections on the .NET 10 / global Interactive Server / **MudBlazor 9.10.0** foundation. Phase 9 applies lightweight publish/metadata/demo-safety hardening on `feature/public-site-hardening`; see the [production-hardening report and local publish runbook](docs/phase-9-production-hardening.md). No database, CMS, authentication or business backend has been added, and production deployment still requires the documented launch checks.
+The public-site migration and Phase 9 hardening are merged into `main`. All eight approved public page types remain anonymous on .NET 10 / Interactive Server / **MudBlazor 9.10.0**. Dashboard Phase 1 adds ASP.NET Core Identity, EF Core/SQLite, static HTTP login/logout, and an Admin-only `/dashboard` on the long-lived `feature/dashboard-cms` branch. No CMS editing or business backend has been added. See the [Dashboard authentication setup and verification](docs/dashboard-phase-1-authentication.md) and the earlier [production-hardening report](docs/phase-9-production-hardening.md).
 
 ## Run locally
+
+Development initializes the private SQLite Identity database through migrations. It creates no default user: configure your own bootstrap credentials using the [User Secrets instructions](docs/dashboard-phase-1-authentication.md#recommended-net-user-secrets-development-only) before signing in at `/admin/login`. Missing credentials do not affect anonymous public pages. Production account/form flows require HTTPS, including Secure antiforgery cookies.
 
 Install the verified .NET SDK 10.0.401 (or a compatible servicing patch), then run from the repository root:
 

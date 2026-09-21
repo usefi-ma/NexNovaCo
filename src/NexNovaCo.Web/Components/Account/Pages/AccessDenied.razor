@@ -1,0 +1,14 @@
+@page "/admin/access-denied"
+@attribute [AllowAnonymous]
+
+<PageTitle>Access denied | NexNovaCo</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudPaper Class="admin-login-panel pa-6" Elevation="2">
+    <MudText Typo="Typo.h4" HtmlTag="h1">Access denied</MudText>
+    <MudText Class="my-4">An Admin account is required to access this area.</MudText>
+    <AuthorizeView>
+        <Authorized><AdminLogout /></Authorized>
+        <NotAuthorized><a href="/admin/login" data-enhance-nav="false">Admin login</a></NotAuthorized>
+    </AuthorizeView>
+    <a class="admin-public-link" href="/" data-enhance-nav="false">Return to public website</a>
+</MudPaper>

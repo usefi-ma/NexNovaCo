@@ -7,34 +7,54 @@
     <base href="/" />
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
-    @* Framework resets first; the approved public theme remains authoritative. *@
-    <link rel="stylesheet" href="@Assets["css/bootstrap.min.css"]" />
-    <link rel="stylesheet" href="@Assets["css/aos.css"]" />
-    <link rel="stylesheet" href="@Assets["css/owl.carousel.min.css"]" />
-    <link rel="stylesheet" href="@Assets["css/owl.theme.default.min.css"]" />
-    <link rel="stylesheet" href="@Assets["css/styles.css"]" />
-    <link rel="stylesheet" href="@Assets["css/public-shell.css"]" />
+    @if (IsAdminArea)
+    {
+        <link rel="stylesheet" href="@Assets["css/admin.css"]" />
+    }
+    else
+    {
+        @* Framework resets first; the approved public theme remains authoritative. *@
+        <link rel="stylesheet" href="@Assets["css/bootstrap.min.css"]" />
+        <link rel="stylesheet" href="@Assets["css/aos.css"]" />
+        <link rel="stylesheet" href="@Assets["css/owl.carousel.min.css"]" />
+        <link rel="stylesheet" href="@Assets["css/owl.theme.default.min.css"]" />
+        <link rel="stylesheet" href="@Assets["css/styles.css"]" />
+        <link rel="stylesheet" href="@Assets["css/public-shell.css"]" />
+    }
     <link rel="stylesheet" href="@Assets["NexNovaCo.Web.styles.css"]" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+    @if (!IsAdminArea)
+    {
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+    }
     <link rel="apple-touch-icon" href="@Assets["image/favicon/apple-touch-icon.png"]" />
     @* Existing artwork is non-square; do not advertise inaccurate square dimensions. *@
     <link rel="icon" type="image/png" sizes="32x23" href="@Assets["image/favicon/favicon-32x32.png"]" />
     <link rel="icon" type="image/png" sizes="16x12" href="@Assets["image/favicon/favicon-16x16.png"]" />
     <ImportMap />
-    <HeadOutlet @rendermode="InteractiveServer" />
+    <HeadOutlet @rendermode="PageRenderMode" />
 </head>
 
-<body class="public-site">
-    <Routes @rendermode="InteractiveServer" />
+<body class="@(IsAdminArea ? "admin-site" : "public-site")">
+    <Routes @rendermode="PageRenderMode" />
     <ReconnectModal />
     <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
-    @* Vendor code loads once; route modules initialize and dispose their scoped widgets. *@
-    <script src="@Assets["js/jquery-3.1.0.js"]"></script>
-    <script src="@Assets["js/owl.carousel.min.js"]"></script>
-    <script src="@Assets["js/countUp.umd.js"]"></script>
+    @if (!IsAdminArea)
+    {
+        @* Vendor code loads once; route modules initialize and dispose their scoped widgets. *@
+        <script src="@Assets["js/jquery-3.1.0.js"]"></script>
+        <script src="@Assets["js/owl.carousel.min.js"]"></script>
+        <script src="@Assets["js/countUp.umd.js"]"></script>
+    }
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 
 </html>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    private IComponentRenderMode? PageRenderMode => HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+    private bool IsAdminArea => HttpContext.Request.Path.StartsWithSegments("/admin") ||
+        HttpContext.Request.Path.StartsWithSegments("/dashboard");
+}

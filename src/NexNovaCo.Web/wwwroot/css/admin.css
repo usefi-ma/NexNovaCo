@@ -1,0 +1,13 @@
+/* Admin-only stylesheet; the public theme and its breakpoints are unchanged. */
+.admin-site { margin: 0; background: #f5f6fa; font-family: system-ui, sans-serif; }
+.admin-account-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.admin-login-panel { width: 100%; max-width: 440px; }
+.admin-logo { width: 56px; height: auto; margin-bottom: 16px; }
+.admin-field { margin-bottom: 20px; }
+.admin-field label { display: block; margin-bottom: 6px; font-weight: 600; }
+.admin-field input { width: 100%; border: 1px solid #767676; border-radius: 4px; padding: 12px; background: #fff; color: #202124; font: inherit; }
+.admin-site :focus-visible { outline: 3px solid #1967d2; outline-offset: 3px; }
+.admin-error, .admin-site .validation-message { color: #a31515; margin-block: 12px; }
+.admin-public-link { display: inline-block; margin-top: 24px; color: #174ea6; text-decoration: underline; }
+.admin-identity { margin-right: 20px; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .admin-identity { display: none; } }

@@ -3,18 +3,22 @@ using NexNovaCo.Web.Models;
 namespace NexNovaCo.Web.Services;
 
 /// <summary>
-/// Only Hero content is CMS-backed. All other Home content retains its approved static sources.
-/// Hero is read for every request/navigation; saved edits are never held in the static snapshot.
+/// Hero and Welcome are CMS-backed. Other Home content retains its approved static sources.
+/// Editable content is read on every request/navigation, never held in the static snapshot.
 /// </summary>
 public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog,
-    IHomeHeroContentService heroContent) : IHomeContentService
+    IHomeHeroContentService heroContent, IHomeWelcomeContentService welcomeContent) : IHomeContentService
 {
     private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
     public async Task<HomeContent> GetAsync(CancellationToken cancellationToken = default)
     {
         var content = await _content.Value.WaitAsync(cancellationToken);
-        return content with { Hero = await heroContent.GetAsync(cancellationToken) };
+        return content with
+        {
+            Hero = await heroContent.GetAsync(cancellationToken),
+            Welcome = await welcomeContent.GetAsync(cancellationToken)
+        };
     }
 
     private static async Task<HomeContent> LoadAsync(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog)
@@ -29,11 +33,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
 
         return new HomeContent(
             HomeHeroDefaults.Content,
-            new("Welcome to NexNovaCo",
-                "Whether you're a startup bringing a bold new idea to life or an enterprise looking to enhance your digital presence, our team is committed to delivering tailored solutions that align with your unique needs.",
-                ["From intuitive user experiences to powerful backend systems, we build software that is not only functional but also optimized for performance, security, and growth.",
-                 "Our mission is to empower businesses with smart, scalable, and future-ready digital solutions. From AI-driven automation to tailored app development, we help our clients stay ahead in an ever-evolving digital world. Let's build the future together!"],
-                "Learn more", "about"),
+            HomeWelcomeDefaults.Content,
             new("Our Services", "We specialize in delivering custom software solutions, web and mobile app development, and AI-powered innovations that are tailored to help businesses achieve their goals. We work closely with our clients to understand their unique needs, delivering digital products that enhance efficiency, drive growth, and provide a competitive edge in today's fast-paced market."),
             ServiceCatalog.HomeFeatured,
             new("Our Projects", "We turn ideas into powerful digital solutions. Our projects reflect innovation, precision, and a commitment to excellence. From AI-driven applications to custom software and high-performance web and mobile solutions, we deliver cutting-edge technology that helps businesses grow. Explore our work and see how we bring visions to life with creativity and expertise."),

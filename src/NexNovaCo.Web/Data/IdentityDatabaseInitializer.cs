@@ -17,6 +17,7 @@ public static class IdentityDatabaseInitializer
         var database = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await database.Database.MigrateAsync(cancellationToken);
         await HomeHeroInitializer.InitializeAsync(database, cancellationToken);
+        await HomeWelcomeInitializer.InitializeAsync(database, cancellationToken);
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         if (!await roles.RoleExistsAsync(AdminRole))
             RequireSuccess(await roles.CreateAsync(new IdentityRole(AdminRole)));

@@ -6,10 +6,17 @@
 @inject ILogger<HomeHeroEditor> Logger
 @inject NavigationManager Navigation
 
-<PageTitle>Home Hero | NexNovaCo Dashboard</PageTitle>
-<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
-<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Content / Homepage</MudText>
-<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Home Hero</MudText>
+@if (!Embedded)
+{
+    <PageTitle>Home Hero | NexNovaCo Dashboard</PageTitle>
+    <HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+    <MudText Typo="Typo.overline" Class="dashboard-eyebrow">Content / Homepage</MudText>
+    <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Home Hero</MudText>
+}
+else
+{
+    <MudText Typo="Typo.h5" HtmlTag="h2" Class="mb-3">Hero section</MudText>
+}
 <MudText Class="dashboard-muted mb-7">Shape the first impression. Edit your homepage headline, introduction, and call to action.</MudText>
 
 @if (_error is not null)
@@ -26,7 +33,7 @@
         <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="home-hero">
             <DataAnnotationsValidator />
             <section class="dashboard-editor-section" aria-labelledby="hero-headline-heading">
-                <MudText Typo="Typo.h6" HtmlTag="h2" id="hero-headline-heading">Headline &amp; introduction</MudText>
+                <MudText Typo="Typo.h6" HtmlTag="@(Embedded ? "h3" : "h2")" id="hero-headline-heading">Headline &amp; introduction</MudText>
                 <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Three lines, one message. The second line receives the strongest emphasis.</MudText>
                 <MudGrid Spacing="4">
                     <MudItem xs="12" lg="4"><MudTextField @bind-Value="_model.OpeningLine" For="@(() => _model.OpeningLine)" Label="Opening line" HelperText="Title line 1" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
@@ -37,7 +44,7 @@
             </section>
             <MudDivider />
             <section class="dashboard-editor-section" aria-labelledby="hero-cta-heading">
-                <MudText Typo="Typo.h6" HtmlTag="h2" id="hero-cta-heading">Call to action</MudText>
+                <MudText Typo="Typo.h6" HtmlTag="@(Embedded ? "h3" : "h2")" id="hero-cta-heading">Call to action</MudText>
                 <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Choose the button label and where it takes visitors.</MudText>
                 <MudGrid Spacing="4">
                     <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
@@ -57,6 +64,7 @@
 }
 
 @code {
+    [Parameter] public bool Embedded { get; set; }
     private HomeHeroEditModel? _model;
     private string? _error;
     private bool _saving;

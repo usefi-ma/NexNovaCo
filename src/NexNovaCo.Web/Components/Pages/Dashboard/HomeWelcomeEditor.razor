@@ -1,0 +1,94 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IHomeWelcomeContentService WelcomeService
+@inject ILogger<HomeWelcomeEditor> Logger
+@inject NavigationManager Navigation
+
+<MudText Typo="Typo.h5" HtmlTag="h2" Class="mb-3">Welcome section</MudText>
+<MudText Class="dashboard-muted mb-7">Control the introduction below the Hero. Artwork and layout stay theme-controlled.</MudText>
+@if (_error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert>
+}
+@if (_saved)
+{
+    <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Home Welcome section updated successfully.</MudAlert>
+}
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="home-welcome">
+            <DataAnnotationsValidator />
+            <section class="dashboard-editor-section" aria-labelledby="welcome-content-heading">
+                <MudText Typo="Typo.h6" HtmlTag="h3" id="welcome-content-heading">Content</MudText>
+                <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Keep the existing title, introduction, and two body paragraphs focused and welcoming.</MudText>
+                <MudGrid Spacing="4">
+                    <MudItem xs="12"><MudTextField @bind-Value="_model.Title" For="@(() => _model.Title)" Label="Title" Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12"><MudTextField @bind-Value="_model.Introduction" For="@(() => _model.Introduction)" Label="Introduction" HelperText="Emphasized introductory heading. Up to 500 characters." Variant="Variant.Outlined" MaxLength="500" Lines="3" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12"><MudTextField @bind-Value="_model.ParagraphOne" For="@(() => _model.ParagraphOne)" Label="Body paragraph 1" HelperText="Up to 1,000 characters." Variant="Variant.Outlined" MaxLength="1000" Lines="4" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12"><MudTextField @bind-Value="_model.ParagraphTwo" For="@(() => _model.ParagraphTwo)" Label="Body paragraph 2" HelperText="Up to 1,000 characters." Variant="Variant.Outlined" MaxLength="1000" Lines="4" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" /></MudItem>
+                </MudGrid>
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-labelledby="welcome-cta-heading">
+                <MudText Typo="Typo.h6" HtmlTag="h3" id="welcome-cta-heading">Call to action</MudText>
+                <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Choose the button label and where it takes visitors.</MudText>
+                <MudGrid Spacing="4">
+                    <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.CtaHref" For="@(() => _model.CtaHref)" Label="CTA route" HelperText="Public route, such as /about. No external URLs." Variant="Variant.Outlined" MaxLength="200" Immediate="true" Disabled="_saving" /></MudItem>
+                </MudGrid>
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes go live when saved. The image and design stay the same.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenHome" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.OpenInNew">View Home Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Save" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+
+@code {
+    private HomeWelcomeEditModel? _model;
+    private string? _error;
+    private bool _saving;
+    private bool _saved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _model = await WelcomeService.GetForEditAsync(); }
+        catch (Exception exception) when (IsExpectedFailure(exception))
+        {
+            Logger.LogError(exception, "Unable to load the Home Welcome editor.");
+            _error = "Home Welcome could not be loaded. Refresh the page to try again, or contact the site administrator.";
+        }
+    }
+
+    private void ClearSaved() => _saved = false;
+    private void OpenHome() => Navigation.NavigateTo("/", forceLoad: true);
+
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            await WelcomeService.UpdateAsync(_model);
+            _saved = true;
+        }
+        catch (Exception exception) when (IsExpectedFailure(exception))
+        {
+            Logger.LogError(exception, "Unable to save Home Welcome content.");
+            _error = "Home Welcome could not be saved. Your changes are still in this form. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+
+    private static bool IsExpectedFailure(Exception exception) =>
+        exception is DbException or DbUpdateException or KeyNotFoundException or UnauthorizedAccessException or ValidationException;
+}

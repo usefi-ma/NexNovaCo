@@ -4,11 +4,11 @@ The public-site migration and Phase 9 hardening are merged into `main`. All eigh
 
 ## Run locally
 
-The Dashboard now has a responsive MudBlazor application shell, avatar menu, and grouped Home Hero editor. See the [Dashboard UI redesign report](docs/dashboard-ui-redesign.md). This is presentation-only: Identity, CMS validation/persistence, and the public theme are unchanged.
+The Dashboard has a responsive MudBlazor application shell and avatar menu. The [Home CMS page](docs/dashboard-home-cms-welcome.md) at `/dashboard/content/home` now contains Hero and Welcome editors. The old `/dashboard/home/hero` remains compatible. See also the [Dashboard UI redesign report](docs/dashboard-ui-redesign.md).
 
 Development initializes the private SQLite Identity database through migrations. It creates no default user: configure your own bootstrap credentials using the [User Secrets instructions](docs/dashboard-phase-1-authentication.md#recommended-net-user-secrets-development-only) before signing in at `/admin/login`. Missing credentials do not affect anonymous public pages. Production account/form flows require HTTPS, including Secure antiforgery cookies.
 
-On the next Development startup, the additive Home Hero migration applies to the same database and initializes approved copy only if the singleton is missing. Existing Admin accounts and saved Hero edits are retained. Stop/restart an existing Visual Studio debugging session to load the new build; no database reset is needed.
+On the next Development startup, the additive Home Welcome migration applies to the same database and initializes approved copy only if the singleton is missing. Existing Admin accounts and saved Hero/Welcome edits are retained. Stop/restart an existing Visual Studio debugging session to load the new build; no database reset is needed. The public site still uses its approved design and remains anonymous.
 
 Install the verified .NET SDK 10.0.401 (or a compatible servicing patch), then run from the repository root:
 

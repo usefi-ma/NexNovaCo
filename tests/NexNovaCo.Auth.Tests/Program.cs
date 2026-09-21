@@ -64,7 +64,7 @@ internal static class AuthChecks
         }
         var challenge = await anonymous.GetAsync("/dashboard");
         Check(RedirectsTo(challenge, "/admin/login"), "Anonymous Dashboard must challenge to admin login.");
-        Check(!((await challenge.Content.ReadAsStringAsync()).Contains("Edit Home Hero")), "Protected content leaked in anonymous response.");
+        Check(!((await challenge.Content.ReadAsStringAsync()).Contains("Edit Home")), "Protected content leaked in anonymous response.");
         var loginHtml = await anonymous.GetStringAsync("/admin/login");
         Check(loginHtml.Contains("<h1") && loginHtml.Contains("Admin login"), "Login page must render.");
         Check(!loginHtml.Contains("\"type\":\"server\""), "Login must be static SSR, not an interactive circuit.");
@@ -95,7 +95,7 @@ internal static class AuthChecks
             var dashboard = await anonymous.GetAsync("/dashboard");
             Check(dashboard.StatusCode == HttpStatusCode.OK, "Authenticated direct/refresh Dashboard request must succeed.");
             var html = await dashboard.Content.ReadAsStringAsync();
-            Check(html.Contains(AuthFactory.Email) && html.Contains("Edit Home Hero"), "Dashboard must show authenticated identity/content.");
+            Check(html.Contains(AuthFactory.Email) && html.Contains("Edit Home"), "Dashboard must show authenticated identity/content.");
             Check(html.Contains("mud-drawer") && Regex.IsMatch(html, "<button[^>]*aria-label=\"Open administrator menu\""), "Dashboard must include drawer and a native accessible avatar trigger.");
             Check(html.Contains("action=\"/admin/logout\"") && html.Contains("method=\"post\""), "Avatar logout must retain native HTTP POST form.");
             Check(html.Contains("mud-appbar") && !html.Contains("class=\"footer\""), "Dashboard must have a separate Mud layout.");
@@ -117,11 +117,11 @@ internal static class AuthChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 2, "Expected Identity and Home Hero migrations.");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 3, "Expected Identity, Home Hero and Home Welcome migrations.");
             Check(!db.Database.HasPendingModelChanges(), "Migration and runtime model must agree.");
             var tables = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table'").ToListAsync();
             Check(new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetUserLogins", "AspNetUserTokens", "AspNetRoleClaims" }.All(tables.Contains), "Identity tables missing.");
-            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings"), "Unexpected schema beyond Identity and Home Hero.");
+            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings"), "Unexpected schema beyond Identity, Hero and Welcome.");
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var admin = await users.FindByEmailAsync(AuthFactory.Email);
             Check(admin is not null && await users.IsInRoleAsync(admin, "Admin"), "Admin must exist and have Admin role.");
@@ -150,7 +150,7 @@ internal static class AuthChecks
         Check(RedirectsTo(await Login(viewer, "viewer@example.invalid", nonAdminPassword), "/dashboard"), "Valid non-Admin credentials should authenticate before role enforcement.");
         var denied = await viewer.GetAsync("/dashboard");
         Check(RedirectsTo(denied, "/admin/access-denied") || denied.StatusCode == HttpStatusCode.Forbidden, "Authenticated non-Admin must be denied.");
-        Check(!(await denied.Content.ReadAsStringAsync()).Contains("Edit Home Hero"), "Protected content leaked to non-Admin.");
+        Check(!(await denied.Content.ReadAsStringAsync()).Contains("Edit Home"), "Protected content leaked to non-Admin.");
 
         // Five failures activate standard Identity lockout; no special account detail is exposed.
         using var lockedClient = app.NewClient();
@@ -187,7 +187,8 @@ internal static class AuthChecks
             Check(await db.Users.CountAsync() == 0 && await db.Roles.CountAsync() == 1, "Missing credentials must create the role, not a default user.");
         }
         await HomeHeroChecks.RunAsync();
-        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, Home Hero persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
+        await HomeWelcomeChecks.RunAsync();
+        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, Hero/Welcome persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
     }
 }
 

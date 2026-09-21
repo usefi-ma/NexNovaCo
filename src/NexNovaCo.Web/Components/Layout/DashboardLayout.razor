@@ -29,7 +29,7 @@
             <MudNavMenu Color="Color.Primary">
                 <MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.SpaceDashboard">Dashboard</MudNavLink>
                 <MudText Typo="Typo.overline" Class="dashboard-nav-label">Content</MudText>
-                <MudNavLink Href="/dashboard/home/hero" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Web">Home Hero</MudNavLink>
+                <MudNavLink Href="/dashboard/content/home" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Web">Home</MudNavLink>
             </MudNavMenu>
         </nav>
         <div class="dashboard-drawer-note"><MudIcon Icon="@Icons.Material.Outlined.VerifiedUser" Size="Size.Small" /><span>Administrator workspace</span></div>
@@ -59,7 +59,12 @@
         _drawerOpen = false;
         if (_toggleButton is not null) await _toggleButton.FocusAsync();
     }
-    private void UpdateTitle() => _pageTitle = Navigation.ToBaseRelativePath(Navigation.Uri).StartsWith("dashboard/home/hero", StringComparison.OrdinalIgnoreCase) ? "Home Hero" : "Dashboard";
+    private void UpdateTitle()
+    {
+        var path = Navigation.ToBaseRelativePath(Navigation.Uri);
+        _pageTitle = path.StartsWith("dashboard/content/home", StringComparison.OrdinalIgnoreCase) ? "Home"
+            : path.StartsWith("dashboard/home/hero", StringComparison.OrdinalIgnoreCase) ? "Home Hero" : "Dashboard";
+    }
     private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(() => { UpdateTitle(); StateHasChanged(); });
     private void OpenPublicSite() => Navigation.NavigateTo("/", forceLoad: true);
     public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;

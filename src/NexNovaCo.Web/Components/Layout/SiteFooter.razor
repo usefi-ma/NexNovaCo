@@ -15,10 +15,11 @@
             <div class="col_footer col-12 col-lg-5 col-xl-5">
                 <div class="footer_form_container">
                     <h4>Subscribe to our newsletter</h4>
+                    <p id="newsletter-notice">Newsletter signup is not available yet.</p>
                     @* Static demo shell only: no submission, storage, or email service. *@
                     <div class="form">
-                        <input type="email" placeholder="Your Email" aria-label="Newsletter email (demo only)" />
-                        <button type="button" aria-disabled="true" title="Newsletter signup is not connected yet"> Submit </button>
+                        <input type="email" placeholder="Your Email" aria-label="Newsletter email (unavailable)" aria-describedby="newsletter-notice" disabled />
+                        <button type="button" disabled aria-disabled="true" title="Newsletter signup is not connected yet"> Submit </button>
                     </div>
                 </div>
             </div>

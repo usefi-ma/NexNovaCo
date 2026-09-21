@@ -3,9 +3,10 @@
 
 <div class="contact_form">
     <EditForm EditContext="_editContext" FormName="contact-demo" id="contactForm"
-              OnValidSubmit="SubmitAsync" OnInvalidSubmit="ShowErrors" novalidate aria-labelledby="contact-form-heading">
+              OnValidSubmit="SubmitAsync" OnInvalidSubmit="ShowErrors" novalidate aria-labelledby="contact-form-heading" aria-describedby="contact-demo-notice">
         <DataAnnotationsValidator />
         <h2 id="contact-form-heading" data-aos="fade-up" data-aos-delay="0">@Content.Heading</h2>
+        <p id="contact-demo-notice">Demo only: this form does not send or store messages. Please do not enter sensitive information.</p>
         <div class="form-row row">
             <div class="form-group col-md-6" data-aos="fade-up" data-aos-delay="0">
                 <label for="firstName">@Content.FirstName.Label</label>

@@ -5,3 +5,18 @@
 *.suo
 artifacts/
 
+# Local publish output, editor/OS noise, and private machine configuration.
+/publish/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+Desktop.ini
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+

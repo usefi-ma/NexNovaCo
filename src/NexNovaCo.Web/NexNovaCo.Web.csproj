@@ -6,10 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- Keep symbols in build output for debugging, not in the deployable directory. -->
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="[9.10.0]" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Preserve migration references locally; no Blazor component loads these scripts. -->
+    <Content Update="wwwroot/js/script.js;wwwroot/js/inner-project.js;wwwroot/js/member.js;wwwroot/js/contact.js;wwwroot/js/bootstrap.min.js;wwwroot/js/aos.js"
+             CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
 </Project>

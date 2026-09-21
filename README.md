@@ -1,6 +1,6 @@
 # NexNovaCo — Blazor public-site migration
 
-Phase 8: all eight approved public page types, including Contact, now render through reusable Razor sections on the .NET 10 / global Interactive Server / **MudBlazor 9.10.0** foundation. Contact uses typed content and a Blazor-owned, explicitly demo-only form. No database, CMS, authentication or business backend has been added. Work stays on `feature/blazor-public-site`; final public-site QA and merge require approval.
+Phases 1–8 and final public-site QA are merged into `main`. All eight approved public page types render through reusable Razor sections on the .NET 10 / global Interactive Server / **MudBlazor 9.10.0** foundation. Phase 9 applies lightweight publish/metadata/demo-safety hardening on `feature/public-site-hardening`; see the [production-hardening report and local publish runbook](docs/phase-9-production-hardening.md). No database, CMS, authentication or business backend has been added, and production deployment still requires the documented launch checks.
 
 ## Run locally
 

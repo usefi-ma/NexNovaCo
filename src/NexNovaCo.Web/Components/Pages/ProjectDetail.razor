@@ -5,6 +5,10 @@
 
 <PageTitle>@(_project?.Summary.Name ?? "Project") | NexNovaCo</PageTitle>
 <HeadContent>
+    @if (_project is not null)
+    {
+        <meta name="description" content="@_project.Summary.Description" />
+    }
     <link rel="stylesheet" href="@Assets["css/inner-project.css"]" />
     <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/project-detail-blazor.css"]" />

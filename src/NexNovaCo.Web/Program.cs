@@ -33,7 +33,7 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 
 app.UseAntiforgery();
 
-// Transitional alias for unchanged legacy JSON image paths and dormant page scripts.
+// Transitional alias for unchanged public JSON image paths; no legacy script ownership.
 // New Razor components use image/, css/, js/ and data/ directly.
 app.UseStaticFiles(new StaticFileOptions { RequestPath = "/assets" });
 app.MapStaticAssets();

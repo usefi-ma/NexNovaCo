@@ -19,8 +19,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
     <link rel="apple-touch-icon" href="@Assets["image/favicon/apple-touch-icon.png"]" />
-    <link rel="icon" type="image/png" sizes="32x32" href="@Assets["image/favicon/favicon-32x32.png"]" />
-    <link rel="icon" type="image/png" sizes="16x16" href="@Assets["image/favicon/favicon-16x16.png"]" />
+    @* Existing artwork is non-square; do not advertise inaccurate square dimensions. *@
+    <link rel="icon" type="image/png" sizes="32x23" href="@Assets["image/favicon/favicon-32x32.png"]" />
+    <link rel="icon" type="image/png" sizes="16x12" href="@Assets["image/favicon/favicon-16x16.png"]" />
     <ImportMap />
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
@@ -29,7 +30,7 @@
     <Routes @rendermode="InteractiveServer" />
     <ReconnectModal />
     <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
-    @* Vendor code loads once. Only the Home module initializes its scoped widgets. *@
+    @* Vendor code loads once; route modules initialize and dispose their scoped widgets. *@
     <script src="@Assets["js/jquery-3.1.0.js"]"></script>
     <script src="@Assets["js/owl.carousel.min.js"]"></script>
     <script src="@Assets["js/countUp.umd.js"]"></script>

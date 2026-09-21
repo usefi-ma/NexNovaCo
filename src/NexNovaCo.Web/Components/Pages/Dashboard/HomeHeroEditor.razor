@@ -8,8 +8,9 @@
 
 <PageTitle>Home Hero | NexNovaCo Dashboard</PageTitle>
 <HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
-<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-2">Home Hero</MudText>
-<MudText Class="mb-4">Edit the text and button in the public Home Hero. Changes go live when saved. The image and design remain unchanged.</MudText>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Content / Homepage</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Home Hero</MudText>
+<MudText Class="dashboard-muted mb-7">Shape the first impression. Edit your homepage headline, introduction, and call to action.</MudText>
 
 @if (_error is not null)
 {
@@ -21,20 +22,39 @@
 }
 @if (_model is not null)
 {
-    <MudPaper Class="pa-6" Elevation="1">
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
         <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="home-hero">
             <DataAnnotationsValidator />
-            <MudTextField @bind-Value="_model.OpeningLine" For="@(() => _model.OpeningLine)" Label="Opening line" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-4" />
-            <MudTextField @bind-Value="_model.EmphasisLine" For="@(() => _model.EmphasisLine)" Label="Emphasis line" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-4" />
-            <MudTextField @bind-Value="_model.ClosingLine" For="@(() => _model.ClosingLine)" Label="Closing line" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-4" />
-            <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" Variant="Variant.Outlined" MaxLength="500" Lines="3" Immediate="true" Disabled="_saving" Class="mb-4" />
-            <MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-4" />
-            <MudTextField @bind-Value="_model.CtaHref" For="@(() => _model.CtaHref)" Label="CTA route" HelperText="A public site route, such as /services. External URLs are not supported." Variant="Variant.Outlined" MaxLength="200" Immediate="true" Disabled="_saving" Class="mb-4" />
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving">@(_saving ? "Saving…" : "Save")</MudButton>
+            <section class="dashboard-editor-section" aria-labelledby="hero-headline-heading">
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="hero-headline-heading">Headline &amp; introduction</MudText>
+                <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Three lines, one message. The second line receives the strongest emphasis.</MudText>
+                <MudGrid Spacing="4">
+                    <MudItem xs="12" lg="4"><MudTextField @bind-Value="_model.OpeningLine" For="@(() => _model.OpeningLine)" Label="Opening line" HelperText="Title line 1" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12" lg="4"><MudTextField @bind-Value="_model.EmphasisLine" For="@(() => _model.EmphasisLine)" Label="Emphasis line" HelperText="Title line 2" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12" lg="4"><MudTextField @bind-Value="_model.ClosingLine" For="@(() => _model.ClosingLine)" Label="Closing line" HelperText="Title line 3" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12"><MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" HelperText="A short introduction below the headline. Up to 500 characters." Variant="Variant.Outlined" MaxLength="500" Lines="4" Immediate="true" Disabled="_saving" /></MudItem>
+                </MudGrid>
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-labelledby="hero-cta-heading">
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="hero-cta-heading">Call to action</MudText>
+                <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Choose the button label and where it takes visitors.</MudText>
+                <MudGrid Spacing="4">
+                    <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.CtaHref" For="@(() => _model.CtaHref)" Label="CTA route" HelperText="Public route, such as /services. No external URLs." Variant="Variant.Outlined" MaxLength="200" Immediate="true" Disabled="_saving" /></MudItem>
+                </MudGrid>
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes go live when saved. The image and design stay the same.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenHome" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.OpenInNew">View Home Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Save" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
         </EditForm>
     </MudPaper>
 }
-<div><a class="admin-public-link" href="/" data-enhance-nav="false" @onclick="OpenHome" @onclick:preventDefault>View Home Page</a></div>
 
 @code {
     private HomeHeroEditModel? _model;

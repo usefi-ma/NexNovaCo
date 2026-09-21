@@ -1,0 +1,46 @@
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<AuthorizeView Roles="Admin">
+    <Authorized Context="auth">
+        <div class="dashboard-user-control">
+            @* Visual avatar overlays MudMenu's native activator without replacing its keyboard/focus behavior. *@
+            <MudAvatar Color="Color.Primary" Size="Size.Small" Class="dashboard-user-avatar" aria-hidden="true">@Initial(auth.User.Identity?.Name)</MudAvatar>
+            <MudMenu Label="Account" AriaLabel="Open administrator menu" EndIcon="@Icons.Material.Outlined.KeyboardArrowDown" Class="dashboard-user-menu"
+                     AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" PopoverClass="dashboard-user-popover">
+                <div class="dashboard-user-summary" role="presentation">
+                    <MudText Typo="Typo.overline" Class="dashboard-muted">Signed in as</MudText>
+                    <MudText Typo="Typo.body2" Class="dashboard-user-email">@auth.User.Identity?.Name</MudText>
+                    <MudText Typo="Typo.caption" Class="dashboard-muted">Administrator</MudText>
+                </div>
+                <MudDivider Class="my-2" />
+                <MudMenuItem Icon="@Icons.Material.Outlined.OpenInNew" OnClick="OpenPublicSite">View website</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Logout" OnClick="LogoutAsync" AutoClose="false">Log out</MudMenuItem>
+            </MudMenu>
+        </div>
+        @* Keep the existing native Identity HTTP POST and antiforgery boundary. *@
+        <form @ref="_logoutForm" action="/admin/logout" method="post" data-enhance="false" hidden>
+            <AntiforgeryToken />
+        </form>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private ElementReference _logoutForm;
+    private IJSObjectReference? _module;
+    private static string Initial(string? name) => string.IsNullOrWhiteSpace(name) ? "A" : name[..1].ToUpperInvariant();
+    private void OpenPublicSite() => Navigation.NavigateTo("/", forceLoad: true);
+    private async Task LogoutAsync()
+    {
+        // MudMenuItem renders a div, not a submit button. Submit the unchanged native form.
+        _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/dashboard-ui.js");
+        await _module.InvokeVoidAsync("submitLogout", _logoutForm);
+    }
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null) return;
+        try { await _module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+    }
+}

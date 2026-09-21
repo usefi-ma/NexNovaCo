@@ -1,30 +1,66 @@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
+@implements IDisposable
 
-<MudThemeProvider />
+<MudThemeProvider Theme="DashboardTheme.Light" IsDarkMode="false" ObserveSystemDarkModeChange="false" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
-<MudLayout>
-    <MudAppBar Elevation="1" Color="Color.Primary">
-        <MudText Typo="Typo.h6">NexNovaCo</MudText>
+<MudBreakpointProvider OnBreakpointChanged="OnBreakpointChanged" />
+<MudLayout Class="dashboard-shell">
+    <a class="dashboard-skip-link" href="#dashboard-content">Skip to dashboard content</a>
+    <MudAppBar Elevation="0" Class="dashboard-appbar">
+        <MudIconButton @ref="_toggleButton" Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="ToggleDrawer" aria-label="Toggle navigation" aria-controls="dashboard-navigation" aria-expanded="@_drawerOpen.ToString().ToLowerInvariant()" />
+        <MudText Typo="Typo.body2" Class="dashboard-appbar-title">NexNovaCo <span class="dashboard-muted">/ @_pageTitle</span></MudText>
         <MudSpacer />
-        <AuthorizeView><Authorized Context="auth"><span class="admin-identity">@auth.User.Identity?.Name</span></Authorized></AuthorizeView>
-        <AdminLogout />
+        <MudButton OnClick="OpenPublicSite" StartIcon="@Icons.Material.Outlined.OpenInNew" Class="d-none d-sm-inline-flex mr-3" Color="Color.Inherit">View website</MudButton>
+        <DashboardUserMenu />
     </MudAppBar>
-    <MudMainContent Class="pa-6 pt-20" id="dashboard-content" tabindex="-1">
-        <nav aria-label="Dashboard">
-            <MudNavMenu>
-                <MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-                <MudNavLink Href="/dashboard/home/hero" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home Hero</MudNavLink>
+    <MudDrawer @bind-Open="_drawerOpen" Variant="DrawerVariant.Responsive" Breakpoint="Breakpoint.Md"
+               ClipMode="DrawerClipMode.Never" Elevation="0" Class="dashboard-drawer" id="dashboard-navigation" inert="@(!_drawerOpen)">
+        <MudFocusTrap Disabled="@(!_drawerOpen || !_compact)" DefaultFocus="DefaultFocus.FirstChild" Class="dashboard-drawer-focus">
+        <div class="dashboard-drawer-body" @onkeydown="HandleDrawerKeyAsync">
+        <MudDrawerHeader Class="dashboard-brand">
+            <img src="image/logo.png" alt="" width="36" height="30" />
+            <div><MudText Typo="Typo.h6">NexNovaCo</MudText><MudText Typo="Typo.caption" Class="dashboard-muted">CONTENT MANAGEMENT</MudText></div>
+        </MudDrawerHeader>
+        <nav aria-label="Dashboard" class="dashboard-nav">
+            <MudNavMenu Color="Color.Primary">
+                <MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.SpaceDashboard">Dashboard</MudNavLink>
+                <MudText Typo="Typo.overline" Class="dashboard-nav-label">Content</MudText>
+                <MudNavLink Href="/dashboard/home/hero" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Web">Home Hero</MudNavLink>
             </MudNavMenu>
         </nav>
-        @Body
-        <a class="admin-public-link" href="/" data-enhance-nav="false" @onclick="OpenPublicSite" @onclick:preventDefault>View public website</a>
+        <div class="dashboard-drawer-note"><MudIcon Icon="@Icons.Material.Outlined.VerifiedUser" Size="Size.Small" /><span>Administrator workspace</span></div>
+        </div>
+        </MudFocusTrap>
+    </MudDrawer>
+    <MudMainContent Class="dashboard-main">
+        <main id="dashboard-content" tabindex="-1"><MudContainer MaxWidth="MaxWidth.Large" Class="dashboard-container">@Body</MudContainer></main>
     </MudMainContent>
 </MudLayout>
 
 @code {
-    // data-enhance-nav only controls SSR enhancement, not interactive Router interception.
+    private bool _drawerOpen = true;
+    private bool _compact;
+    private MudIconButton? _toggleButton;
+    private string _pageTitle = "Dashboard";
+    protected override void OnInitialized()
+    {
+        UpdateTitle();
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+    private void OnBreakpointChanged(Breakpoint breakpoint) => _compact = breakpoint < Breakpoint.Md;
+    private async Task HandleDrawerKeyAsync(KeyboardEventArgs args)
+    {
+        if (args.Key != "Escape" || !_compact) return;
+        _drawerOpen = false;
+        if (_toggleButton is not null) await _toggleButton.FocusAsync();
+    }
+    private void UpdateTitle() => _pageTitle = Navigation.ToBaseRelativePath(Navigation.Uri).StartsWith("dashboard/home/hero", StringComparison.OrdinalIgnoreCase) ? "Home Hero" : "Dashboard";
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(() => { UpdateTitle(); StateHasChanged(); });
     private void OpenPublicSite() => Navigation.NavigateTo("/", forceLoad: true);
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
 }

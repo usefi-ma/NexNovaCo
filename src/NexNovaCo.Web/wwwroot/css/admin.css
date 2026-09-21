@@ -1,5 +1,5 @@
 /* Admin-only stylesheet; the public theme and its breakpoints are unchanged. */
-.admin-site { margin: 0; background: #f5f6fa; font-family: system-ui, sans-serif; }
+.admin-site { margin: 0; background: #f4f7fa; font-family: "Segoe UI", Arial, sans-serif; }
 .admin-account-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
 .admin-login-panel { width: 100%; max-width: 440px; }
 .admin-logo { width: 56px; height: auto; margin-bottom: 16px; }
@@ -9,5 +9,46 @@
 .admin-site :focus-visible { outline: 3px solid #1967d2; outline-offset: 3px; }
 .admin-error, .admin-site .validation-message { color: #a31515; margin-block: 12px; }
 .admin-public-link { display: inline-block; margin-top: 24px; color: #174ea6; text-decoration: underline; }
-.admin-identity { margin-right: 20px; overflow-wrap: anywhere; }
-@media (max-width: 600px) { .admin-identity { display: none; } }
+
+/* App-only polish; admin.css is never loaded by the public layout. */
+.admin-site .dashboard-appbar { border-bottom: 1px solid #e2e8ef; }
+.admin-site .dashboard-appbar-title { margin-left: 12px; font-weight: 600; white-space: nowrap; }
+.admin-site .dashboard-muted { color: #607086; }
+.admin-site .dashboard-drawer { border-right: 1px solid #e2e8ef; }
+.admin-site .dashboard-drawer-focus, .admin-site .dashboard-drawer-body { display: flex; flex-direction: column; height: 100%; }
+.admin-site .dashboard-brand { align-items: center; gap: 12px; padding: 28px 24px; min-height: 104px; }
+.admin-site .dashboard-brand img { object-fit: contain; }
+.admin-site .dashboard-brand .mud-typography-caption { font-size: .6rem; letter-spacing: .12em; }
+.admin-site .dashboard-nav { padding: 12px 16px; }
+.admin-site .dashboard-nav .mud-nav-link { border-radius: 8px; padding: 12px 16px; margin-bottom: 4px; }
+.admin-site .dashboard-nav .mud-nav-link.active { background: #e8f5fa; color: #076b8d; font-weight: 600; }
+.admin-site .dashboard-nav-label { display: block; margin: 24px 16px 8px; color: #607086; font-size: .65rem; letter-spacing: .1em; }
+.admin-site .dashboard-drawer-note { display: flex; align-items: center; gap: 8px; margin-top: auto; padding: 24px; font-size: .75rem; color: #607086; }
+.admin-site .dashboard-container { padding: 40px; }
+.admin-site .dashboard-main { min-width: 0; }
+.admin-site .dashboard-eyebrow { color: #076b8d; font-size: .65rem; letter-spacing: .12em; margin-bottom: 8px; }
+.admin-site .dashboard-user-email { overflow-wrap: anywhere; }
+.admin-site .dashboard-card, .admin-site .dashboard-editor-section { padding: 28px; }
+.admin-site .dashboard-feature-icon { background: #e8f5fa; color: #087ea4; width: 48px; height: 48px; }
+.admin-site .dashboard-side-note { padding: 24px 8px; }
+.admin-site .dashboard-editor { overflow: hidden; }
+.admin-site .dashboard-editor-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding: 24px 28px; background: #fafcfe; }
+.admin-site .dashboard-action-buttons { flex-shrink: 0; }
+.admin-site .dashboard-user-control { position: relative; }
+.admin-site .dashboard-user-avatar { position: absolute; left: 6px; top: 6px; pointer-events: none; z-index: 1; }
+.admin-site .dashboard-user-menu .mud-menu-button-activator { min-width: 64px; min-height: 44px; padding: 6px 8px 6px 40px; border-radius: 24px; }
+.admin-site .dashboard-user-menu .mud-button-label { font-size: 0; }
+.admin-site .dashboard-user-popover { width: min(300px, calc(100vw - 32px)); border: 1px solid #e2e8ef; border-radius: 12px; }
+.admin-site .dashboard-user-summary { padding: 12px 20px; }
+.admin-site .dashboard-skip-link { position: fixed; top: -100px; left: 16px; z-index: 1600; background: white; padding: 12px 20px; color: #076b8d; border-radius: 8px; }
+.admin-site .dashboard-skip-link:focus { top: 12px; }
+@media (max-width: 959.98px) {
+    .admin-site .dashboard-container { padding: 28px 24px; }
+}
+@media (max-width: 599.98px) {
+    .admin-site .dashboard-container { padding: 28px 16px; }
+    .admin-site .dashboard-appbar-title { margin-left: 4px; font-size: .8rem; }
+    .admin-site .dashboard-card, .admin-site .dashboard-editor-section { padding: 24px 20px; }
+    .admin-site .dashboard-editor-actions { padding: 20px; }
+    .admin-site .dashboard-action-buttons { width: 100%; }
+}

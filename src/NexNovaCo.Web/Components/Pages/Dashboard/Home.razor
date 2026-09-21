@@ -2,12 +2,43 @@
 
 <PageTitle>Dashboard | NexNovaCo</PageTitle>
 <HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
-<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Dashboard</MudText>
+@inject NavigationManager Navigation
+
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Your workspace</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Dashboard</MudText>
 <AuthorizeView Roles="Admin">
     <Authorized Context="auth">
-        <MudPaper Class="pa-6" Elevation="1">
-            <MudText Typo="Typo.h6">Welcome, @auth.User.Identity?.Name</MudText>
-            <MudText Class="mt-2">Your secure Dashboard foundation is ready. Use Home Hero to edit the public Home introduction.</MudText>
-        </MudPaper>
+        <MudText Class="dashboard-muted dashboard-welcome">Welcome back, <span class="dashboard-user-email">@auth.User.Identity?.Name</span>.</MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-5 mb-10">
+            <MudChip T="string" Icon="@Icons.Material.Outlined.VerifiedUser" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Admin</MudChip>
+            <MudText Typo="Typo.body2" Class="dashboard-muted">Your content, ready to update.</MudText>
+        </MudStack>
     </Authorized>
 </AuthorizeView>
+
+<MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-4">Quick access</MudText>
+<MudGrid Spacing="4">
+    <MudItem xs="12" md="8">
+        <MudPaper Elevation="0" Outlined="true" Class="dashboard-card dashboard-hero-card">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
+                <MudAvatar Class="dashboard-feature-icon" Rounded="true"><MudIcon Icon="@Icons.Material.Outlined.Web" /></MudAvatar>
+                <MudText Typo="Typo.overline" Class="dashboard-muted">Homepage</MudText>
+            </MudStack>
+            <MudText Typo="Typo.h5" HtmlTag="h3" Class="mb-2">Home Hero</MudText>
+            <MudText Class="dashboard-muted mb-6">Edit the main hero content shown on the public homepage. Update the headline, introduction, and call to action.</MudText>
+            <MudButton Href="/dashboard/home/hero" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.ArrowForward" DropShadow="false">Edit Home Hero</MudButton>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" md="4">
+        <div class="dashboard-side-note">
+            <MudIcon Icon="@Icons.Material.Outlined.Public" Color="Color.Primary" Class="mb-3" />
+            <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-2">See it live</MudText>
+            <MudText Typo="Typo.body2" Class="dashboard-muted mb-4">Saved changes appear on your public homepage. Open the site to review your content in context.</MudText>
+            <MudButton OnClick="OpenPublicSite" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.OpenInNew">View website</MudButton>
+        </div>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private void OpenPublicSite() => Navigation.NavigateTo("/", forceLoad: true);
+}

@@ -3,13 +3,14 @@ using NexNovaCo.Web.Models;
 namespace NexNovaCo.Web.Services;
 
 /// <summary>
-/// Hero, Welcome, Services, Projects, Team intros and Statistics are CMS-backed. Other Home content retains its approved static sources.
+/// Home intros and Statistics are CMS-backed. Shared entity collections retain their canonical sources.
 /// Editable content is read on every request/navigation, never held in the static snapshot.
 /// </summary>
 public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog,
     IHomeHeroContentService heroContent, IHomeWelcomeContentService welcomeContent,
     IHomeServicesSectionContentService servicesContent, IHomeProjectsSectionContentService projectsContent,
-    IHomeTeamSectionContentService teamContent, IHomeStatisticsContentService statisticsContent) : IHomeContentService
+    IHomeTeamSectionContentService teamContent, IHomeStatisticsContentService statisticsContent,
+    IHomePartnersSectionContentService partnersContent) : IHomeContentService
 {
     private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
@@ -23,7 +24,8 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             ServicesHeading = await servicesContent.GetAsync(cancellationToken),
             ProjectsHeading = await projectsContent.GetAsync(cancellationToken),
             Team = await teamContent.GetAsync(cancellationToken),
-            Statistics = await statisticsContent.GetAsync(cancellationToken)
+            Statistics = await statisticsContent.GetAsync(cancellationToken),
+            PartnersHeading = await partnersContent.GetAsync(cancellationToken)
         };
     }
 
@@ -47,7 +49,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             HomeTeamSectionDefaults.Content,
             featuredMembers,
             HomeStatisticsDefaults.Content,
-            PartnerCatalog.Heading, PartnerCatalog.All,
+            HomePartnersSectionDefaults.Content, PartnerCatalog.All,
             TestimonialCatalog.All, TestimonialCatalog.Brand);
     }
 

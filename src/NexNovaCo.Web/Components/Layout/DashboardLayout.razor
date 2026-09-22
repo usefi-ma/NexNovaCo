@@ -36,6 +36,7 @@
                     <MudNavLink Href="/dashboard/content/home/projects" Match="NavLinkMatch.All">Projects</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/team" Match="NavLinkMatch.All">Team</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/statistics" Match="NavLinkMatch.All">Statistics</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/home/partners" Match="NavLinkMatch.All">Partners</MudNavLink>
                 </MudNavGroup>
             </MudNavMenu>
         </nav>
@@ -74,6 +75,7 @@
             path.StartsWith("dashboard/home/hero", StringComparison.OrdinalIgnoreCase);
         if (isHome) _homeExpanded = true;
         _pageTitle = !isHome ? "Dashboard"
+            : path.StartsWith("dashboard/content/home/partners", StringComparison.OrdinalIgnoreCase) ? "Home / Partners"
             : path.StartsWith("dashboard/content/home/statistics", StringComparison.OrdinalIgnoreCase) ? "Home / Statistics"
             : path.StartsWith("dashboard/content/home/team", StringComparison.OrdinalIgnoreCase) ? "Home / Team"
             : path.StartsWith("dashboard/content/home/projects", StringComparison.OrdinalIgnoreCase) ? "Home / Projects"

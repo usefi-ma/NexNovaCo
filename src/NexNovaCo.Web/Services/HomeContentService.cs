@@ -3,13 +3,13 @@ using NexNovaCo.Web.Models;
 namespace NexNovaCo.Web.Services;
 
 /// <summary>
-/// Hero, Welcome, Services, Projects and Team intros are CMS-backed. Other Home content retains its approved static sources.
+/// Hero, Welcome, Services, Projects, Team intros and Statistics are CMS-backed. Other Home content retains its approved static sources.
 /// Editable content is read on every request/navigation, never held in the static snapshot.
 /// </summary>
 public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog,
     IHomeHeroContentService heroContent, IHomeWelcomeContentService welcomeContent,
     IHomeServicesSectionContentService servicesContent, IHomeProjectsSectionContentService projectsContent,
-    IHomeTeamSectionContentService teamContent) : IHomeContentService
+    IHomeTeamSectionContentService teamContent, IHomeStatisticsContentService statisticsContent) : IHomeContentService
 {
     private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
@@ -22,7 +22,8 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             Welcome = await welcomeContent.GetAsync(cancellationToken),
             ServicesHeading = await servicesContent.GetAsync(cancellationToken),
             ProjectsHeading = await projectsContent.GetAsync(cancellationToken),
-            Team = await teamContent.GetAsync(cancellationToken)
+            Team = await teamContent.GetAsync(cancellationToken),
+            Statistics = await statisticsContent.GetAsync(cancellationToken)
         };
     }
 
@@ -45,7 +46,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             featuredProjects,
             HomeTeamSectionDefaults.Content,
             featuredMembers,
-            [new("PROJECTS", 450), new("CLIENTS", 3000), new("EMPLOYEES", 1000), new("AWARDS", 26)],
+            HomeStatisticsDefaults.Content,
             PartnerCatalog.Heading, PartnerCatalog.All,
             TestimonialCatalog.All, TestimonialCatalog.Brand);
     }

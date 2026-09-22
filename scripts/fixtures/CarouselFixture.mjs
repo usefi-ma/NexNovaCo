@@ -55,7 +55,7 @@ export function fixture(reduced = false, kind = 'projects') {
         jQuery: jquery, innerHeight: 900, scrollY: 0, matchMedia: () => media,
         requestAnimationFrame: () => 1, cancelAnimationFrame: () => {},
         countUp: { CountUp: class {
-            constructor() { this.starts = 0; this.resets = 0; countInstances.push(this); }
+            constructor(target, endValue, options) { this.target = target; this.endValue = endValue; this.options = options; this.starts = 0; this.resets = 0; countInstances.push(this); }
             start() { this.starts++; }
             reset() { this.resets++; }
         } }

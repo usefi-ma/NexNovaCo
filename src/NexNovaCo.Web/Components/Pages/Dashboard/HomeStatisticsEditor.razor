@@ -1,0 +1,101 @@
+@page "/dashboard/content/home/statistics"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IHomeStatisticsContentService StatisticsService
+@inject ILogger<HomeStatisticsEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Statistics | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Home / Statistics</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Statistics</MudText>
+<MudText Class="dashboard-muted mb-7">Manage the numbers displayed in the homepage statistics section.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert>
+}
+@if (_saved)
+{
+    <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Home Statistics section updated successfully.</MudAlert>
+}
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="home-statistics">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="dashboard-muted mx-6 mt-4" />
+            @foreach (var item in _model.Items)
+            {
+                <section class="dashboard-editor-section" aria-labelledby="@($"statistic-{item.Id}-heading")" @key="item.Id">
+                    <MudText Typo="Typo.h6" HtmlTag="h2" id="@($"statistic-{item.Id}-heading")">Statistic @item.Id</MudText>
+                    <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Fixed position @item.Id of 4. Edit the label and number; the order stays the same.</MudText>
+                    <MudGrid Spacing="4">
+                        <MudItem xs="12" sm="6"><MudTextField @bind-Value="item.Label" For="@(() => item.Label)" Label="@($"Label {item.Id}")" HelperText="Up to 32 characters. Keep labels concise." Variant="Variant.Outlined" MaxLength="32" Immediate="true" Disabled="_saving" /></MudItem>
+                        <MudItem xs="12" sm="6"><MudNumericField T="int?" @bind-Value="item.Value" For="@(() => item.Value)" Label="@($"Value {item.Id}")" HelperText="Whole number from 0 to 9,999." Variant="Variant.Outlined" Immediate="true" Disabled="_saving" /></MudItem>
+                    </MudGrid>
+                </section>
+                <MudDivider />
+            }
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">All four statistics go live together when saved. Preview Home to check the existing layout.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenHome" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.OpenInNew">View Home Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Save" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+
+@code {
+    private HomeStatisticsEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] :
+        _model.Items.SelectMany(item => new[] { item.Id.ToString(System.Globalization.CultureInfo.InvariantCulture), item.Label, item.Value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "" }).ToArray();
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private string? _error;
+    private bool _saving;
+    private bool _saved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _model = await StatisticsService.GetForEditAsync();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpectedFailure(exception))
+        {
+            Logger.LogError(exception, "Unable to load the Home Statistics editor.");
+            _error = "Home Statistics could not be loaded. Refresh the page to try again, or contact the site administrator.";
+        }
+    }
+
+    private void ClearSaved() => _saved = false;
+    private void OpenHome() => Navigation.NavigateTo("/", forceLoad: true);
+
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            await StatisticsService.UpdateAsync(_model);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+        }
+        catch (Exception exception) when (IsExpectedFailure(exception))
+        {
+            Logger.LogError(exception, "Unable to save Home Statistics content.");
+            _error = "Home Statistics could not be saved. Your changes are still in this form. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+
+    private static bool IsExpectedFailure(Exception exception) =>
+        exception is DbException or DbUpdateException or KeyNotFoundException or UnauthorizedAccessException or ValidationException;
+}

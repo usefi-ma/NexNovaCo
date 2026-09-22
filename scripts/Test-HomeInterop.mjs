@@ -5,6 +5,24 @@ import { initialize } from '../src/NexNovaCo.Web/wwwroot/js/home.js';
 
 import { fixture } from './fixtures/CarouselFixture.mjs';
 
+test('CMS numbers drive CountUp on each new Home root without duplicate initialization', () => {
+    for (const value of [0, 725, 9999]) {
+        const f = fixture();
+        f.counter.dataset.countValue = String(value);
+        initialize(f.root);
+        initialize(f.root);
+        assert.equal(f.intersections.length, 1);
+        f.intersections[0].callback([{ isIntersecting: true, target: f.counter }]);
+        assert.equal(f.countInstances.length, 1);
+        assert.equal(f.countInstances[0].endValue, value);
+        assert.equal(f.countInstances[0].target, f.display);
+        assert.equal(f.countInstances[0].starts, 1);
+        f.remove();
+        assert.equal(f.countInstances[0].resets, 1);
+        assert.ok(f.intersections[0].disconnected);
+    }
+});
+
 test('responsive carousel refresh reveals replacement loop slides and detaches the refresh listener', () => {
     const f = fixture();
     f.animated.offsetTop = 1200;

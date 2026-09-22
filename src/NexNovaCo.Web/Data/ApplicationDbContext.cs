@@ -11,6 +11,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<HomeServicesSectionSettings> HomeServicesSectionSettings => Set<HomeServicesSectionSettings>();
     public DbSet<HomeProjectsSectionSettings> HomeProjectsSectionSettings => Set<HomeProjectsSectionSettings>();
     public DbSet<HomeTeamSectionSettings> HomeTeamSectionSettings => Set<HomeTeamSectionSettings>();
+    public DbSet<HomeStatistic> HomeStatistics => Set<HomeStatistic>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -57,5 +58,15 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         team.Property(x => x.Description).IsRequired().HasMaxLength(1000);
         team.Property(x => x.CtaLabel).IsRequired().HasMaxLength(60);
         team.Property(x => x.CtaHref).IsRequired().HasMaxLength(200);
+        var statistics = builder.Entity<HomeStatistic>();
+        statistics.ToTable("HomeStatistics", table =>
+        {
+            table.HasCheckConstraint("CK_HomeStatistics_FixedSlots", "Id BETWEEN 1 AND 4 AND DisplayOrder = Id");
+            table.HasCheckConstraint("CK_HomeStatistics_Value", "Value BETWEEN 0 AND 9999");
+        });
+        statistics.HasKey(x => x.Id);
+        statistics.Property(x => x.Id).ValueGeneratedNever();
+        statistics.HasIndex(x => x.DisplayOrder).IsUnique();
+        statistics.Property(x => x.Label).IsRequired().HasMaxLength(32);
     }
 }

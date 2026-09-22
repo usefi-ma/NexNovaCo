@@ -58,6 +58,54 @@ internal static class HomeNavigationChecks
         await CheckEditorStateAsync(new HomeServicesSectionEditor(), "ServicesService", new ServicesStub(), "Title");
         await CheckEditorStateAsync(new HomeProjectsSectionEditor(), "ProjectsService", new ProjectsStub(), "Title");
         await CheckEditorStateAsync(new HomeTeamSectionEditor(), "TeamService", new TeamStub(), "Title");
+        await CheckStatisticsEditorAsync();
+    }
+
+    private static async Task CheckStatisticsEditorAsync()
+    {
+        var editor = new HomeStatisticsEditor();
+        var service = new StatisticsStub();
+        var type = editor.GetType();
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        type.GetProperty("StatisticsService", flags)!.SetValue(editor, service);
+        type.GetProperty("Logger", flags)!.SetValue(editor, NullLogger<HomeStatisticsEditor>.Instance);
+        async Task Invoke(string method) => await (Task)type.GetMethod(method, flags)!.Invoke(editor, null)!;
+        bool Dirty() => (bool)type.GetProperty("IsDirty", flags)!.GetValue(editor)!;
+        await Invoke("OnInitializedAsync");
+        Check(!Dirty(), "Loaded statistics editor is clean.");
+        var model = (HomeStatisticsEditModel)type.GetField("_model", flags)!.GetValue(editor)!;
+        foreach (var item in model.Items)
+        {
+            var label = item.Label;
+            var value = item.Value;
+            item.Label += " changed";
+            Check(Dirty(), "Every collection label participates in dirty tracking.");
+            item.Label = label;
+            Check(!Dirty(), "Reverting a label clears dirty state.");
+            item.Value++;
+            Check(Dirty(), "Every collection number participates in dirty tracking.");
+            item.Value = value;
+            Check(!Dirty(), "Reverting a number clears dirty state.");
+            item.Value = null;
+            Check(Dirty(), "Clearing a required number remains dirty.");
+            item.Value = value;
+        }
+        model.Items[0].Label = "Unsaved";
+        type.GetMethod("ClearSaved", flags)!.Invoke(editor, null);
+        Check(Dirty(), "Invalid form submission retains collection edits.");
+        foreach (var failure in new Exception[] { new DbUpdateException("Technical test detail"), new ValidationException("Technical test detail") })
+        {
+            service.Failure = failure;
+            await Invoke("SaveAsync");
+            Check(Dirty() && model.Items[0].Label == "Unsaved", "Failed save preserves collection edits.");
+            Check(!((string)type.GetField("_error", flags)!.GetValue(editor)!).Contains("Technical"), "Collection feedback hides technical details.");
+        }
+        service.Failure = null;
+        await Invoke("SaveAsync");
+        Check(!Dirty() && (bool)type.GetField("_saved", flags)!.GetValue(editor)!, "Successful collection save is clean with success feedback.");
+        model.Items[0].Value++;
+        await Invoke("OnInitializedAsync");
+        Check(!Dirty(), "Reload establishes a clean collection snapshot.");
     }
 
     // Invoke the actual editor lifecycle/save methods with a failing service. No UI-only happy-path surrogate.
@@ -100,6 +148,12 @@ internal static class HomeNavigationChecks
     }
 
     private abstract class Stub { public Exception? Failure { get; set; } }
+    private sealed class StatisticsStub : Stub, IHomeStatisticsContentService
+    {
+        public Task<IReadOnlyList<Statistic>> GetAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomeStatisticsDefaults.Content);
+        public Task<HomeStatisticsEditModel> GetForEditAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomeStatisticsEditModel.FromContent(HomeStatisticsDefaults.Content));
+        public Task UpdateAsync(HomeStatisticsEditModel model, CancellationToken cancellationToken = default) => Failure is null ? Task.CompletedTask : Task.FromException(Failure);
+    }
     private sealed class TeamStub : Stub, IHomeTeamSectionContentService
     {
         public Task<TeamSectionContent> GetAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomeTeamSectionDefaults.Content);

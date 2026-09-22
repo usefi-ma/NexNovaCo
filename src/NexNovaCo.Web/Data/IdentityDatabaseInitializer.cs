@@ -23,6 +23,7 @@ public static class IdentityDatabaseInitializer
         await HomeTeamSectionInitializer.InitializeAsync(database, cancellationToken);
         await HomeStatisticsInitializer.InitializeAsync(database, cancellationToken);
         await HomePartnersSectionInitializer.InitializeAsync(database, cancellationToken);
+        await HomeTestimonialsSectionInitializer.InitializeAsync(database, cancellationToken);
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         if (!await roles.RoleExistsAsync(AdminRole))
             RequireSuccess(await roles.CreateAsync(new IdentityRole(AdminRole)));

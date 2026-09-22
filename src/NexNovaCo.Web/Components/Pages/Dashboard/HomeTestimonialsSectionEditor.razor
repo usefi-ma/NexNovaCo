@@ -1,0 +1,97 @@
+@page "/dashboard/content/home/testimonials"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IHomeTestimonialsSectionContentService TestimonialsService
+@inject ILogger<HomeTestimonialsSectionEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Testimonials Section | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Home / Testimonials</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Testimonials Section</MudText>
+<MudText Class="dashboard-muted mb-7">Manage the title and description in the homepage testimonial brand panel.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert>
+}
+@if (_saved)
+{
+    <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Home Testimonials section updated successfully.</MudAlert>
+}
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="home-testimonials">
+            <DataAnnotationsValidator />
+            <section class="dashboard-editor-section" aria-labelledby="testimonials-content-heading">
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="testimonials-content-heading">Content</MudText>
+                <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Only the existing brand-panel title and description are editable. Quotes and authors are shared with Projects and managed separately. This panel is hidden at widths of 993px and below by the approved design.</MudText>
+                <MudGrid Spacing="4">
+                    <MudItem xs="12"><MudTextField @bind-Value="_model.Title" For="@(() => _model.Title)" Label="Title" Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" /></MudItem>
+                    <MudItem xs="12"><MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" HelperText="Up to 1,000 characters. Keep the copy concise for the existing public layout." Variant="Variant.Outlined" MaxLength="1000" Lines="5" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" /></MudItem>
+                </MudGrid>
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes go live when saved. Shared quotes, Projects, and design stay the same.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenHome" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.OpenInNew">View Home Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Save" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+
+@code {
+    private HomeTestimonialsSectionEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] :
+        [_model.Title, _model.Description];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private string? _error;
+    private bool _saving;
+    private bool _saved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _model = await TestimonialsService.GetForEditAsync();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpectedFailure(exception))
+        {
+            Logger.LogError(exception, "Unable to load the Home Testimonials editor.");
+            _error = "Home Testimonials could not be loaded. Refresh the page to try again, or contact the site administrator.";
+        }
+    }
+
+    private void ClearSaved() => _saved = false;
+    private void OpenHome() => Navigation.NavigateTo("/", forceLoad: true);
+
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            await TestimonialsService.UpdateAsync(_model);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+        }
+        catch (Exception exception) when (IsExpectedFailure(exception))
+        {
+            Logger.LogError(exception, "Unable to save Home Testimonials content.");
+            _error = "Home Testimonials could not be saved. Your changes are still in this form. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+
+    private static bool IsExpectedFailure(Exception exception) =>
+        exception is DbException or DbUpdateException or KeyNotFoundException or UnauthorizedAccessException or ValidationException;
+}

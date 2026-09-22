@@ -74,6 +74,7 @@ builder.Services.AddScoped<IHomeProjectsSectionContentService, HomeProjectsSecti
 builder.Services.AddScoped<IHomeTeamSectionContentService, HomeTeamSectionContentService>();
 builder.Services.AddScoped<IHomeStatisticsContentService, HomeStatisticsContentService>();
 builder.Services.AddScoped<IHomePartnersSectionContentService, HomePartnersSectionContentService>();
+builder.Services.AddScoped<IHomeTestimonialsSectionContentService, HomeTestimonialsSectionContentService>();
 builder.Services.AddScoped<IHomeContentService, HomeContentService>();
 builder.Services.AddSingleton<IServicesContentService, ServicesContentService>();
 builder.Services.AddSingleton<IAboutContentService, AboutContentService>();

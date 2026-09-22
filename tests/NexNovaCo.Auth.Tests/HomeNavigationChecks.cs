@@ -59,6 +59,7 @@ internal static class HomeNavigationChecks
         await CheckEditorStateAsync(new HomeProjectsSectionEditor(), "ProjectsService", new ProjectsStub(), "Title");
         await CheckEditorStateAsync(new HomeTeamSectionEditor(), "TeamService", new TeamStub(), "Title");
         await CheckEditorStateAsync(new HomePartnersSectionEditor(), "PartnersService", new PartnersStub(), "Title");
+        await CheckEditorStateAsync(new HomeTestimonialsSectionEditor(), "TestimonialsService", new TestimonialsStub(), "Title");
         await CheckStatisticsEditorAsync();
     }
 
@@ -149,6 +150,12 @@ internal static class HomeNavigationChecks
     }
 
     private abstract class Stub { public Exception? Failure { get; set; } }
+    private sealed class TestimonialsStub : Stub, IHomeTestimonialsSectionContentService
+    {
+        public Task<SectionHeading> GetAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomeTestimonialsSectionDefaults.Content);
+        public Task<HomeTestimonialsSectionEditModel> GetForEditAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomeTestimonialsSectionEditModel.FromContent(HomeTestimonialsSectionDefaults.Content));
+        public Task UpdateAsync(HomeTestimonialsSectionEditModel model, CancellationToken cancellationToken = default) => Failure is null ? Task.CompletedTask : Task.FromException(Failure);
+    }
     private sealed class PartnersStub : Stub, IHomePartnersSectionContentService
     {
         public Task<SectionHeading> GetAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomePartnersSectionDefaults.Content);

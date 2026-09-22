@@ -13,6 +13,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<HomeTeamSectionSettings> HomeTeamSectionSettings => Set<HomeTeamSectionSettings>();
     public DbSet<HomeStatistic> HomeStatistics => Set<HomeStatistic>();
     public DbSet<HomePartnersSectionSettings> HomePartnersSectionSettings => Set<HomePartnersSectionSettings>();
+    public DbSet<HomeTestimonialsSectionSettings> HomeTestimonialsSectionSettings => Set<HomeTestimonialsSectionSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -75,5 +76,11 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         partners.Property(x => x.Id).ValueGeneratedNever();
         partners.Property(x => x.Title).IsRequired().HasMaxLength(120);
         partners.Property(x => x.Description).IsRequired().HasMaxLength(1000);
+        var testimonials = builder.Entity<HomeTestimonialsSectionSettings>();
+        testimonials.ToTable("HomeTestimonialsSectionSettings", table => table.HasCheckConstraint("CK_HomeTestimonialsSectionSettings_Singleton", "Id = 1"));
+        testimonials.HasKey(x => x.Id);
+        testimonials.Property(x => x.Id).ValueGeneratedNever();
+        testimonials.Property(x => x.Title).IsRequired().HasMaxLength(120);
+        testimonials.Property(x => x.Description).IsRequired().HasMaxLength(1000);
     }
 }

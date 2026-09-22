@@ -32,7 +32,7 @@
                 <MudNavGroup Title="Home" Icon="@Icons.Material.Outlined.Web" @bind-Expanded="_homeExpanded">
                     <MudNavLink Href="/dashboard/content/home/hero" Match="NavLinkMatch.All">Hero</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/welcome" Match="NavLinkMatch.All">Welcome</MudNavLink>
-                    <MudNavLink Href="/dashboard/content/home/services" Match="NavLinkMatch.All">Services</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/home/services" Match="NavLinkMatch.All">Services Section</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/projects" Match="NavLinkMatch.All">Projects</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/team" Match="NavLinkMatch.All">Team</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/statistics" Match="NavLinkMatch.All">Statistics</MudNavLink>
@@ -42,6 +42,7 @@
                 <MudText Typo="Typo.overline" Class="dashboard-nav-label">Shared Content</MudText>
                 <MudNavLink Href="/dashboard/content/testimonials" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.FormatQuote">Testimonials</MudNavLink>
                 <MudNavLink Href="/dashboard/content/partners" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Handshake">Partners</MudNavLink>
+                <MudNavLink Href="/dashboard/content/services" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.DesignServices">Services</MudNavLink>
             </MudNavMenu>
         </nav>
         <div class="dashboard-drawer-note"><MudIcon Icon="@Icons.Material.Outlined.VerifiedUser" Size="Size.Small" /><span>Administrator workspace</span></div>
@@ -80,6 +81,8 @@
         if (isHome) _homeExpanded = true;
         _pageTitle = path.StartsWith("dashboard/content/testimonials", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Testimonials"
             : path.StartsWith("dashboard/content/partners", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Partners"
+            : path.StartsWith("dashboard/content/services/home-featured", StringComparison.OrdinalIgnoreCase) ? "Services / Home Featured"
+            : path.StartsWith("dashboard/content/services", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Services"
             : !isHome ? "Dashboard"
             : path.StartsWith("dashboard/content/home/testimonials", StringComparison.OrdinalIgnoreCase) ? "Home / Testimonials"
             : path.StartsWith("dashboard/content/home/partners", StringComparison.OrdinalIgnoreCase) ? "Home / Partners"

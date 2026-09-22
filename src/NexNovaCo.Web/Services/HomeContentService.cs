@@ -12,7 +12,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
     IHomeTeamSectionContentService teamContent, IHomeStatisticsContentService statisticsContent,
     IHomePartnersSectionContentService partnersContent,
     IHomeTestimonialsSectionContentService testimonialsContent,
-    ITestimonialContentService testimonials, IPartnerContentService partners) : IHomeContentService
+    ITestimonialContentService testimonials, IPartnerContentService partners, IServiceContentService services) : IHomeContentService
 {
     private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
@@ -24,6 +24,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             Hero = await heroContent.GetAsync(cancellationToken),
             Welcome = await welcomeContent.GetAsync(cancellationToken),
             ServicesHeading = await servicesContent.GetAsync(cancellationToken),
+            Services = await services.GetHomeFeaturedAsync(cancellationToken),
             ProjectsHeading = await projectsContent.GetAsync(cancellationToken),
             Team = await teamContent.GetAsync(cancellationToken),
             Statistics = await statisticsContent.GetAsync(cancellationToken),
@@ -48,7 +49,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             HomeHeroDefaults.Content,
             HomeWelcomeDefaults.Content,
             HomeServicesSectionDefaults.Content,
-            ServiceCatalog.HomeFeatured,
+            [],
             HomeProjectsSectionDefaults.Content,
             featuredProjects,
             HomeTeamSectionDefaults.Content,

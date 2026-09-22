@@ -1,0 +1,27 @@
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <DialogContent>
+        <MudText>Delete service “@Name”?</MudText>
+        <MudText Class="dashboard-muted mt-3">It will be removed from the Services page. This cannot be undone.</MudText>
+        @if (IsFeatured)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-3">This Service is featured on Home. Deleting it also removes that selection.</MudAlert>
+        }
+        @if (IsLast)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-3">This is the last Service. Both card collections will be empty. Restarting will not restore deleted Services. New Services must be selected in Home Featured to appear on Home.</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined">Cancel</MudButton>
+        <MudButton OnClick="Delete" Color="Color.Error" Variant="Variant.Filled" DropShadow="false">Delete service</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public bool IsFeatured { get; set; }
+    [Parameter] public bool IsLast { get; set; }
+    private void Cancel() => Dialog.Cancel();
+    private void Delete() => Dialog.Close(DialogResult.Ok(true));
+}

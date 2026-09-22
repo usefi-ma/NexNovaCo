@@ -62,7 +62,8 @@ internal static class HomeServicesSectionChecks
         }
         HomeHeroContent heroBefore;
         string welcomeBefore;
-        var servicesPageBefore = System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IServicesContentService>().GetAsync());
+        await using var publicServicesScope = app.Services.CreateAsyncScope();
+        var servicesPageBefore = System.Text.Json.JsonSerializer.Serialize(await publicServicesScope.ServiceProvider.GetRequiredService<IServicesContentService>().GetAsync());
         HomeContent homeBefore;
         await using (var scope = app.Services.CreateAsyncScope())
             homeBefore = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
@@ -73,7 +74,7 @@ internal static class HomeServicesSectionChecks
         edit.Description = "Edited Home Services introduction for isolated persistence verification.";
         await service.UpdateAsync(edit);
         Check((await service.GetAsync()).Title == edit.Title, "Update must persist into a new context.");
-        Check(System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IServicesContentService>().GetAsync()) == servicesPageBefore, "Edited Home intro must leave public Services content unchanged.");
+        Check(System.Text.Json.JsonSerializer.Serialize(await publicServicesScope.ServiceProvider.GetRequiredService<IServicesContentService>().GetAsync()) == servicesPageBefore, "Edited Home intro must leave public Services content unchanged.");
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var updated = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
@@ -155,7 +156,7 @@ internal static class HomeServicesSectionChecks
         Check(encodedHtml.Contains("&lt;script&gt;") && !encodedHtml.Contains(encoded.Title), "ServicesSection text must remain HTML-encoded.");
         await service.UpdateAsync(HomeServicesSectionEditModel.FromContent(initial));
 
-        Check(System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IServicesContentService>().GetAsync()) == servicesPageBefore, "Home intro editing must not affect public Services page content.");
+        Check(System.Text.Json.JsonSerializer.Serialize(await publicServicesScope.ServiceProvider.GetRequiredService<IServicesContentService>().GetAsync()) == servicesPageBefore, "Home intro editing must not affect public Services page content.");
         Check((await anonymous.GetAsync("/services")).StatusCode == HttpStatusCode.OK, "Services page must remain anonymous.");
         await using (var db = await factory.CreateDbContextAsync())
             Check(System.Text.Json.JsonSerializer.Serialize((await db.HomeWelcomeSettings.SingleAsync()).ToContent()) == welcomeBefore, "Services intro writes must not alter Welcome.");

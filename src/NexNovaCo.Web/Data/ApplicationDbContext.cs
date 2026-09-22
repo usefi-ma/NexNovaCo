@@ -20,9 +20,34 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<PartnerEntity> Partners => Set<PartnerEntity>();
     public DbSet<PartnerInitializationState> PartnerInitializationStates => Set<PartnerInitializationState>();
 
+    public DbSet<ServiceEntity> Services => Set<ServiceEntity>();
+    public DbSet<HomeFeaturedService> HomeFeaturedServices => Set<HomeFeaturedService>();
+    public DbSet<ServiceInitializationState> ServiceInitializationStates => Set<ServiceInitializationState>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        var service = builder.Entity<ServiceEntity>();
+        service.ToTable("Services", table => table.HasCheckConstraint("CK_Services_Order", "DisplayOrder > 0"));
+        service.HasKey(x => x.Id);
+        service.HasIndex(x => x.DisplayOrder);
+        service.HasIndex(x => x.ContentKey).IsUnique();
+        service.Property(x => x.ContentKey).IsRequired().HasMaxLength(80);
+        service.Property(x => x.Name).IsRequired().HasMaxLength(60);
+        service.Property(x => x.Tagline).IsRequired().HasMaxLength(80);
+        service.Property(x => x.Description).IsRequired().HasMaxLength(200);
+        service.Property(x => x.IconPath).IsRequired().HasMaxLength(200);
+        service.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        var featured = builder.Entity<HomeFeaturedService>();
+        featured.ToTable("HomeFeaturedServices", table => table.HasCheckConstraint("CK_HomeFeaturedServices_Order", "DisplayOrder BETWEEN 1 AND 5"));
+        featured.HasKey(x => x.ServiceId);
+        featured.Property(x => x.ServiceId).ValueGeneratedNever();
+        featured.HasIndex(x => x.DisplayOrder);
+        featured.HasOne(x => x.Service).WithOne(x => x.HomeFeatured).HasForeignKey<HomeFeaturedService>(x => x.ServiceId).OnDelete(DeleteBehavior.Cascade);
+        var serviceInitialization = builder.Entity<ServiceInitializationState>();
+        serviceInitialization.ToTable("ServiceInitializationState", table => table.HasCheckConstraint("CK_ServiceInitializationState_Singleton", "Id = 1"));
+        serviceInitialization.HasKey(x => x.Id);
+        serviceInitialization.Property(x => x.Id).ValueGeneratedNever();
         var hero = builder.Entity<HomeHeroSettings>();
         hero.ToTable("HomeHeroSettings", table => table.HasCheckConstraint("CK_HomeHeroSettings_Singleton", "Id = 1"));
         hero.HasKey(x => x.Id);

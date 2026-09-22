@@ -3,17 +3,17 @@ using NexNovaCo.Web.Models;
 namespace NexNovaCo.Web.Services;
 
 /// <summary>
-/// Read-only editorial snapshot of service.html. Replace this DI implementation when a real
-/// content source exists; rendering components do not depend on storage or legacy HTML.
+/// Approved editorial snapshot of service.html; shared Service cards are read fresh from SQLite.
+/// Rendering components do not depend on storage or legacy HTML.
 /// Prices and claims are preserved demo content, not a live commercial offering.
 /// </summary>
-public sealed class ServicesContentService : IServicesContentService
+public sealed class ServicesContentService(IServiceContentService services) : IServicesContentService
 {
     private static readonly ServicesContent Content = new(
         new("What We Offer", "Our Services",
             "We specialize in delivering custom software solutions, web and mobile app development, and AI-powered innovations that are tailored to help businesses achieve their goals.",
             "Explore Our Services", "services#Service"),
-        ServiceCatalog.All,
+        [],
         new("Benefits and Features", "We combine cutting-edge technology with innovative strategies to deliver solutions that drive success. Our benefits and features are designed to enhance efficiency, improve decision-making, and maximize business growth. From seamless integrations to data-driven insights, we empower businesses with the tools they need to stay ahead in a competitive market."),
         [new("Innovative Solutions", "We harness the latest technology and industry insights to develop cutting-edge solutions that keep your business ahead of the competition."),
          new("Seamless Integration", "Our designs focus on user-friendly interfaces and seamless navigation, ensuring a hassle-free experience for your customers and boosting engagement."),
@@ -42,9 +42,9 @@ public sealed class ServicesContentService : IServicesContentService
          new("Will my website be mobile-friendly?", "Absolutely! Every website we create is responsive, ensuring seamless performance across all devices, including desktops, tablets, and smartphones."),
          new("Do you provide SEO services?", "Yes! Our Standard and Premium packages include basic SEO optimization to help your website rank better on search engines. We also offer advanced SEO services upon request.")]);
 
-    public Task<ServicesContent> GetAsync(CancellationToken cancellationToken = default)
+    public async Task<ServicesContent> GetAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(Content);
+        return Content with { Services = await services.GetAsync(cancellationToken) };
     }
 }

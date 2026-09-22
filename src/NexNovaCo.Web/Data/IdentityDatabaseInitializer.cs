@@ -26,6 +26,7 @@ public static class IdentityDatabaseInitializer
         await HomeTestimonialsSectionInitializer.InitializeAsync(database, cancellationToken);
         await TestimonialInitializer.InitializeAsync(database, cancellationToken);
         await PartnerInitializer.InitializeAsync(database, cancellationToken);
+        await ServiceInitializer.InitializeAsync(database, cancellationToken);
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         if (!await roles.RoleExistsAsync(AdminRole))
             RequireSuccess(await roles.CreateAsync(new IdentityRole(AdminRole)));

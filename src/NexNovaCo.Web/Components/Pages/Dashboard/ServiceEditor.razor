@@ -1,0 +1,122 @@
+@page "/dashboard/content/services/new"
+@page "/dashboard/content/services/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IServiceContentService ServicesService
+@inject ILogger<ServiceEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>@(_editingId is null ? "Add" : "Edit") Service | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Services</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add service" : "Edit service")</MudText>
+<MudText Class="dashboard-muted mb-7">Saved changes appear on Services and on Home when selected as featured. Keep copy concise for the existing cards.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Service saved. Home uses it only when selected as featured.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="shared-service">
+            <DataAnnotationsValidator />
+            <section class="dashboard-editor-section" aria-labelledby="service-content-heading">
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="service-content-heading" Class="mb-5">Service content</MudText>
+                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" HelperText="Required. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-6" />
+                <MudTextField @bind-Value="_model.Tagline" For="@(() => _model.Tagline)" Label="Tagline" HelperText="The short subtitle shown below the name. Up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-6" />
+                <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" HelperText="Required. Concise plain text; up to 200 characters." Variant="Variant.Outlined" MaxLength="200" Lines="3" Immediate="true" Disabled="_saving" Class="mb-6" />
+                <MudSelect T="string" @bind-Value="_model.IconPath" For="@(() => _model.IconPath)" Label="Icon" HelperText="Choose an approved bundled icon. No uploads or arbitrary file paths." Variant="Variant.Outlined" Disabled="_saving" Class="mb-4">
+                    @foreach (var path in ServiceIconAssets.Paths)
+                    {
+                        <MudSelectItem T="string" Value="@path">@path</MudSelectItem>
+                    }
+                </MudSelect>
+                <ServiceIconPreview IconPath="@_model.IconPath" Name="@_model.Name" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">This changes shared content, not Home's section introduction.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save service")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else
+{
+    <MudButton Href="/dashboard/content/services" Variant="Variant.Outlined">Back to list</MudButton>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private ServiceEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [_model.Name, _model.Tagline, _model.Description, _model.IconPath];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+    private string? _navigateAfterSave;
+    private bool _showCreated;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id;
+        _model = null;
+        _error = null;
+        _saved = _showCreated;
+        _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await ServicesService.GetForEditAsync(id) : new ServiceEditModel();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to load service editor.");
+            _error = exception is KeyNotFoundException ? "This service no longer exists. Return to the list."
+                : "The service could not be loaded. Check your session and try again.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/services");
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            if (_editingId is int id) await ServicesService.UpdateAsync(id, _model);
+            else _editingId = await ServicesService.CreateAsync(_model);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+            // Leave /new after creation so refresh cannot accidentally create a duplicate.
+            if (Id is null)
+            {
+                _showCreated = true;
+                _navigateAfterSave = $"/dashboard/content/services/{_editingId}";
+            }
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to save service.");
+            _error = exception is KeyNotFoundException or DbUpdateConcurrencyException
+                ? "This service changed or no longer exists. Your input is retained; return to the list to reload."
+                : "The service could not be saved. Your input is retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null;
+        // The clean snapshot has now reached NavigationLock before leaving the /new route.
+        Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

@@ -21,7 +21,10 @@
     <div class="home-page" @ref="_root">
         <HomeHero Content="_content.Hero" />
         <HomeWelcomeSection Content="_content.Welcome" />
-        <HomeServicesSection Heading="_content.ServicesHeading" Items="_content.Services" />
+        @if (_content.Services.Count > 0)
+        {
+            <HomeServicesSection Heading="_content.ServicesHeading" Items="_content.Services" />
+        }
         <HomeProjectsSection Heading="_content.ProjectsHeading" Items="_content.Projects" />
         <HomeTeamSection Content="_content.Team" Members="_content.Members" />
         <HomeStatisticsSection Items="_content.Statistics" />

@@ -1,0 +1,4 @@
+.service-actions { display: flex; flex-wrap: wrap; }
+.service-cell-text { min-width: 0; overflow-wrap: anywhere; }
+::deep .services-table .mud-table-cell::before { flex: 0 0 6rem; max-width: 35%; }
+::deep .services-table .mud-table-container { overflow-x: visible; }

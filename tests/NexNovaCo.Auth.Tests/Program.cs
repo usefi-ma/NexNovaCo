@@ -117,11 +117,11 @@ internal static class AuthChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 12, "Expected Identity, eight Home settings, shared Testimonials initialization and shared Partners migrations.");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 13, "Expected Identity, eight Home settings, shared Testimonials initialization shared Partners and Services/Featured migrations.");
             Check(!db.Database.HasPendingModelChanges(), "Migration and runtime model must agree.");
             var tables = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table'").ToListAsync();
             Check(new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetUserLogins", "AspNetUserTokens", "AspNetRoleClaims" }.All(tables.Contains), "Identity tables missing.");
-            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings" or "HomeTeamSectionSettings" or "HomeStatistics" or "HomePartnersSectionSettings" or "HomeTestimonialsSectionSettings" or "Testimonials" or "TestimonialInitializationState" or "Partners" or "PartnerInitializationState"), "Unexpected schema beyond Identity and approved CMS content.");
+            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings" or "HomeTeamSectionSettings" or "HomeStatistics" or "HomePartnersSectionSettings" or "HomeTestimonialsSectionSettings" or "Testimonials" or "TestimonialInitializationState" or "Partners" or "PartnerInitializationState" or "Services" or "HomeFeaturedServices" or "ServiceInitializationState"), "Unexpected schema beyond Identity and approved CMS content.");
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var admin = await users.FindByEmailAsync(AuthFactory.Email);
             Check(admin is not null && await users.IsInRoleAsync(admin, "Admin"), "Admin must exist and have Admin role.");
@@ -195,11 +195,13 @@ internal static class AuthChecks
         await HomePartnersSectionChecks.RunAsync();
         await HomeTestimonialsSectionChecks.RunAsync();
         await HomeNavigationChecks.RunAsync();
+        await SharedServiceChecks.RunAsync();
+        await ServiceInitializationChecks.RunAsync();
         await SharedPartnerChecks.RunAsync();
         await PartnerInitializationChecks.RunAsync();
         await SharedTestimonialChecks.RunAsync();
         await TestimonialInitializationChecks.RunAsync();
-        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, eight Home CMS slices, shared Testimonials/Partners CRUD/reorder, persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
+        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, eight Home CMS slices, shared Testimonials/Partners/Services CRUD/reorder and Home Featured, persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
     }
 }
 

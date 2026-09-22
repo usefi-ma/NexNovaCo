@@ -2,7 +2,7 @@ using NexNovaCo.Web.Models;
 
 namespace NexNovaCo.Web.Services;
 
-/// <summary>One approved service identity/copy/icon source for Home and Services.</summary>
+/// <summary>Approved one-time initialization and read-failure fallback only. SQLite is the live catalog.</summary>
 internal static class ServiceCatalog
 {
     public static IReadOnlyList<ServiceSummary> All { get; } = Array.AsReadOnly<ServiceSummary>([

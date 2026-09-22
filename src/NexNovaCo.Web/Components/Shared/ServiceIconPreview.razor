@@ -1,0 +1,23 @@
+<div class="service-icon-preview">
+    @if (!_failed && ServiceIconAssets.IsAllowed(IconPath))
+    {
+        <img @key="IconPath" src="@IconPath" alt="@(Name + " icon")" width="64" height="64" @onerror="() => _failed = true" />
+    }
+    else
+    {
+        <span role="img" aria-label="Icon unavailable">No icon</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string IconPath { get; set; } = "";
+    [Parameter] public string Name { get; set; } = "";
+    private string? _previousPath;
+    private bool _failed;
+    protected override void OnParametersSet()
+    {
+        if (_previousPath == IconPath) return;
+        _previousPath = IconPath;
+        _failed = false;
+    }
+}

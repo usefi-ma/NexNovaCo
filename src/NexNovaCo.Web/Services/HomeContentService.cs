@@ -3,12 +3,12 @@ using NexNovaCo.Web.Models;
 namespace NexNovaCo.Web.Services;
 
 /// <summary>
-/// Hero, Welcome and the Services heading are CMS-backed. Other Home content retains its approved static sources.
+/// Hero, Welcome, Services and Projects intros are CMS-backed. Other Home content retains its approved static sources.
 /// Editable content is read on every request/navigation, never held in the static snapshot.
 /// </summary>
 public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog,
     IHomeHeroContentService heroContent, IHomeWelcomeContentService welcomeContent,
-    IHomeServicesSectionContentService servicesContent) : IHomeContentService
+    IHomeServicesSectionContentService servicesContent, IHomeProjectsSectionContentService projectsContent) : IHomeContentService
 {
     private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
@@ -19,7 +19,8 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
         {
             Hero = await heroContent.GetAsync(cancellationToken),
             Welcome = await welcomeContent.GetAsync(cancellationToken),
-            ServicesHeading = await servicesContent.GetAsync(cancellationToken)
+            ServicesHeading = await servicesContent.GetAsync(cancellationToken),
+            ProjectsHeading = await projectsContent.GetAsync(cancellationToken)
         };
     }
 
@@ -38,7 +39,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             HomeWelcomeDefaults.Content,
             HomeServicesSectionDefaults.Content,
             ServiceCatalog.HomeFeatured,
-            new("Our Projects", "We turn ideas into powerful digital solutions. Our projects reflect innovation, precision, and a commitment to excellence. From AI-driven applications to custom software and high-performance web and mobile solutions, we deliver cutting-edge technology that helps businesses grow. Explore our work and see how we bring visions to life with creativity and expertise."),
+            HomeProjectsSectionDefaults.Content,
             featuredProjects,
             new("Our Team", "We bring together a team of skilled developers, creative designers, and tech strategists, all driven by a passion for innovation. Our diverse expertise allows us to build cutting-edge solutions that help businesses thrive in the digital era.",
                 "From concept to execution, we prioritize innovation, efficiency, and user experience.",

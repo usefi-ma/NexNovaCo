@@ -117,11 +117,11 @@ internal static class AuthChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 4, "Expected Identity, Hero, Welcome and Services intro migrations.");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 5, "Expected Identity, Hero, Welcome, Services intro and Projects intro migrations.");
             Check(!db.Database.HasPendingModelChanges(), "Migration and runtime model must agree.");
             var tables = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table'").ToListAsync();
             Check(new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetUserLogins", "AspNetUserTokens", "AspNetRoleClaims" }.All(tables.Contains), "Identity tables missing.");
-            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings"), "Unexpected schema beyond Identity and approved Home settings.");
+            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings"), "Unexpected schema beyond Identity and approved Home settings.");
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var admin = await users.FindByEmailAsync(AuthFactory.Email);
             Check(admin is not null && await users.IsInRoleAsync(admin, "Admin"), "Admin must exist and have Admin role.");
@@ -189,8 +189,9 @@ internal static class AuthChecks
         await HomeHeroChecks.RunAsync();
         await HomeWelcomeChecks.RunAsync();
         await HomeServicesSectionChecks.RunAsync();
+        await HomeProjectsSectionChecks.RunAsync();
         await HomeNavigationChecks.RunAsync();
-        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, Hero/Welcome/Services intro persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
+        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, Hero/Welcome/Services/Projects intro persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
     }
 }
 

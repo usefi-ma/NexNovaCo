@@ -3,11 +3,12 @@ using NexNovaCo.Web.Models;
 namespace NexNovaCo.Web.Services;
 
 /// <summary>
-/// Hero and Welcome are CMS-backed. Other Home content retains its approved static sources.
+/// Hero, Welcome and the Services heading are CMS-backed. Other Home content retains its approved static sources.
 /// Editable content is read on every request/navigation, never held in the static snapshot.
 /// </summary>
 public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog,
-    IHomeHeroContentService heroContent, IHomeWelcomeContentService welcomeContent) : IHomeContentService
+    IHomeHeroContentService heroContent, IHomeWelcomeContentService welcomeContent,
+    IHomeServicesSectionContentService servicesContent) : IHomeContentService
 {
     private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
@@ -17,7 +18,8 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
         return content with
         {
             Hero = await heroContent.GetAsync(cancellationToken),
-            Welcome = await welcomeContent.GetAsync(cancellationToken)
+            Welcome = await welcomeContent.GetAsync(cancellationToken),
+            ServicesHeading = await servicesContent.GetAsync(cancellationToken)
         };
     }
 
@@ -34,7 +36,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
         return new HomeContent(
             HomeHeroDefaults.Content,
             HomeWelcomeDefaults.Content,
-            new("Our Services", "We specialize in delivering custom software solutions, web and mobile app development, and AI-powered innovations that are tailored to help businesses achieve their goals. We work closely with our clients to understand their unique needs, delivering digital products that enhance efficiency, drive growth, and provide a competitive edge in today's fast-paced market."),
+            HomeServicesSectionDefaults.Content,
             ServiceCatalog.HomeFeatured,
             new("Our Projects", "We turn ideas into powerful digital solutions. Our projects reflect innovation, precision, and a commitment to excellence. From AI-driven applications to custom software and high-performance web and mobile solutions, we deliver cutting-edge technology that helps businesses grow. Explore our work and see how we bring visions to life with creativity and expertise."),
             featuredProjects,

@@ -8,6 +8,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 {
     public DbSet<HomeHeroSettings> HomeHeroSettings => Set<HomeHeroSettings>();
     public DbSet<HomeWelcomeSettings> HomeWelcomeSettings => Set<HomeWelcomeSettings>();
+    public DbSet<HomeServicesSectionSettings> HomeServicesSectionSettings => Set<HomeServicesSectionSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -32,5 +33,11 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         welcome.Property(x => x.ParagraphTwo).IsRequired().HasMaxLength(1000);
         welcome.Property(x => x.CtaLabel).IsRequired().HasMaxLength(60);
         welcome.Property(x => x.CtaHref).IsRequired().HasMaxLength(200);
+        var services = builder.Entity<HomeServicesSectionSettings>();
+        services.ToTable("HomeServicesSectionSettings", table => table.HasCheckConstraint("CK_HomeServicesSectionSettings_Singleton", "Id = 1"));
+        services.HasKey(x => x.Id);
+        services.Property(x => x.Id).ValueGeneratedNever();
+        services.Property(x => x.Title).IsRequired().HasMaxLength(120);
+        services.Property(x => x.Description).IsRequired().HasMaxLength(1000);
     }
 }

@@ -55,6 +55,7 @@ internal static class HomeNavigationChecks
         }
         await CheckEditorStateAsync(new HomeHeroEditor(), "HeroService", new HeroStub(), "OpeningLine");
         await CheckEditorStateAsync(new HomeWelcomeEditor(), "WelcomeService", new WelcomeStub(), "Title");
+        await CheckEditorStateAsync(new HomeServicesSectionEditor(), "ServicesService", new ServicesStub(), "Title");
     }
 
     // Invoke the actual editor lifecycle/save methods with a failing service. No UI-only happy-path surrogate.
@@ -97,6 +98,12 @@ internal static class HomeNavigationChecks
     }
 
     private abstract class Stub { public Exception? Failure { get; set; } }
+    private sealed class ServicesStub : Stub, IHomeServicesSectionContentService
+    {
+        public Task<SectionHeading> GetAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomeServicesSectionDefaults.Content);
+        public Task<HomeServicesSectionEditModel> GetForEditAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomeServicesSectionEditModel.FromContent(HomeServicesSectionDefaults.Content));
+        public Task UpdateAsync(HomeServicesSectionEditModel model, CancellationToken cancellationToken = default) => Failure is null ? Task.CompletedTask : Task.FromException(Failure);
+    }
     private sealed class HeroStub : Stub, IHomeHeroContentService
     {
         public Task<HomeHeroContent> GetAsync(CancellationToken cancellationToken = default) => Task.FromResult(HomeHeroDefaults.Content);

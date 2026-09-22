@@ -69,6 +69,7 @@ builder.Services.AddSingleton<IContactContentService, ContactContentService>();
 builder.Services.AddSingleton<IContactFormService, DemoContactFormService>();
 builder.Services.AddScoped<IHomeHeroContentService, HomeHeroContentService>();
 builder.Services.AddScoped<IHomeWelcomeContentService, HomeWelcomeContentService>();
+builder.Services.AddScoped<IHomeServicesSectionContentService, HomeServicesSectionContentService>();
 builder.Services.AddScoped<IHomeContentService, HomeContentService>();
 builder.Services.AddSingleton<IServicesContentService, ServicesContentService>();
 builder.Services.AddSingleton<IAboutContentService, AboutContentService>();

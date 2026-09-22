@@ -3,12 +3,13 @@ using NexNovaCo.Web.Models;
 namespace NexNovaCo.Web.Services;
 
 /// <summary>
-/// Hero, Welcome, Services and Projects intros are CMS-backed. Other Home content retains its approved static sources.
+/// Hero, Welcome, Services, Projects and Team intros are CMS-backed. Other Home content retains its approved static sources.
 /// Editable content is read on every request/navigation, never held in the static snapshot.
 /// </summary>
 public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCatalog memberCatalog,
     IHomeHeroContentService heroContent, IHomeWelcomeContentService welcomeContent,
-    IHomeServicesSectionContentService servicesContent, IHomeProjectsSectionContentService projectsContent) : IHomeContentService
+    IHomeServicesSectionContentService servicesContent, IHomeProjectsSectionContentService projectsContent,
+    IHomeTeamSectionContentService teamContent) : IHomeContentService
 {
     private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(projectCatalog, memberCatalog));
 
@@ -20,7 +21,8 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             Hero = await heroContent.GetAsync(cancellationToken),
             Welcome = await welcomeContent.GetAsync(cancellationToken),
             ServicesHeading = await servicesContent.GetAsync(cancellationToken),
-            ProjectsHeading = await projectsContent.GetAsync(cancellationToken)
+            ProjectsHeading = await projectsContent.GetAsync(cancellationToken),
+            Team = await teamContent.GetAsync(cancellationToken)
         };
     }
 
@@ -41,9 +43,7 @@ public sealed class HomeContentService(IProjectCatalog projectCatalog, IMemberCa
             ServiceCatalog.HomeFeatured,
             HomeProjectsSectionDefaults.Content,
             featuredProjects,
-            new("Our Team", "We bring together a team of skilled developers, creative designers, and tech strategists, all driven by a passion for innovation. Our diverse expertise allows us to build cutting-edge solutions that help businesses thrive in the digital era.",
-                "From concept to execution, we prioritize innovation, efficiency, and user experience.",
-                "With years of experience in custom software development, AI-powered applications, and web & mobile solutions, our team works collaboratively to transform ideas into reality.", "Learn more", "team"),
+            HomeTeamSectionDefaults.Content,
             featuredMembers,
             [new("PROJECTS", 450), new("CLIENTS", 3000), new("EMPLOYEES", 1000), new("AWARDS", 26)],
             PartnerCatalog.Heading, PartnerCatalog.All,

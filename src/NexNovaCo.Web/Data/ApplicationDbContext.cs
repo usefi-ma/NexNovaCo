@@ -10,6 +10,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<HomeWelcomeSettings> HomeWelcomeSettings => Set<HomeWelcomeSettings>();
     public DbSet<HomeServicesSectionSettings> HomeServicesSectionSettings => Set<HomeServicesSectionSettings>();
     public DbSet<HomeProjectsSectionSettings> HomeProjectsSectionSettings => Set<HomeProjectsSectionSettings>();
+    public DbSet<HomeTeamSectionSettings> HomeTeamSectionSettings => Set<HomeTeamSectionSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -46,5 +47,15 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         projects.Property(x => x.Id).ValueGeneratedNever();
         projects.Property(x => x.Title).IsRequired().HasMaxLength(120);
         projects.Property(x => x.Description).IsRequired().HasMaxLength(1000);
+        var team = builder.Entity<HomeTeamSectionSettings>();
+        team.ToTable("HomeTeamSectionSettings", table => table.HasCheckConstraint("CK_HomeTeamSectionSettings_Singleton", "Id = 1"));
+        team.HasKey(x => x.Id);
+        team.Property(x => x.Id).ValueGeneratedNever();
+        team.Property(x => x.Title).IsRequired().HasMaxLength(120);
+        team.Property(x => x.Introduction).IsRequired().HasMaxLength(500);
+        team.Property(x => x.Highlight).IsRequired().HasMaxLength(300);
+        team.Property(x => x.Description).IsRequired().HasMaxLength(1000);
+        team.Property(x => x.CtaLabel).IsRequired().HasMaxLength(60);
+        team.Property(x => x.CtaHref).IsRequired().HasMaxLength(200);
     }
 }

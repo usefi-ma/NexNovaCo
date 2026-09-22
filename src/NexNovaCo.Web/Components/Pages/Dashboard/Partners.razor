@@ -1,0 +1,105 @@
+@page "/dashboard/content/partners"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IPartnerContentService PartnersService
+@inject IDialogService Dialogs
+@inject ILogger<Partners> Logger
+
+<PageTitle>Shared Partners | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Partners</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Partners</MudText>
+<MudText Class="dashboard-muted mb-5">Manage the same partners shown on Home and About. Home's introduction is edited separately under Home → Partners Section.</MudText>
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_message is not null) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">@_message</MudAlert> }
+<MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-5" Spacing="2">
+    <MudButton Href="/dashboard/content/partners/new" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.Add" DropShadow="false" Disabled="_busy">Add partner</MudButton>
+    <MudButton OnClick="ReloadAsync" Variant="Variant.Outlined" Disabled="_busy">Refresh list</MudButton>
+</MudStack>
+<MudText Typo="Typo.body2" Class="dashboard-muted mb-4">Move up/down saves immediately on both pages. There is no separate ordering Save step.</MudText>
+@if (_items is not null)
+{
+    <div class="partners-list">
+    <MudTable T="PartnerListItem" Items="_items" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Md" Class="partners-table" Loading="_busy">
+        <HeaderContent>
+            <MudTh>Order</MudTh><MudTh>Logo</MudTh><MudTh>Name</MudTh><MudTh>Link</MudTh><MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Order">@context.DisplayOrder</MudTd>
+            <MudTd DataLabel="Logo"><PartnerLogoPreview ImagePath="@context.ImagePath" Name="@context.Name" HasLogoBackground="context.HasLogoBackground" /></MudTd>
+            <MudTd DataLabel="Name"><span class="partner-cell-text">@context.Name</span></MudTd>
+            <MudTd DataLabel="Link"><span class="partner-cell-text">@(string.IsNullOrWhiteSpace(context.Href) ? "No link" : context.Href)</span></MudTd>
+            <MudTd DataLabel="Actions">
+                <div class="partner-actions">
+                    <MudIconButton Icon="@Icons.Material.Outlined.ArrowUpward" aria-label="@($"Move up {context.Name}")" Disabled="@(_busy || context.Id == _items[0].Id)" OnClick="@(() => MoveAsync(context.Id, -1))" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.ArrowDownward" aria-label="@($"Move down {context.Name}")" Disabled="@(_busy || context.Id == _items[^1].Id)" OnClick="@(() => MoveAsync(context.Id, 1))" />
+                    <MudIconButton Href="@($"/dashboard/content/partners/{context.Id}")" Icon="@Icons.Material.Outlined.Edit" Color="Color.Primary" aria-label="@($"Edit {context.Name}")" Disabled="_busy" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" aria-label="@($"Delete {context.Name}")" Disabled="_busy" OnClick="@(() => DeleteAsync(context))" />
+                </div>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent><MudText>No partners yet. Add one to show it on Home and About.</MudText></NoRecordsContent>
+    </MudTable>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<PartnerListItem>? _items;
+    private bool _busy;
+    private string? _error;
+    private string? _message;
+    protected override Task OnInitializedAsync() => ReloadAsync();
+    private Task ReloadAsync() => RunAsync(async () => { _items = await PartnersService.ListAsync(); }, null);
+    private Task MoveAsync(int id, int direction) => RunAsync(async () =>
+    {
+        var ids = _items!.Select(item => item.Id).ToList();
+        var index = ids.IndexOf(id);
+        var target = index + direction;
+        if (index < 0 || target < 0 || target >= ids.Count) return;
+        (ids[index], ids[target]) = (ids[target], ids[index]);
+        await PartnersService.ReorderAsync(ids);
+        _items = await PartnersService.ListAsync();
+    }, "Partner order saved for Home and About.");
+
+    private async Task DeleteAsync(PartnerListItem item)
+    {
+        if (_busy) return;
+        _busy = true;
+        try
+        {
+            var parameters = new DialogParameters<DeletePartnerDialog>
+            {
+                { dialog => dialog.Name, item.Name }, { dialog => dialog.IsLast, _items?.Count == 1 }
+            };
+            var dialog = await Dialogs.ShowAsync<DeletePartnerDialog>("Delete partner?", parameters,
+                new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false, CloseOnEscapeKey = true });
+            var result = await dialog.Result;
+            if (result?.Canceled != false) return;
+            _busy = false;
+            await RunAsync(async () =>
+            {
+                await PartnersService.DeleteAsync(item.Id);
+                _items = await PartnersService.ListAsync();
+            }, "Partner deleted from Home and About.");
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task RunAsync(Func<Task> action, string? success)
+    {
+        if (_busy) return;
+        _busy = true;
+        _error = null;
+        _message = null;
+        try { await action(); _message = success; }
+        catch (Exception exception) when (exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException)
+        {
+            Logger.LogError(exception, "Unable to complete partner management operation.");
+            _error = exception is KeyNotFoundException or ValidationException or DbUpdateConcurrencyException
+                ? "The collection changed or an item no longer exists. Refresh the list and try again."
+                : "The operation could not be completed. Check your session, refresh the list, and try again.";
+        }
+        finally { _busy = false; }
+    }
+}

@@ -4,6 +4,20 @@ import { initialize } from '../src/NexNovaCo.Web/wwwroot/js/about.js';
 import { initialize as initializeHome } from '../src/NexNovaCo.Web/wwwroot/js/home.js';
 import { fixture } from './fixtures/CarouselFixture.mjs';
 
+test('Empty Partners sections leave Home/About enhancement and disposal safe', () => {
+    for (const enhance of [initializeHome, initialize]) {
+        const f = fixture(false, 'partners');
+        const query = f.root.querySelectorAll.bind(f.root);
+        f.root.querySelectorAll = selector => selector === '[data-carousel-kind]' ? [] : query(selector);
+        enhance(f.root); enhance(f.root);
+        assert.equal(f.calls.filter(x => x === 'init').length, 0);
+        assert.ok(f.animated.classes.has('aos-init'));
+        f.remove();
+        assert.equal(f.calls.filter(x => x === 'destroy.owl.carousel').length, 0);
+        assert.ok(f.mutations[0].disconnected);
+    }
+});
+
 test('About initializes one partners carousel without counters and removes its handlers on detach', () => {
     const f = fixture(false, 'partners');
     initialize(f.root); initialize(f.root);

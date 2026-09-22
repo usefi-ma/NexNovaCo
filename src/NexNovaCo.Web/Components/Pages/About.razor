@@ -20,7 +20,10 @@
         <AboutVisionSection Content="_content.Vision" />
         <AboutTimelineSection Content="_content.Timeline" />
         <AboutMissionSection Content="_content.Mission" />
-        <PartnersSection Heading="_content.PartnersHeading" Items="_content.Partners" />
+        @if (_content.Partners.Count > 0)
+        {
+            <PartnersSection Heading="_content.PartnersHeading" Items="_content.Partners" />
+        }
     </div>
 }
 

@@ -64,25 +64,26 @@ internal static class HomePartnersSectionChecks
         string welcomeBefore;
         SectionHeading servicesBefore;
         await using (var db = await factory.CreateDbContextAsync()) servicesBefore = (await db.HomeServicesSectionSettings.SingleAsync()).ToContent();
-        var partnersPageBefore = System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IAboutContentService>().GetAsync());
+        await using var aboutScope = app.Services.CreateAsyncScope();
+        var partnersPageBefore = System.Text.Json.JsonSerializer.Serialize(await aboutScope.ServiceProvider.GetRequiredService<IAboutContentService>().GetAsync());
         HomeContent homeBefore;
         await using (var scope = app.Services.CreateAsyncScope())
             homeBefore = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
         await using (var db = await factory.CreateDbContextAsync()) welcomeBefore = System.Text.Json.JsonSerializer.Serialize((await db.HomeWelcomeSettings.SingleAsync()).ToContent());
         await using (var db = await factory.CreateDbContextAsync()) heroBefore = (await db.HomeHeroSettings.SingleAsync()).ToContent();
-        var aboutBefore = await app.Services.GetRequiredService<IAboutContentService>().GetAsync();
-        Check(ReferenceEquals(homeBefore.Partners, aboutBefore.Partners) && homeBefore.Partners.Count == 6, "Home and About must share the very same six-partner collection.");
+        var aboutBefore = await aboutScope.ServiceProvider.GetRequiredService<IAboutContentService>().GetAsync();
+        Check(homeBefore.Partners.SequenceEqual(aboutBefore.Partners) && homeBefore.Partners.Count == 6, "Home and About must share the same six-partner database content.");
         Check(homeBefore.PartnersHeading == aboutBefore.PartnersHeading, "Initial Home/About introductions match approved copy.");
         var edit = await service.GetForEditAsync();
         edit.Title = "CMS persistence verified";
         edit.Description = "Edited Home Partners introduction for isolated persistence verification.";
         await service.UpdateAsync(edit);
         Check((await service.GetAsync()).Title == edit.Title, "Update must persist into a new context.");
-        Check(System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IAboutContentService>().GetAsync()) == partnersPageBefore, "Edited Home intro must leave public About content unchanged.");
+        Check(System.Text.Json.JsonSerializer.Serialize(await aboutScope.ServiceProvider.GetRequiredService<IAboutContentService>().GetAsync()) == partnersPageBefore, "Edited Home intro must leave public About content unchanged.");
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var updated = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
-            Check(updated.PartnersHeading == edit.ToContent() && ReferenceEquals(updated.Partners, homeBefore.Partners) && updated.Partners.SequenceEqual(homeBefore.Partners), "Only the intro may change; every canonical card must stay identical.");
+            Check(updated.PartnersHeading == edit.ToContent() && updated.Partners.SequenceEqual(homeBefore.Partners), "Only the intro may change; every canonical card must stay identical.");
         }
         await using (var db = await factory.CreateDbContextAsync())
             Check((await db.HomeHeroSettings.SingleAsync()).ToContent() == heroBefore, "PartnersSection save must not alter Hero.");
@@ -160,7 +161,7 @@ internal static class HomePartnersSectionChecks
         Check(encodedHtml.Contains("&lt;script&gt;") && !encodedHtml.Contains(encoded.Title), "PartnersSection text must remain HTML-encoded.");
         await service.UpdateAsync(HomePartnersSectionEditModel.FromContent(initial));
 
-        Check(System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IAboutContentService>().GetAsync()) == partnersPageBefore, "Home intro editing must not affect public About page content.");
+        Check(System.Text.Json.JsonSerializer.Serialize(await aboutScope.ServiceProvider.GetRequiredService<IAboutContentService>().GetAsync()) == partnersPageBefore, "Home intro editing must not affect public About page content.");
         Check((await anonymous.GetAsync("/about")).StatusCode == HttpStatusCode.OK, "About page must remain anonymous.");
         await using (var db = await factory.CreateDbContextAsync())
             Check(System.Text.Json.JsonSerializer.Serialize((await db.HomeWelcomeSettings.SingleAsync()).ToContent()) == welcomeBefore, "Partners intro writes must not alter Welcome.");
@@ -174,8 +175,8 @@ internal static class HomePartnersSectionChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var homeAfter = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
-            var aboutAfter = await app.Services.GetRequiredService<IAboutContentService>().GetAsync();
-            Check(ReferenceEquals(homeAfter.Partners, aboutAfter.Partners), "Home/About must still share one canonical collection after saves.");
+            var aboutAfter = await aboutScope.ServiceProvider.GetRequiredService<IAboutContentService>().GetAsync();
+            Check(homeAfter.Partners.SequenceEqual(aboutAfter.Partners), "Home/About must still share one canonical collection after saves.");
             Check(homeAfter.ProjectsHeading == homeBefore.ProjectsHeading && homeAfter.Team == homeBefore.Team &&
                 homeAfter.Statistics.SequenceEqual(homeBefore.Statistics), "Partners edits preserve Projects, Team and Statistics settings.");
         }

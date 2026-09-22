@@ -1,0 +1,24 @@
+<div class="partner-logo-preview @(HasLogoBackground ? "with-background" : null)">
+    @if (!_failed && PartnerLogoAssets.IsAllowed(ImagePath))
+    {
+        <img @key="ImagePath" src="@ImagePath" alt="@(Name + " logo")" width="64" height="64" @onerror="() => _failed = true" />
+    }
+    else
+    {
+        <span role="img" aria-label="Logo unavailable">No logo</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string ImagePath { get; set; } = "";
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public bool HasLogoBackground { get; set; }
+    private string? _previousPath;
+    private bool _failed;
+    protected override void OnParametersSet()
+    {
+        if (_previousPath == ImagePath) return;
+        _previousPath = ImagePath;
+        _failed = false;
+    }
+}

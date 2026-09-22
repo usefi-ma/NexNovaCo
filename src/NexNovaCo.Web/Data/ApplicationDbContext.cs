@@ -17,6 +17,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<TestimonialEntity> Testimonials => Set<TestimonialEntity>();
     public DbSet<TestimonialInitializationState> TestimonialInitializationStates => Set<TestimonialInitializationState>();
 
+    public DbSet<PartnerEntity> Partners => Set<PartnerEntity>();
+    public DbSet<PartnerInitializationState> PartnerInitializationStates => Set<PartnerInitializationState>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -91,6 +94,19 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         collection.Property(x => x.Attribution).IsRequired().HasMaxLength(180);
         collection.Property(x => x.Quote).IsRequired().HasMaxLength(1600);
         collection.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        var partnerCollection = builder.Entity<PartnerEntity>();
+        partnerCollection.ToTable("Partners", table => table.HasCheckConstraint("CK_Partners_Order", "DisplayOrder > 0"));
+        partnerCollection.HasKey(x => x.Id);
+        partnerCollection.HasIndex(x => x.DisplayOrder);
+        partnerCollection.Property(x => x.Name).IsRequired().HasMaxLength(80);
+        partnerCollection.Property(x => x.Description).IsRequired().HasMaxLength(200);
+        partnerCollection.Property(x => x.ImagePath).IsRequired().HasMaxLength(200);
+        partnerCollection.Property(x => x.Href).HasMaxLength(500);
+        partnerCollection.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        var partnerInitialization = builder.Entity<PartnerInitializationState>();
+        partnerInitialization.ToTable("PartnerInitializationState", table => table.HasCheckConstraint("CK_PartnerInitializationState_Singleton", "Id = 1"));
+        partnerInitialization.HasKey(x => x.Id);
+        partnerInitialization.Property(x => x.Id).ValueGeneratedNever();
         var initialization = builder.Entity<TestimonialInitializationState>();
         initialization.ToTable("TestimonialInitializationState", table => table.HasCheckConstraint("CK_TestimonialInitializationState_Singleton", "Id = 1"));
         initialization.HasKey(x => x.Id);

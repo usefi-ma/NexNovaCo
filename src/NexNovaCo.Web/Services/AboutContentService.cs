@@ -2,8 +2,8 @@ using NexNovaCo.Web.Models;
 
 namespace NexNovaCo.Web.Services;
 
-// Read-only editorial snapshot of approved about.html, not a persistence or CMS layer.
-public sealed class AboutContentService : IAboutContentService
+// Approved editorial snapshot; shared partners are read fresh from SQLite.
+public sealed class AboutContentService(IPartnerContentService partners) : IAboutContentService
 {
     private static readonly AboutContent Content = new(
         new("About Us", "About Us",
@@ -32,11 +32,11 @@ public sealed class AboutContentService : IAboutContentService
              "Utilizing advanced tools and innovative technology to enhance business efficiency.",
              "Fostering strong partnerships through transparent communication and mutual trust.",
              "Dedicated to delivering long-term value and measurable results for our clients."]),
-        PartnerCatalog.Heading, PartnerCatalog.All);
+        PartnerPresentationDefaults.Heading, []);
 
-    public Task<AboutContent> GetAsync(CancellationToken cancellationToken = default)
+    public async Task<AboutContent> GetAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(Content);
+        return Content with { Partners = await partners.GetAsync(cancellationToken) };
     }
 }

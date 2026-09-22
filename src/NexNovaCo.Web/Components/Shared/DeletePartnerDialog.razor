@@ -1,0 +1,22 @@
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <DialogContent>
+        <MudText>Delete partner “@Name”?</MudText>
+        <MudText Class="dashboard-muted mt-3">It will be removed from both Home and About. This cannot be undone.</MudText>
+        @if (IsLast)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-3">This is the last partner. Both public sections will stay hidden until you add another partner. Restarting the application will not restore deleted partners.</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined">Cancel</MudButton>
+        <MudButton OnClick="Delete" Color="Color.Error" Variant="Variant.Filled" DropShadow="false">Delete partner</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public bool IsLast { get; set; }
+    private void Cancel() => Dialog.Cancel();
+    private void Delete() => Dialog.Close(DialogResult.Ok(true));
+}

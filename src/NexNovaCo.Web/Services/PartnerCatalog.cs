@@ -2,11 +2,9 @@ using NexNovaCo.Web.Models;
 
 namespace NexNovaCo.Web.Services;
 
-// One approved source shared by Home and About. No partner destination was supplied.
+// Approved one-time seed and read-failure fallback only. SQLite is the live collection.
 internal static class PartnerCatalog
 {
-    public static SectionHeading Heading { get; } = new("Our Partners",
-        "We collaborate with industry-leading partners to bring cutting-edge technology and innovation to our clients.");
     public static IReadOnlyList<Partner> All { get; } = Array.AsReadOnly<Partner>([
         new("Tech Co", "Creative technology for modern businesses", "image/partnership/TechCo.png"),
         new("Digital Co", "AI-driven business automation", "image/partnership/digitalco.png"),

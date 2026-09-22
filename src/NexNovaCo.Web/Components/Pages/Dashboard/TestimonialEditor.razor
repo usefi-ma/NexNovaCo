@@ -1,0 +1,114 @@
+@page "/dashboard/content/testimonials/new"
+@page "/dashboard/content/testimonials/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject ITestimonialContentService TestimonialsService
+@inject ILogger<TestimonialEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>@(_editingId is null ? "Add" : "Edit") Testimonial | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Testimonials</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add testimonial" : "Edit testimonial")</MudText>
+<MudText Class="dashboard-muted mb-7">Saved changes appear in the shared Home and Projects carousel. Keep the copy concise for the existing public layout.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Testimonial saved for Home and Projects.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="shared-testimonial">
+            <DataAnnotationsValidator />
+            <section class="dashboard-editor-section" aria-labelledby="testimonial-content-heading">
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="testimonial-content-heading" Class="mb-5">Testimonial content</MudText>
+                <MudTextField @bind-Value="_model.Attribution" For="@(() => _model.Attribution)" Label="Author name / role / company" HelperText="Required. The existing design uses one attribution line, for example: Olivia Carter, COO at Alpha Co. Up to 180 characters." Variant="Variant.Outlined" MaxLength="180" Immediate="true" Disabled="_saving" Class="mb-6" />
+                <MudTextField @bind-Value="_model.Quote" For="@(() => _model.Quote)" Label="Quote" HelperText="Required. Separate paragraphs with a blank line. Plain text only; up to 1,600 characters." Variant="Variant.Outlined" MaxLength="1600" Lines="8" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">This changes shared content, not Home's brand-panel introduction.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save testimonial")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else
+{
+    <MudButton Href="/dashboard/content/testimonials" Variant="Variant.Outlined">Back to list</MudButton>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private TestimonialEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [_model.Attribution, _model.Quote];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+    private string? _navigateAfterSave;
+    private bool _showCreated;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id;
+        _model = null;
+        _error = null;
+        _saved = _showCreated;
+        _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await TestimonialsService.GetForEditAsync(id) : new TestimonialEditModel();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to load testimonial editor.");
+            _error = exception is KeyNotFoundException ? "This testimonial no longer exists. Return to the list."
+                : "The testimonial could not be loaded. Check your session and try again.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/testimonials");
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            if (_editingId is int id) await TestimonialsService.UpdateAsync(id, _model);
+            else _editingId = await TestimonialsService.CreateAsync(_model);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+            // Leave /new after creation so refresh cannot accidentally create a duplicate.
+            if (Id is null)
+            {
+                _showCreated = true;
+                _navigateAfterSave = $"/dashboard/content/testimonials/{_editingId}";
+            }
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to save testimonial.");
+            _error = exception is KeyNotFoundException or DbUpdateConcurrencyException
+                ? "This testimonial changed or no longer exists. Your input is retained; return to the list to reload."
+                : "The testimonial could not be saved. Your input is retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null;
+        // The clean snapshot has now reached NavigationLock before leaving the /new route.
+        Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

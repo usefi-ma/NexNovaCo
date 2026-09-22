@@ -26,7 +26,10 @@
         <HomeTeamSection Content="_content.Team" Members="_content.Members" />
         <HomeStatisticsSection Items="_content.Statistics" />
         <PartnersSection Heading="_content.PartnersHeading" Items="_content.Partners" />
-        <TestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
+        @if (_content.Testimonials.Count > 0)
+        {
+            <TestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
+        }
     </div>
     @if (Environment.IsDevelopment() && Verification == "foundation")
     {

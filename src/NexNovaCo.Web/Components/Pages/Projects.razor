@@ -19,7 +19,10 @@
     <div class="projects-page" @ref="_root">
         <InnerPageHero Content="_content.Hero" />
         <ProjectsGridSection Items="_content.Projects" />
-        <TestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
+        @if (_content.Testimonials.Count > 0)
+        {
+            <TestimonialsSection Items="_content.Testimonials" Brand="_content.TestimonialBrand" />
+        }
     </div>
 }
 

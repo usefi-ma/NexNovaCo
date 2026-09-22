@@ -117,11 +117,11 @@ internal static class AuthChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 9, "Expected Identity and eight Home settings migrations.");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 10, "Expected Identity, eight Home settings, and shared Testimonials migrations.");
             Check(!db.Database.HasPendingModelChanges(), "Migration and runtime model must agree.");
             var tables = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table'").ToListAsync();
             Check(new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetUserLogins", "AspNetUserTokens", "AspNetRoleClaims" }.All(tables.Contains), "Identity tables missing.");
-            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings" or "HomeTeamSectionSettings" or "HomeStatistics" or "HomePartnersSectionSettings" or "HomeTestimonialsSectionSettings"), "Unexpected schema beyond Identity and approved Home settings.");
+            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings" or "HomeTeamSectionSettings" or "HomeStatistics" or "HomePartnersSectionSettings" or "HomeTestimonialsSectionSettings" or "Testimonials"), "Unexpected schema beyond Identity and approved CMS content.");
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var admin = await users.FindByEmailAsync(AuthFactory.Email);
             Check(admin is not null && await users.IsInRoleAsync(admin, "Admin"), "Admin must exist and have Admin role.");
@@ -195,7 +195,8 @@ internal static class AuthChecks
         await HomePartnersSectionChecks.RunAsync();
         await HomeTestimonialsSectionChecks.RunAsync();
         await HomeNavigationChecks.RunAsync();
-        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, eight Home CMS slices, persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
+        await SharedTestimonialChecks.RunAsync();
+        Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, eight Home CMS slices, shared Testimonial CRUD/reorder, persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
     }
 }
 

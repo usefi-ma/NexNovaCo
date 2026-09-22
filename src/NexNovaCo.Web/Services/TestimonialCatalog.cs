@@ -2,7 +2,7 @@ using NexNovaCo.Web.Models;
 
 namespace NexNovaCo.Web.Services;
 
-// Identical approved Home/Projects editorial content; no invented client records or destinations.
+// Collection defaults for controlled initialization / read-failure fallback only, never normal runtime data.
 internal static class TestimonialCatalog
 {
     public static IReadOnlyList<Testimonial> All { get; } = Array.AsReadOnly<Testimonial>([
@@ -13,6 +13,4 @@ internal static class TestimonialCatalog
             ["Working with NexNovaCo transformed our digital presence. Their AI-based analytics tools gave us deep insights into customer behavior, helping us improve engagement and retention dramatically. The process was smooth and collaborative from start to finish.",
              "What stood out most was their commitment to quality and their genuine passion for innovation. NexNovaCo became more than a vendor — they became a strategic partner in our growth."])
     ]);
-    public static SectionHeading Brand { get; } = new("NexNovaCo",
-        "NexNovaCo delivers innovative AI-driven, web, and mobile solutions, empowering businesses with cutting-edge technology for growth and success.");
 }

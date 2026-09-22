@@ -14,6 +14,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<HomeStatistic> HomeStatistics => Set<HomeStatistic>();
     public DbSet<HomePartnersSectionSettings> HomePartnersSectionSettings => Set<HomePartnersSectionSettings>();
     public DbSet<HomeTestimonialsSectionSettings> HomeTestimonialsSectionSettings => Set<HomeTestimonialsSectionSettings>();
+    public DbSet<TestimonialEntity> Testimonials => Set<TestimonialEntity>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -82,5 +83,12 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         testimonials.Property(x => x.Id).ValueGeneratedNever();
         testimonials.Property(x => x.Title).IsRequired().HasMaxLength(120);
         testimonials.Property(x => x.Description).IsRequired().HasMaxLength(1000);
+        var collection = builder.Entity<TestimonialEntity>();
+        collection.ToTable("Testimonials", table => table.HasCheckConstraint("CK_Testimonials_Order", "DisplayOrder > 0"));
+        collection.HasKey(x => x.Id);
+        collection.HasIndex(x => x.DisplayOrder);
+        collection.Property(x => x.Attribution).IsRequired().HasMaxLength(180);
+        collection.Property(x => x.Quote).IsRequired().HasMaxLength(1600);
+        collection.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
     }
 }

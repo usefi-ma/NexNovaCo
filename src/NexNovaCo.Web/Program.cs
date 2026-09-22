@@ -75,10 +75,11 @@ builder.Services.AddScoped<IHomeTeamSectionContentService, HomeTeamSectionConten
 builder.Services.AddScoped<IHomeStatisticsContentService, HomeStatisticsContentService>();
 builder.Services.AddScoped<IHomePartnersSectionContentService, HomePartnersSectionContentService>();
 builder.Services.AddScoped<IHomeTestimonialsSectionContentService, HomeTestimonialsSectionContentService>();
+builder.Services.AddScoped<ITestimonialContentService, TestimonialContentService>();
 builder.Services.AddScoped<IHomeContentService, HomeContentService>();
 builder.Services.AddSingleton<IServicesContentService, ServicesContentService>();
 builder.Services.AddSingleton<IAboutContentService, AboutContentService>();
-builder.Services.AddSingleton<IProjectsContentService, ProjectsContentService>();
+builder.Services.AddScoped<IProjectsContentService, ProjectsContentService>();
 
 var app = builder.Build();
 await IdentityDatabaseInitializer.InitializeAsync(app.Services, app.Configuration, app.Environment);

@@ -64,25 +64,27 @@ internal static class HomeTestimonialsSectionChecks
         string welcomeBefore;
         SectionHeading servicesBefore;
         await using (var db = await factory.CreateDbContextAsync()) servicesBefore = (await db.HomeServicesSectionSettings.SingleAsync()).ToContent();
-        var testimonialsPageBefore = System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IProjectsContentService>().GetAsync());
+        await using var projectsScope = app.Services.CreateAsyncScope();
+        var projectsService = projectsScope.ServiceProvider.GetRequiredService<IProjectsContentService>();
+        var testimonialsPageBefore = System.Text.Json.JsonSerializer.Serialize(await projectsService.GetAsync());
         HomeContent homeBefore;
         await using (var scope = app.Services.CreateAsyncScope())
             homeBefore = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
         await using (var db = await factory.CreateDbContextAsync()) welcomeBefore = System.Text.Json.JsonSerializer.Serialize((await db.HomeWelcomeSettings.SingleAsync()).ToContent());
         await using (var db = await factory.CreateDbContextAsync()) heroBefore = (await db.HomeHeroSettings.SingleAsync()).ToContent();
-        var projectsBefore = await app.Services.GetRequiredService<IProjectsContentService>().GetAsync();
-        Check(ReferenceEquals(homeBefore.Testimonials, projectsBefore.Testimonials) && homeBefore.Testimonials.Count == 2, "Home and Projects must share the very same two-testimonial collection.");
+        var projectsBefore = await projectsService.GetAsync();
+        Check(SameTestimonials(homeBefore.Testimonials, projectsBefore.Testimonials) && homeBefore.Testimonials.Count == 2, "Home and Projects must read the same ordered two-testimonial DB collection.");
         Check(homeBefore.TestimonialBrand == projectsBefore.TestimonialBrand, "Initial Home/Projects introductions match approved copy.");
         var edit = await service.GetForEditAsync();
         edit.Title = "CMS persistence verified";
         edit.Description = "Edited Home Testimonials introduction for isolated persistence verification.";
         await service.UpdateAsync(edit);
         Check((await service.GetAsync()).Title == edit.Title, "Update must persist into a new context.");
-        Check(System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IProjectsContentService>().GetAsync()) == testimonialsPageBefore, "Edited Home intro must leave public Projects content unchanged.");
+        Check(System.Text.Json.JsonSerializer.Serialize(await projectsService.GetAsync()) == testimonialsPageBefore, "Edited Home intro must leave public Projects content unchanged.");
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var updated = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
-            Check(updated.TestimonialBrand == edit.ToContent() && ReferenceEquals(updated.Testimonials, homeBefore.Testimonials) && updated.Testimonials.SequenceEqual(homeBefore.Testimonials), "Only the intro may change; every canonical card must stay identical.");
+            Check(updated.TestimonialBrand == edit.ToContent() && SameTestimonials(updated.Testimonials, homeBefore.Testimonials), "Only the intro may change; every canonical card must stay identical.");
         }
         await using (var db = await factory.CreateDbContextAsync())
             Check((await db.HomeHeroSettings.SingleAsync()).ToContent() == heroBefore, "TestimonialsSection save must not alter Hero.");
@@ -160,22 +162,22 @@ internal static class HomeTestimonialsSectionChecks
         Check(encodedHtml.Contains("&lt;script&gt;") && !encodedHtml.Contains(encoded.Title), "TestimonialsSection text must remain HTML-encoded.");
         await service.UpdateAsync(HomeTestimonialsSectionEditModel.FromContent(initial));
 
-        Check(System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<IProjectsContentService>().GetAsync()) == testimonialsPageBefore, "Home intro editing must not affect public Projects page content.");
+        Check(System.Text.Json.JsonSerializer.Serialize(await projectsService.GetAsync()) == testimonialsPageBefore, "Home intro editing must not affect public Projects page content.");
         Check((await anonymous.GetAsync("/projects")).StatusCode == HttpStatusCode.OK, "Projects page must remain anonymous.");
         await using (var db = await factory.CreateDbContextAsync())
             Check(System.Text.Json.JsonSerializer.Serialize((await db.HomeWelcomeSettings.SingleAsync()).ToContent()) == welcomeBefore, "Testimonials intro writes must not alter Welcome.");
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var homeAfter = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
-            Check(homeBefore.Testimonials.SequenceEqual(homeAfter.Testimonials) && homeAfter.Testimonials.Count == 2, "Home testimonial cards, order, copy, quotes and authors must remain canonical.");
+            Check(SameTestimonials(homeBefore.Testimonials, homeAfter.Testimonials) && homeAfter.Testimonials.Count == 2, "Home testimonial cards, order, copy, quotes and authors must remain canonical.");
         }
         await using (var db = await factory.CreateDbContextAsync())
             Check((await db.HomeServicesSectionSettings.SingleAsync()).ToContent() == servicesBefore, "Testimonials intro must not modify saved Services settings.");
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var homeAfter = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
-            var projectsAfter = await app.Services.GetRequiredService<IProjectsContentService>().GetAsync();
-            Check(ReferenceEquals(homeAfter.Testimonials, projectsAfter.Testimonials), "Home/Projects must still share one canonical collection after saves.");
+            var projectsAfter = await projectsService.GetAsync();
+            Check(SameTestimonials(homeAfter.Testimonials, projectsAfter.Testimonials), "Home/Projects must still read one canonical DB collection after saves.");
             Check(homeAfter.ProjectsHeading == homeBefore.ProjectsHeading && homeAfter.Team == homeBefore.Team &&
                 homeAfter.Statistics.SequenceEqual(homeBefore.Statistics) && homeAfter.PartnersHeading == homeBefore.PartnersHeading, "Testimonials edits preserve Projects, Team and Statistics settings.");
         }
@@ -237,6 +239,8 @@ internal static class HomeTestimonialsSectionChecks
     }
 
     private static bool Same(SectionHeading left, SectionHeading right) => left == right;
+    private static bool SameTestimonials(IReadOnlyList<Testimonial> left, IReadOnlyList<Testimonial> right) =>
+        System.Text.Json.JsonSerializer.Serialize(left) == System.Text.Json.JsonSerializer.Serialize(right);
 
     private static async Task ExpectAsync<T>(Func<Task> action, string message) where T : Exception
     {

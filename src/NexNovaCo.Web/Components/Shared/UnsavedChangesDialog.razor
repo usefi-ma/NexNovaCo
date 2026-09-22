@@ -1,0 +1,15 @@
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <DialogContent>
+        <MudText>You have unsaved changes. Leave without saving?</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Stay" Color="Color.Primary" Variant="Variant.Filled" DropShadow="false">Stay</MudButton>
+        <MudButton OnClick="Leave" Color="Color.Primary" Variant="Variant.Outlined">Leave</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    private void Stay() => Dialog.Cancel();
+    private void Leave() => Dialog.Close(DialogResult.Ok(true));
+}

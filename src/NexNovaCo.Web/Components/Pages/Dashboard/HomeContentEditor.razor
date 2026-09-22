@@ -1,17 +1,9 @@
 @page "/dashboard/content/home"
+@page "/dashboard/home/hero"
+@inject NavigationManager Navigation
 
-<PageTitle>Home | NexNovaCo Dashboard</PageTitle>
-<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
-<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Content / Homepage</MudText>
-<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Home</MudText>
-<MudText Class="dashboard-muted mb-7">Manage content shown on the public homepage.</MudText>
-
-@* Initialize on first visit (so inputs measure visible widths), then preserve independent form state. *@
-<MudTabs Elevation="0" Rounded="true" KeepPanelsAlive="true" LazyLoadPanels="true" TabPanelsClass="pt-6">
-    <MudTabPanel Text="Hero">
-        <HomeHeroEditor Embedded="true" />
-    </MudTabPanel>
-    <MudTabPanel Text="Welcome">
-        <HomeWelcomeEditor />
-    </MudTabPanel>
-</MudTabs>
+@* Both aliases retain the Dashboard folder's Admin authorization, including direct HTTP requests. *@
+@code {
+    protected override void OnInitialized() =>
+        Navigation.NavigateTo("/dashboard/content/home/hero", replace: true);
+}

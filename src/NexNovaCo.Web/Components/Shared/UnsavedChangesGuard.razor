@@ -1,0 +1,46 @@
+@inject NavigationManager Navigation
+@inject IDialogService Dialogs
+@implements IDisposable
+
+<NavigationLock ConfirmExternalNavigation="IsDirty" OnBeforeInternalNavigation="ConfirmNavigationAsync" />
+
+@code {
+    [Parameter] public bool IsDirty { get; set; }
+    private IDialogReference? _dialog;
+
+    private async Task ConfirmNavigationAsync(LocationChangingContext context)
+    {
+        if (!IsDirty) return;
+        var target = Navigation.ToAbsoluteUri(context.TargetLocation);
+        var current = Navigation.ToAbsoluteUri(Navigation.Uri);
+        if (target.GetLeftPart(UriPartial.Path) == current.GetLeftPart(UriPartial.Path)) return;
+
+        // Public-site actions force a full HTTP load to rebuild the public style boundary.
+        // NavigationLock's native unload prompt handles these (and refresh/close/logout), avoiding two prompts.
+        if (target.GetLeftPart(UriPartial.Authority) != current.GetLeftPart(UriPartial.Authority) ||
+            !target.AbsolutePath.StartsWith("/dashboard", StringComparison.OrdinalIgnoreCase)) return;
+
+        _dialog?.Close(DialogResult.Cancel());
+        var dialog = await Dialogs.ShowAsync<UnsavedChangesDialog>("Unsaved changes", new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false, CloseOnEscapeKey = true
+        });
+        _dialog = dialog;
+        try
+        {
+            var result = await dialog.Result.WaitAsync(context.CancellationToken);
+            if (result?.Canceled != false) context.PreventNavigation();
+        }
+        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested)
+        {
+            context.PreventNavigation();
+        }
+        finally
+        {
+            dialog.Close(DialogResult.Cancel());
+            if (ReferenceEquals(_dialog, dialog)) _dialog = null;
+        }
+    }
+
+    public void Dispose() => _dialog?.Close(DialogResult.Cancel());
+}

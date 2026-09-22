@@ -188,6 +188,7 @@ internal static class AuthChecks
         }
         await HomeHeroChecks.RunAsync();
         await HomeWelcomeChecks.RunAsync();
+        await HomeNavigationChecks.RunAsync();
         Console.WriteLine($"PASS: {_checks} auth/CMS checks (HTTP authentication, roles, migration/bootstrap, Hero/Welcome persistence/validation/fallback and anonymous public routes). No secrets or hashes printed.");
     }
 }

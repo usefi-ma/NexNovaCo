@@ -1,3 +1,4 @@
+@page "/dashboard/content/home/welcome"
 @using System.ComponentModel.DataAnnotations
 @using System.Data.Common
 @using Microsoft.EntityFrameworkCore
@@ -5,8 +6,12 @@
 @inject ILogger<HomeWelcomeEditor> Logger
 @inject NavigationManager Navigation
 
-<MudText Typo="Typo.h5" HtmlTag="h2" Class="mb-3">Welcome section</MudText>
-<MudText Class="dashboard-muted mb-7">Control the introduction below the Hero. Artwork and layout stay theme-controlled.</MudText>
+<PageTitle>Welcome Section | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Home / Welcome</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Welcome Section</MudText>
+<MudText Class="dashboard-muted mb-7">Manage the introduction content shown below the homepage hero.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
 @if (_error is not null)
 {
     <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert>
@@ -21,7 +26,7 @@
         <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="home-welcome">
             <DataAnnotationsValidator />
             <section class="dashboard-editor-section" aria-labelledby="welcome-content-heading">
-                <MudText Typo="Typo.h6" HtmlTag="h3" id="welcome-content-heading">Content</MudText>
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="welcome-content-heading">Content</MudText>
                 <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Keep the existing title, introduction, and two body paragraphs focused and welcoming.</MudText>
                 <MudGrid Spacing="4">
                     <MudItem xs="12"><MudTextField @bind-Value="_model.Title" For="@(() => _model.Title)" Label="Title" Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" /></MudItem>
@@ -32,7 +37,7 @@
             </section>
             <MudDivider />
             <section class="dashboard-editor-section" aria-labelledby="welcome-cta-heading">
-                <MudText Typo="Typo.h6" HtmlTag="h3" id="welcome-cta-heading">Call to action</MudText>
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="welcome-cta-heading">Call to action</MudText>
                 <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Choose the button label and where it takes visitors.</MudText>
                 <MudGrid Spacing="4">
                     <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
@@ -53,13 +58,21 @@
 
 @code {
     private HomeWelcomeEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] :
+        [_model.Title, _model.Introduction, _model.ParagraphOne, _model.ParagraphTwo, _model.CtaLabel, _model.CtaHref];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
     private string? _error;
     private bool _saving;
     private bool _saved;
 
     protected override async Task OnInitializedAsync()
     {
-        try { _model = await WelcomeService.GetForEditAsync(); }
+        try
+        {
+            _model = await WelcomeService.GetForEditAsync();
+            _snapshot.Capture(CurrentValues);
+        }
         catch (Exception exception) when (IsExpectedFailure(exception))
         {
             Logger.LogError(exception, "Unable to load the Home Welcome editor.");
@@ -79,6 +92,7 @@
         try
         {
             await WelcomeService.UpdateAsync(_model);
+            _snapshot.Capture(CurrentValues);
             _saved = true;
         }
         catch (Exception exception) when (IsExpectedFailure(exception))

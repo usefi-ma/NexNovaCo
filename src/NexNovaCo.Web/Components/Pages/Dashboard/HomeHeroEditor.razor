@@ -1,4 +1,4 @@
-@page "/dashboard/home/hero"
+@page "/dashboard/content/home/hero"
 @using System.ComponentModel.DataAnnotations
 @using System.Data.Common
 @using Microsoft.EntityFrameworkCore
@@ -6,18 +6,12 @@
 @inject ILogger<HomeHeroEditor> Logger
 @inject NavigationManager Navigation
 
-@if (!Embedded)
-{
-    <PageTitle>Home Hero | NexNovaCo Dashboard</PageTitle>
-    <HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
-    <MudText Typo="Typo.overline" Class="dashboard-eyebrow">Content / Homepage</MudText>
-    <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Home Hero</MudText>
-}
-else
-{
-    <MudText Typo="Typo.h5" HtmlTag="h2" Class="mb-3">Hero section</MudText>
-}
-<MudText Class="dashboard-muted mb-7">Shape the first impression. Edit your homepage headline, introduction, and call to action.</MudText>
+<PageTitle>Home Hero | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Home / Hero</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Home Hero</MudText>
+<MudText Class="dashboard-muted mb-7">Manage the main hero content shown on the public homepage.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
 
 @if (_error is not null)
 {
@@ -33,7 +27,7 @@ else
         <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="home-hero">
             <DataAnnotationsValidator />
             <section class="dashboard-editor-section" aria-labelledby="hero-headline-heading">
-                <MudText Typo="Typo.h6" HtmlTag="@(Embedded ? "h3" : "h2")" id="hero-headline-heading">Headline &amp; introduction</MudText>
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="hero-headline-heading">Headline &amp; introduction</MudText>
                 <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Three lines, one message. The second line receives the strongest emphasis.</MudText>
                 <MudGrid Spacing="4">
                     <MudItem xs="12" lg="4"><MudTextField @bind-Value="_model.OpeningLine" For="@(() => _model.OpeningLine)" Label="Opening line" HelperText="Title line 1" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
@@ -44,7 +38,7 @@ else
             </section>
             <MudDivider />
             <section class="dashboard-editor-section" aria-labelledby="hero-cta-heading">
-                <MudText Typo="Typo.h6" HtmlTag="@(Embedded ? "h3" : "h2")" id="hero-cta-heading">Call to action</MudText>
+                <MudText Typo="Typo.h6" HtmlTag="h2" id="hero-cta-heading">Call to action</MudText>
                 <MudText Typo="Typo.body2" Class="dashboard-muted mb-6">Choose the button label and where it takes visitors.</MudText>
                 <MudGrid Spacing="4">
                     <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" /></MudItem>
@@ -64,15 +58,22 @@ else
 }
 
 @code {
-    [Parameter] public bool Embedded { get; set; }
     private HomeHeroEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] :
+        [_model.OpeningLine, _model.EmphasisLine, _model.ClosingLine, _model.Description, _model.CtaLabel, _model.CtaHref];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
     private string? _error;
     private bool _saving;
     private bool _saved;
 
     protected override async Task OnInitializedAsync()
     {
-        try { _model = await HeroService.GetForEditAsync(); }
+        try
+        {
+            _model = await HeroService.GetForEditAsync();
+            _snapshot.Capture(CurrentValues);
+        }
         catch (Exception exception) when (IsExpectedFailure(exception))
         {
             Logger.LogError(exception, "Unable to load the Home Hero editor.");
@@ -92,6 +93,7 @@ else
         try
         {
             await HeroService.UpdateAsync(_model);
+            _snapshot.Capture(CurrentValues);
             _saved = true;
         }
         catch (Exception exception) when (IsExpectedFailure(exception))

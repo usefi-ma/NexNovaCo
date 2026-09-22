@@ -1,10 +1,10 @@
 # NexNovaCo — Blazor public-site migration
 
-The public-site migration and Phase 9 hardening are merged into `main`. All eight approved public page types remain anonymous on .NET 10 / Interactive Server / **MudBlazor 9.10.0**. Dashboard Phases 1–2 add ASP.NET Core Identity, EF Core/SQLite, static HTTP login/logout, an Admin-only `/dashboard`, and the first small CMS editor at `/dashboard/home/hero` on the long-lived `feature/dashboard-cms` branch. Only Home Hero text/CTA editing is implemented; other content and the public design remain unchanged. See [Home Hero setup and verification](docs/dashboard-phase-2-home-hero.md), [authentication setup](docs/dashboard-phase-1-authentication.md), and the earlier [production-hardening report](docs/phase-9-production-hardening.md).
+The public-site migration and Phase 9 hardening are merged into `main`. All eight approved public page types remain anonymous on .NET 10 / Interactive Server / **MudBlazor 9.10.0**. The long-lived `feature/dashboard-cms` branch adds ASP.NET Core Identity, EF Core/SQLite, static HTTP login/logout, an Admin-only `/dashboard`, and Home Hero/Welcome text and CTA editing. Other content and the public design remain unchanged. See [Home CMS navigation and verification](docs/dashboard-phase-4a-home-navigation.md), [Home Hero setup](docs/dashboard-phase-2-home-hero.md), [authentication setup](docs/dashboard-phase-1-authentication.md), and the earlier [production-hardening report](docs/phase-9-production-hardening.md).
 
 ## Run locally
 
-The Dashboard has a responsive MudBlazor application shell and avatar menu. The [Home CMS page](docs/dashboard-home-cms-welcome.md) at `/dashboard/content/home` now contains Hero and Welcome editors. The old `/dashboard/home/hero` remains compatible. See also the [Dashboard UI redesign report](docs/dashboard-ui-redesign.md).
+The Dashboard has a responsive MudBlazor application shell and avatar menu. Home is a collapsible sidebar group with independent Admin-only editors at `/dashboard/content/home/hero` and `/dashboard/content/home/welcome`; there are no Hero/Welcome tabs. Both `/dashboard/content/home` and the old `/dashboard/home/hero` redirect to canonical Hero. Both forms protect unsaved edits with a Stay/Leave dialog for Dashboard navigation and the framework's browser-native unload protection for public-site actions, refresh, and close. See [Phase 4A verification and browser limitations](docs/dashboard-phase-4a-home-navigation.md), the earlier [Welcome CMS implementation](docs/dashboard-home-cms-welcome.md), and [Dashboard UI redesign](docs/dashboard-ui-redesign.md).
 
 Development initializes the private SQLite Identity database through migrations. It creates no default user: configure your own bootstrap credentials using the [User Secrets instructions](docs/dashboard-phase-1-authentication.md#recommended-net-user-secrets-development-only) before signing in at `/admin/login`. Missing credentials do not affect anonymous public pages. Production account/form flows require HTTPS, including Secure antiforgery cookies.
 
@@ -129,7 +129,7 @@ In **Development only**, open `http://localhost:5138/?verify=foundation` to exer
 
 ## Next phase — approval required
 
-Recommended next step: an approved final public-site QA and merge review, including known static-design limitations, accessibility advisories, demo content and deployment configuration. Do not merge or begin dashboard work without approval. Database/CMS, admin/dashboard, authentication, email and newsletter services remain deferred. Keep the static reference.
+Recommended next Dashboard slice: Home Services introductory text as a third Home sidebar child, subject to separate approval. It is not implemented. Other CMS sections, media upload, drafts/versioning, email/newsletter delivery, and merge/deployment remain out of scope. Keep the static reference.
 
 ## Services content boundary
 

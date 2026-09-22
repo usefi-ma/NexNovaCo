@@ -23,11 +23,11 @@ internal static class HomeHeroChecks
     {
         await using var app = new AuthFactory(NewPassword());
         using var anonymous = app.NewClient();
-        var denied = await anonymous.GetAsync("/dashboard/home/hero");
+        var denied = await anonymous.GetAsync("/dashboard/content/home/hero");
         Check(denied.StatusCode == HttpStatusCode.Redirect && denied.Headers.Location!.ToString().Contains("/admin/login"), "Anonymous Hero editor must challenge.");
         using var adminClient = app.NewClient();
         await Login(adminClient, AuthFactory.Email, app.Password);
-        var editor = await adminClient.GetAsync("/dashboard/home/hero");
+        var editor = await adminClient.GetAsync("/dashboard/content/home/hero");
         var editorHtml = await editor.Content.ReadAsStringAsync();
         Check(editor.StatusCode == HttpStatusCode.OK && editorHtml.Contains("Opening line") && editorHtml.Contains("Smart Software"), "Admin editor must load saved content.");
         Check(editorHtml.Contains("mud-input") && editorHtml.Contains("\"type\":\"server\""), "Hero editor must use interactive Mud inputs.");
@@ -45,7 +45,7 @@ internal static class HomeHeroChecks
         }
         using var viewerClient = app.NewClient();
         await Login(viewerClient, "hero-viewer@example.invalid", viewerPassword);
-        var viewerEditor = await viewerClient.GetAsync("/dashboard/home/hero");
+        var viewerEditor = await viewerClient.GetAsync("/dashboard/content/home/hero");
         Check(viewerEditor.StatusCode == HttpStatusCode.Redirect && viewerEditor.Headers.Location!.ToString().Contains("access-denied"), "Non-Admin editor access must be denied.");
 
         var auth = new TestAuthenticationStateProvider(principal);

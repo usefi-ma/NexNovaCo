@@ -23,13 +23,13 @@ internal static class HomeWelcomeChecks
     {
         await using var app = new AuthFactory(NewPassword());
         using var anonymous = app.NewClient();
-        var denied = await anonymous.GetAsync("/dashboard/content/home");
+        var denied = await anonymous.GetAsync("/dashboard/content/home/welcome");
         Check(denied.StatusCode == HttpStatusCode.Redirect && denied.Headers.Location!.ToString().Contains("/admin/login"), "Anonymous Welcome editor must challenge.");
         using var adminClient = app.NewClient();
         await Login(adminClient, AuthFactory.Email, app.Password);
-        var editor = await adminClient.GetAsync("/dashboard/content/home");
+        var editor = await adminClient.GetAsync("/dashboard/content/home/welcome");
         var editorHtml = await editor.Content.ReadAsStringAsync();
-        Check(editor.StatusCode == HttpStatusCode.OK && editorHtml.Contains("Hero") && editorHtml.Contains("Welcome") && editorHtml.Contains("Smart Software"), "Admin editor must load saved content.");
+        Check(editor.StatusCode == HttpStatusCode.OK && editorHtml.Contains("Welcome to NexNovaCo") && !editorHtml.Contains("Opening line"), "Admin editor must load saved content.");
         Check(editorHtml.Contains("mud-input") && editorHtml.Contains("\"type\":\"server\""), "Welcome editor must use interactive Mud inputs.");
 
         var factory = app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
@@ -45,7 +45,7 @@ internal static class HomeWelcomeChecks
         }
         using var viewerClient = app.NewClient();
         await Login(viewerClient, "welcome-viewer@example.invalid", viewerPassword);
-        var viewerEditor = await viewerClient.GetAsync("/dashboard/content/home");
+        var viewerEditor = await viewerClient.GetAsync("/dashboard/content/home/welcome");
         Check(viewerEditor.StatusCode == HttpStatusCode.Redirect && viewerEditor.Headers.Location!.ToString().Contains("access-denied"), "Non-Admin editor access must be denied.");
 
         var auth = new TestAuthenticationStateProvider(principal);

@@ -51,3 +51,17 @@ test('Projects content remains revealed when Owl is unavailable', () => {
     f.remove();
     assert.ok(f.mutations[0].disconnected);
 });
+
+test('Home and Projects safely initialize and dispose with no testimonial carousel root', () => {
+    for (const initializePage of [initializeHome, initialize]) {
+        const f = fixture(false, 'testimonials');
+        const query = f.root.querySelectorAll;
+        // Mirrors the existing Razor Count > 0 guard for an intentionally empty collection.
+        f.root.querySelectorAll = selector => selector === '[data-carousel-kind]' ? [] : query(selector);
+        assert.doesNotThrow(() => { initializePage(f.root); initializePage(f.root); });
+        assert.equal(f.calls.filter(x => x === 'init').length, 0);
+        assert.doesNotThrow(() => f.remove());
+        assert.equal(f.calls.filter(x => x === 'destroy.owl.carousel').length, 0);
+        assert.ok(f.mutations[0].disconnected);
+    }
+});

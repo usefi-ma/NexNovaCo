@@ -4,7 +4,7 @@
         <MudText Class="dashboard-muted mt-3">It will be removed from both Home and Projects. This cannot be undone.</MudText>
         @if (IsLast)
         {
-            <MudAlert Severity="Severity.Warning" Class="mt-3">This is the last testimonial. Both public sections will be hidden while empty. The next controlled application startup initializes an empty collection with the approved defaults.</MudAlert>
+            <MudAlert Severity="Severity.Warning" Class="mt-3">This is the last testimonial. Both public sections will stay hidden until you add another testimonial. Restarting the application will not restore deleted testimonials.</MudAlert>
         }
     </DialogContent>
     <DialogActions>

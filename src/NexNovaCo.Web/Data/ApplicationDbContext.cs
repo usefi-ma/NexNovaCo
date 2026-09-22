@@ -15,6 +15,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<HomePartnersSectionSettings> HomePartnersSectionSettings => Set<HomePartnersSectionSettings>();
     public DbSet<HomeTestimonialsSectionSettings> HomeTestimonialsSectionSettings => Set<HomeTestimonialsSectionSettings>();
     public DbSet<TestimonialEntity> Testimonials => Set<TestimonialEntity>();
+    public DbSet<TestimonialInitializationState> TestimonialInitializationStates => Set<TestimonialInitializationState>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -90,5 +91,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         collection.Property(x => x.Attribution).IsRequired().HasMaxLength(180);
         collection.Property(x => x.Quote).IsRequired().HasMaxLength(1600);
         collection.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        var initialization = builder.Entity<TestimonialInitializationState>();
+        initialization.ToTable("TestimonialInitializationState", table => table.HasCheckConstraint("CK_TestimonialInitializationState_Singleton", "Id = 1"));
+        initialization.HasKey(x => x.Id);
+        initialization.Property(x => x.Id).ValueGeneratedNever();
     }
 }

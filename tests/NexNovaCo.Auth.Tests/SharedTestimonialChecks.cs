@@ -180,7 +180,7 @@ internal static class SharedTestimonialChecks
             Check(await db.Testimonials.CountAsync() == 0, "Empty public read performs no hidden seeding.");
             await TestimonialInitializer.InitializeAsync(db);
         }
-        Check(JsonSerializer.Serialize(await service.GetAsync()) == JsonSerializer.Serialize(baseline), "Controlled startup reseeds only a fully empty collection.");
+        Check((await service.GetAsync()).Count == 0, "Controlled startup preserves an intentionally empty initialized collection.");
         await CheckEditorAsync();
     }
 

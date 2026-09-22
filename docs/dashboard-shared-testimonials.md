@@ -30,9 +30,9 @@ Additive migration `20260922203426_AddSharedTestimonials` creates only this tabl
 
 ## 4. Initialization
 
-The controlled startup initializer runs after migrations. Inside a transaction it seeds the exact approved count/copy/order only if there are no testimonials. A nonempty collection is never modified, topped up, or overwritten. Repeated startup preserves Admin additions, edits, deletions, and ordering.
+The controlled startup initializer runs after migrations. The original empty-table-only behavior was corrected by the [one-time initialization follow-up](testimonial-initialization-fix.md). A dedicated singleton marker now records initialization independently of collection membership; marker and defaults commit together. A nonempty collection is never modified, topped up, or overwritten.
 
-Important empty-collection behavior, matching the request: deleting every row makes public reads return an empty collection; no hidden read-time seeding occurs. The next controlled startup reseeds the approved defaults because the collection is empty. The last-item delete dialog explains this explicitly. Both public pages omit an empty testimonial section rather than initializing Owl with zero items.
+Deleting every row keeps the initialized collection empty, including after restart. Public reads never seed; the last-item delete dialog now explains that sections remain hidden until an Admin adds another testimonial. Both public pages already omit an empty testimonial section rather than initializing Owl with zero items. Legacy upgrades preserve intentional emptiness using SQLite's retained AUTOINCREMENT insertion history when no current rows remain.
 
 ## 5. Content service and canonical source
 

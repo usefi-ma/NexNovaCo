@@ -171,9 +171,8 @@ internal static class HomeWelcomeChecks
         await using var db = await provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
         var migrator = db.GetService<IMigrator>();
         await migrator.MigrateAsync("20260921170044_AddHomeHeroSettings");
-        await HomeHeroInitializer.InitializeAsync(db);
-        var hero = await db.HomeHeroSettings.SingleAsync();
-        hero.OpeningLine = "Existing Hero edit";
+        await HistoricalHomeFixture.InitializeHeroAsync(db);
+        await db.Database.ExecuteSqlRawAsync("UPDATE HomeHeroSettings SET OpeningLine=\'Existing Hero edit\';");
         await db.SaveChangesAsync();
         var existing = new ApplicationUser { Id = Guid.NewGuid().ToString(), UserName = "upgrade@example.invalid", Email = "upgrade@example.invalid" };
         existing.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(existing, NewPassword());

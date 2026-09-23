@@ -12,7 +12,7 @@ namespace NexNovaCo.Web.Services;
 
 public sealed class MemberContentService(IDbContextFactory<ApplicationDbContext> factory,
     AuthenticationStateProvider authentication, IOptions<IdentityOptions> identityOptions,
-    ILogger<MemberContentService> logger, MemberCatalog defaults) : IMemberContentService
+    ILogger<MemberContentService> logger, MemberCatalog defaults, IMediaStorageService? media = null) : IMemberContentService
 {
     public async Task<IReadOnlyList<TeamMemberSummary>> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -22,7 +22,7 @@ public sealed class MemberContentService(IDbContextFactory<ApplicationDbContext>
             var rows = await Ordered(database).AsNoTracking().ToListAsync(cancellationToken);
             foreach (var row in rows) Validate(row.ToEditModel());
             // An intentionally empty collection is not a read failure and must not resurrect deleted records.
-            return rows.Select(row => row.ToContent()).ToArray();
+            return rows.Select(row => row.ToContent() with { ImagePath = MediaAvailability.Resolve(media, row.ImagePath, MediaKind.Member) }).ToArray();
         }
         catch (Exception exception) when (exception is DbException or ValidationException)
         {
@@ -54,6 +54,7 @@ public sealed class MemberContentService(IDbContextFactory<ApplicationDbContext>
         await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validate(model);
+        MediaAvailability.Require(media, model.ImagePath, MediaKind.Member);
         await RequireUniqueSlugAsync(database, model.Slug, 0, cancellationToken);
         var rows = await Ordered(database).ToListAsync(cancellationToken);
         Normalize(rows);
@@ -70,6 +71,7 @@ public sealed class MemberContentService(IDbContextFactory<ApplicationDbContext>
         await using var database = await factory.CreateDbContextAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validate(model);
+        MediaAvailability.Require(media, model.ImagePath, MediaKind.Member);
         await RequireUniqueSlugAsync(database, model.Slug, id, cancellationToken);
         var row = await database.Members.Include(x => x.Skills).AsSingleQuery().SingleOrDefaultAsync(row => row.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException("Member no longer exists.");
@@ -118,7 +120,7 @@ public sealed class MemberContentService(IDbContextFactory<ApplicationDbContext>
                 .Include(x => x.Skills).AsSingleQuery()
                 .OrderBy(x => x.HomeFeatured!.DisplayOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
             foreach (var row in rows) Validate(row.ToEditModel());
-            return rows.Select(x => x.ToContent()).ToArray();
+            return rows.Select(x => x.ToContent() with { ImagePath = MediaAvailability.Resolve(media, x.ImagePath, MediaKind.Member) }).ToArray();
         }
         catch (Exception exception) when (exception is DbException or ValidationException)
         {
@@ -158,7 +160,8 @@ public sealed class MemberContentService(IDbContextFactory<ApplicationDbContext>
                 .SingleOrDefaultAsync(x => x.Slug == slug, cancellationToken);
             if (row is null) return null;
             Validate(row.ToEditModel());
-            return row.ToDetail();
+            var detail = row.ToDetail();
+            return detail with { Summary = detail.Summary with { ImagePath = MediaAvailability.Resolve(media, row.ImagePath, MediaKind.Member) } };
         }
         catch (Exception exception) when (exception is DbException or ValidationException)
         {

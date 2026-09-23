@@ -2,10 +2,10 @@ namespace NexNovaCo.Web.Models;
 
 // Only the content contracts used by Home and its reusable cards. No persistence concerns.
 public sealed record HomeHeroContent(string OpeningLine, string EmphasisLine, string ClosingLine,
-    string Description, string CtaLabel, string CtaHref);
+    string Description, string CtaLabel, string CtaHref, string ImagePath = MediaPolicy.HeroDefault);
 public sealed record SectionHeading(string Title, string? Description = null);
 public sealed record WelcomeContent(string Title, string Introduction, IReadOnlyList<string> Paragraphs,
-    string CtaLabel, string CtaHref);
+    string CtaLabel, string CtaHref, string ImagePath = MediaPolicy.WelcomeDefault);
 public sealed record ServiceSummary(string Id, string Name, string Tagline, string Description, string IconPath);
 public sealed record ProjectSummary(string Slug, string Name, string Tagline, string Description, string ImagePath)
 {

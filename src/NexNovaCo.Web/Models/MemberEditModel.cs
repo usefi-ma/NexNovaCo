@@ -53,11 +53,11 @@ public static class MemberImageAssets
         "image/team/emily-johnson.jpg", "image/team/emma-williams.jpg", "image/team/sophia-lee.jpg",
         "image/team/daniel-kim.jpg", "image/team/lena-alvarez.jpg", "image/team/james-park.jpg"
     });
-    public static bool IsAllowed(string? path) => Paths.Contains(path, StringComparer.Ordinal);
+    public static bool IsAllowed(string? path) => Paths.Contains(path, StringComparer.Ordinal) || MediaPolicy.IsGenerated(path, MediaKind.Member);
 }
 public sealed class MemberImagePathAttribute : ValidationAttribute
 {
-    public MemberImagePathAttribute() => ErrorMessage = "Choose an approved bundled Team portrait.";
+    public MemberImagePathAttribute() => ErrorMessage = "Choose a bundled image or a validated upload.";
     public override bool IsValid(object? value) => value is string path && MemberImageAssets.IsAllowed(path);
 }
 public sealed class MemberHttpsUrlAttribute : ValidationAttribute

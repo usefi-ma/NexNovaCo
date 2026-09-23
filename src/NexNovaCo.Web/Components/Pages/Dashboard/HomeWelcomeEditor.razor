@@ -45,8 +45,12 @@
                 </MudGrid>
             </section>
             <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Welcome image">
+                <CmsImageField @key="_model" @ref="_imageField" @bind-Value="_model.ImagePath" Kind="MediaKind.Welcome" Label="Welcome image" Hint="Use a landscape image, ideally 1200 × 900 px. The existing crop is retained." Disabled="_saving" Changed="ClearSaved" />
+            </section>
+            <MudDivider />
             <div class="dashboard-editor-actions">
-                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes go live when saved. The image and design stay the same.</MudText>
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Text and image changes go live when saved. The layout stays the same.</MudText>
                 <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
                     <MudButton OnClick="OpenHome" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.OpenInNew">View Home Page</MudButton>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Save" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
@@ -58,10 +62,11 @@
 
 @code {
     private HomeWelcomeEditModel? _model;
+    private CmsImageField? _imageField;
     private readonly EditorSnapshot _snapshot = new();
     private string[] CurrentValues => _model is null ? [] :
-        [_model.Title, _model.Introduction, _model.ParagraphOne, _model.ParagraphTwo, _model.CtaLabel, _model.CtaHref];
-    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+        [_model.Title, _model.Introduction, _model.ParagraphOne, _model.ParagraphTwo, _model.CtaLabel, _model.CtaHref, _model.ImagePath];
+    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues) || _imageField?.HasPendingSelection == true);
     private string? _error;
     private bool _saving;
     private bool _saved;
@@ -89,14 +94,18 @@
         _saving = true;
         _saved = false;
         _error = null;
+        var previousImagePath = _model.ImagePath;
         try
         {
+            if (_imageField is not null) _model.ImagePath = await _imageField.CommitAsync();
             await WelcomeService.UpdateAsync(_model);
+            _imageField?.AcceptSaved();
             _snapshot.Capture(CurrentValues);
             _saved = true;
         }
         catch (Exception exception) when (IsExpectedFailure(exception))
         {
+            _model.ImagePath = previousImagePath;
             Logger.LogError(exception, "Unable to save Home Welcome content.");
             _error = "Home Welcome could not be saved. Your changes are still in this form. Check your session and try again.";
         }
@@ -104,5 +113,5 @@
     }
 
     private static bool IsExpectedFailure(Exception exception) =>
-        exception is DbException or DbUpdateException or KeyNotFoundException or UnauthorizedAccessException or ValidationException;
+        exception is IOException or DbException or DbUpdateException or KeyNotFoundException or UnauthorizedAccessException or ValidationException;
 }

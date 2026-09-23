@@ -23,6 +23,8 @@
     <Content Update="wwwroot/js/script.js;wwwroot/js/inner-project.js;wwwroot/js/member.js;wwwroot/js/contact.js;wwwroot/js/bootstrap.min.js;wwwroot/js/aos.js"
              CopyToPublishDirectory="Never" />
     <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
+    <Content Remove="wwwroot/uploads/**" />
+    <None Remove="wwwroot/uploads/**" />
     <!-- Runtime Identity data is private, never a build/publish asset. -->
     <Content Remove="App_Data/**;**/*.db;**/*.db-shm;**/*.db-wal;**/*.db-journal" />
     <None Remove="App_Data/**;**/*.db;**/*.db-shm;**/*.db-wal;**/*.db-journal" />

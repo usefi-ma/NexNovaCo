@@ -116,7 +116,7 @@ internal static class ServiceInitializationChecks
         await using var db = await provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
         var migrator = db.GetService<IMigrator>();
         await migrator.MigrateAsync("20260922215318_AddSharedPartners");
-        await HomeHeroInitializer.InitializeAsync(db); await HomeWelcomeInitializer.InitializeAsync(db);
+        await HistoricalHomeFixture.InitializeAsync(db);
         await HomeServicesSectionInitializer.InitializeAsync(db); await HomeProjectsSectionInitializer.InitializeAsync(db);
         await HomeTeamSectionInitializer.InitializeAsync(db); await HomeStatisticsInitializer.InitializeAsync(db);
         await HomePartnersSectionInitializer.InitializeAsync(db); await HomeTestimonialsSectionInitializer.InitializeAsync(db);
@@ -131,7 +131,7 @@ internal static class ServiceInitializationChecks
         await db.SaveChangesAsync();
         async Task<string> Previous() => JsonSerializer.Serialize(new
         {
-            Hero = await db.HomeHeroSettings.AsNoTracking().ToArrayAsync(), Welcome = await db.HomeWelcomeSettings.AsNoTracking().ToArrayAsync(),
+            Home = await HistoricalHomeFixture.SnapshotAsync(db),
             Services = await db.HomeServicesSectionSettings.AsNoTracking().ToArrayAsync(), Projects = await db.HomeProjectsSectionSettings.AsNoTracking().ToArrayAsync(),
             Team = await db.HomeTeamSectionSettings.AsNoTracking().ToArrayAsync(), Stats = await db.HomeStatistics.AsNoTracking().OrderBy(x => x.Id).ToArrayAsync(),
             PartnersIntro = await db.HomePartnersSectionSettings.AsNoTracking().ToArrayAsync(), TestimonialsIntro = await db.HomeTestimonialsSectionSettings.AsNoTracking().ToArrayAsync(),

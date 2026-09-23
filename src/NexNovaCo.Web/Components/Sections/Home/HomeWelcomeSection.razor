@@ -1,4 +1,5 @@
-<section class="about" aria-label="@Content.Title">
+@inject NavigationManager Navigation
+<section class="about" style="--cms-welcome-image: url('@Navigation.ToAbsoluteUri(Content.ImagePath)')" aria-label="@Content.Title">
     <div class="container-fluid">
         <div class="row">
             <div class="col-12 col-lg-12 col-xxl-7">

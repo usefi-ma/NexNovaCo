@@ -182,12 +182,9 @@ internal static class HomeServicesSectionChecks
         await using var db = await provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
         var migrator = db.GetService<IMigrator>();
         await migrator.MigrateAsync("20260921223434_AddHomeWelcomeSettings");
-        await HomeHeroInitializer.InitializeAsync(db);
-        await HomeWelcomeInitializer.InitializeAsync(db);
-        var welcome = await db.HomeWelcomeSettings.SingleAsync();
-        welcome.Title = "Existing Welcome edit";
-        var hero = await db.HomeHeroSettings.SingleAsync();
-        hero.OpeningLine = "Existing Hero edit";
+        await HistoricalHomeFixture.InitializeAsync(db);
+        await db.Database.ExecuteSqlRawAsync("UPDATE HomeWelcomeSettings SET Title=\'Existing Welcome edit\';");
+        await db.Database.ExecuteSqlRawAsync("UPDATE HomeHeroSettings SET OpeningLine=\'Existing Hero edit\';");
         await db.SaveChangesAsync();
         var existing = new ApplicationUser { Id = Guid.NewGuid().ToString(), UserName = "upgrade@example.invalid", Email = "upgrade@example.invalid" };
         existing.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(existing, NewPassword());

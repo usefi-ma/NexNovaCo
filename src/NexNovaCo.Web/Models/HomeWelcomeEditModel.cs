@@ -15,12 +15,15 @@ public sealed class HomeWelcomeEditModel
         ErrorMessage = "Use a public site route, such as /services, /projects, /projects/nexconnect or /.")]
     public string CtaHref { get; set; } = "";
 
+    [Required, StringLength(200), HomeImagePath(MediaKind.Welcome)]
+    public string ImagePath { get; set; } = MediaPolicy.WelcomeDefault;
+
     public static HomeWelcomeEditModel FromContent(WelcomeContent content) => new()
     {
         Title = content.Title, Introduction = content.Introduction,
         ParagraphOne = content.Paragraphs[0], ParagraphTwo = content.Paragraphs[1],
-        CtaLabel = content.CtaLabel, CtaHref = content.CtaHref
+        CtaLabel = content.CtaLabel, CtaHref = content.CtaHref, ImagePath = content.ImagePath
     };
 
-    public WelcomeContent ToContent() => new(Title, Introduction, [ParagraphOne, ParagraphTwo], CtaLabel, CtaHref);
+    public WelcomeContent ToContent() => new(Title, Introduction, [ParagraphOne, ParagraphTwo], CtaLabel, CtaHref, ImagePath);
 }

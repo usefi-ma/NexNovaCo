@@ -16,12 +16,15 @@ public sealed class HomeHeroEditModel
         ErrorMessage = "Use a public site route, such as /services, /projects, /projects/nexconnect or /.")]
     public string CtaHref { get; set; } = "";
 
+    [Required, StringLength(200), HomeImagePath(MediaKind.Hero)]
+    public string ImagePath { get; set; } = MediaPolicy.HeroDefault;
+
     public static HomeHeroEditModel FromContent(HomeHeroContent content) => new()
     {
         OpeningLine = content.OpeningLine, EmphasisLine = content.EmphasisLine,
         ClosingLine = content.ClosingLine, Description = content.Description,
-        CtaLabel = content.CtaLabel, CtaHref = content.CtaHref
+        CtaLabel = content.CtaLabel, CtaHref = content.CtaHref, ImagePath = content.ImagePath
     };
 
-    public HomeHeroContent ToContent() => new(OpeningLine, EmphasisLine, ClosingLine, Description, CtaLabel, CtaHref);
+    public HomeHeroContent ToContent() => new(OpeningLine, EmphasisLine, ClosingLine, Description, CtaLabel, CtaHref, ImagePath);
 }

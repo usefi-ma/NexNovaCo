@@ -117,7 +117,7 @@ internal static class AuthChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 15, "Expected Identity, eight Home settings, shared Testimonials initialization shared Partners and Services/Featured migrations.");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 16, "Expected Identity, approved CMS migrations and additive Home image paths.");
             Check(!db.Database.HasPendingModelChanges(), "Migration and runtime model must agree.");
             var tables = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table'").ToListAsync();
             Check(new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetUserLogins", "AspNetUserTokens", "AspNetRoleClaims" }.All(tables.Contains), "Identity tables missing.");
@@ -186,6 +186,7 @@ internal static class AuthChecks
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             Check(await db.Users.CountAsync() == 0 && await db.Roles.CountAsync() == 1, "Missing credentials must create the role, not a default user.");
         }
+        await MediaChecks.RunAsync();
         await HomeHeroChecks.RunAsync();
         await HomeWelcomeChecks.RunAsync();
         await HomeServicesSectionChecks.RunAsync();
@@ -219,6 +220,7 @@ internal sealed class AuthFactory(string password, string environment = "Develop
         builder.UseContentRoot(Path.GetFullPath("../../../../../src/NexNovaCo.Web", AppContext.BaseDirectory));
         builder.UseEnvironment(environment);
         builder.UseSetting("ConnectionStrings:IdentityConnection", "Data Source=" + DatabasePath);
+        builder.UseSetting("MediaStorage:RootPath", Path.Combine(Path.GetDirectoryName(DatabasePath)!, "uploads"));
         builder.UseSetting("AdminUser:Email", Email);
         builder.UseSetting("AdminUser:Password", Password);
         builder.UseSetting("Identity:InitializeDatabase", "true");

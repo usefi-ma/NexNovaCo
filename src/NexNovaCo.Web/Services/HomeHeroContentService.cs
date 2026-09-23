@@ -12,7 +12,7 @@ namespace NexNovaCo.Web.Services;
 
 public sealed class HomeHeroContentService(IDbContextFactory<ApplicationDbContext> factory,
     AuthenticationStateProvider authentication, IOptions<IdentityOptions> identityOptions,
-    ILogger<HomeHeroContentService> logger) : IHomeHeroContentService
+    ILogger<HomeHeroContentService> logger, IMediaStorageService? media = null) : IHomeHeroContentService
 {
     public async Task<HomeHeroContent> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -26,7 +26,7 @@ public sealed class HomeHeroContentService(IDbContextFactory<ApplicationDbContex
                 var content = hero.ToContent();
                 var model = HomeHeroEditModel.FromContent(content);
                 Validator.ValidateObject(model, new ValidationContext(model), validateAllProperties: true);
-                return content;
+                return content with { ImagePath = MediaAvailability.Resolve(media, content.ImagePath, MediaKind.Hero) };
             }
             logger.LogWarning("Home Hero record is missing; rendering approved defaults without writing to the database.");
         }
@@ -53,6 +53,7 @@ public sealed class HomeHeroContentService(IDbContextFactory<ApplicationDbContex
         await using var database = await factory.CreateDbContextAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validator.ValidateObject(model, new ValidationContext(model), validateAllProperties: true);
+        MediaAvailability.Require(media, model.ImagePath, MediaKind.Hero);
         var hero = await database.HomeHeroSettings.SingleOrDefaultAsync(x => x.Id == HomeHeroSettings.SingletonId, cancellationToken)
             ?? throw new KeyNotFoundException("Home Hero has not been initialized.");
         hero.SetContent(model.ToContent());

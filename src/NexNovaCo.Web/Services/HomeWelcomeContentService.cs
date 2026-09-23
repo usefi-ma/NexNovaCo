@@ -12,7 +12,7 @@ namespace NexNovaCo.Web.Services;
 
 public sealed class HomeWelcomeContentService(IDbContextFactory<ApplicationDbContext> factory,
     AuthenticationStateProvider authentication, IOptions<IdentityOptions> identityOptions,
-    ILogger<HomeWelcomeContentService> logger) : IHomeWelcomeContentService
+    ILogger<HomeWelcomeContentService> logger, IMediaStorageService? media = null) : IHomeWelcomeContentService
 {
     public async Task<WelcomeContent> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -26,7 +26,7 @@ public sealed class HomeWelcomeContentService(IDbContextFactory<ApplicationDbCon
                 var content = welcome.ToContent();
                 var model = HomeWelcomeEditModel.FromContent(content);
                 Validator.ValidateObject(model, new ValidationContext(model), validateAllProperties: true);
-                return content;
+                return content with { ImagePath = MediaAvailability.Resolve(media, content.ImagePath, MediaKind.Welcome) };
             }
             logger.LogWarning("Home Welcome record is missing; rendering approved defaults without writing to the database.");
         }
@@ -53,6 +53,7 @@ public sealed class HomeWelcomeContentService(IDbContextFactory<ApplicationDbCon
         await using var database = await factory.CreateDbContextAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validator.ValidateObject(model, new ValidationContext(model), validateAllProperties: true);
+        MediaAvailability.Require(media, model.ImagePath, MediaKind.Welcome);
         var welcome = await database.HomeWelcomeSettings.SingleOrDefaultAsync(x => x.Id == HomeWelcomeSettings.SingletonId, cancellationToken)
             ?? throw new KeyNotFoundException("Home Welcome has not been initialized.");
         welcome.SetContent(model.ToContent());

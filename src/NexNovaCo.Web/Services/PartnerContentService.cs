@@ -12,7 +12,7 @@ namespace NexNovaCo.Web.Services;
 
 public sealed class PartnerContentService(IDbContextFactory<ApplicationDbContext> factory,
     AuthenticationStateProvider authentication, IOptions<IdentityOptions> identityOptions,
-    ILogger<PartnerContentService> logger) : IPartnerContentService
+    ILogger<PartnerContentService> logger, IMediaStorageService? media = null) : IPartnerContentService
 {
     public async Task<IReadOnlyList<Partner>> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -22,7 +22,7 @@ public sealed class PartnerContentService(IDbContextFactory<ApplicationDbContext
             var rows = await Ordered(database).AsNoTracking().ToListAsync(cancellationToken);
             foreach (var row in rows) Validate(row.ToEditModel());
             // An intentionally empty collection is not a read failure and must not resurrect deleted records.
-            return rows.Select(row => row.ToContent()).ToArray();
+            return rows.Select(row => row.ToContent() with { ImagePath = MediaAvailability.Resolve(media, row.ImagePath, MediaKind.Partner) }).ToArray();
         }
         catch (Exception exception) when (exception is DbException or ValidationException)
         {
@@ -54,6 +54,7 @@ public sealed class PartnerContentService(IDbContextFactory<ApplicationDbContext
         await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validate(model);
+        MediaAvailability.Require(media, model.ImagePath, MediaKind.Partner);
         var rows = await Ordered(database).ToListAsync(cancellationToken);
         Normalize(rows);
         var row = new PartnerEntity { DisplayOrder = rows.Count + 1 };
@@ -69,6 +70,7 @@ public sealed class PartnerContentService(IDbContextFactory<ApplicationDbContext
         await using var database = await factory.CreateDbContextAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validate(model);
+        MediaAvailability.Require(media, model.ImagePath, MediaKind.Partner);
         var row = await database.Partners.SingleOrDefaultAsync(row => row.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException("Partner no longer exists.");
         row.SetContent(model); // Never bind Id/order from the form.

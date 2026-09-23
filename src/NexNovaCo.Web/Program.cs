@@ -87,6 +87,10 @@ builder.Services.AddScoped<IServicesContentService, ServicesContentService>();
 builder.Services.AddScoped<IAboutContentService, AboutContentService>();
 builder.Services.AddScoped<IProjectsContentService, ProjectsContentService>();
 
+builder.Services.Configure<MediaStorageOptions>(builder.Configuration.GetSection("MediaStorage"));
+builder.Services.AddSingleton<MediaFilePaths>();
+builder.Services.AddScoped<IMediaStorageService, LocalMediaStorageService>();
+
 var app = builder.Build();
 await IdentityDatabaseInitializer.InitializeAsync(app.Services, app.Configuration, app.Environment);
 
@@ -106,8 +110,19 @@ app.UseAntiforgery();
 
 // Transitional alias for unchanged public JSON image paths; no legacy script ownership.
 // New Razor components use image/, css/, js/ and data/ directly.
-app.UseStaticFiles(new StaticFileOptions { RequestPath = "/assets" });
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/assets/uploads"),
+    branch => branch.UseStaticFiles(new StaticFileOptions { RequestPath = "/assets" }));
 app.MapStaticAssets();
+// Runtime uploads are not build-manifest assets. Only canonical raster paths can be read.
+// There is no HTTP upload endpoint; writes run in authenticated interactive Admin forms.
+app.MapMethods("/uploads/{folder}/{file}", ["GET", "HEAD"], (string folder, string file, HttpContext context, MediaFilePaths paths) =>
+{
+    var path = $"uploads/{folder}/{file}";
+    if (!NexNovaCo.Web.Models.MediaPolicy.IsGenerated(path) || !paths.Exists(path)) return Results.NotFound();
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+    return Results.File(paths.PhysicalPath(path), NexNovaCo.Web.Models.MediaPolicy.ContentType(path));
+}).AllowAnonymous();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

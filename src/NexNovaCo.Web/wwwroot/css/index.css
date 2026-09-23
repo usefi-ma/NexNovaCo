@@ -364,7 +364,7 @@ body {
             left: -43%;
             z-index: -1;
             transform: rotate(-66deg);
-            background-image: url(../image/home/header.jpg);
+            background-image: var(--cms-hero-image, url(../image/home/header.jpg));
             background-repeat: no-repeat;
             background-size: contain;
             background-position: 0
@@ -504,7 +504,7 @@ body {
         top: 50px;
         width: 40em;
         height: 620px;
-        background: url(../image/home/welcome.jpg) left;
+        background: var(--cms-welcome-image, url(../image/home/welcome.jpg)) left;
         background-repeat: no-repeat;
         background-size: cover;
         z-index: 0

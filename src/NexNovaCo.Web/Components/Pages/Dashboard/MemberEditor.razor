@@ -40,14 +40,7 @@
             <MudDivider />
             <section class="dashboard-editor-section" aria-label="Member media">
                 <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Media</MudText>
-                <MudText Class="dashboard-muted mb-4">Choose approved bundled images. No uploads or arbitrary file paths.</MudText>
-                <MudSelect T="string" @bind-Value="_model.ImagePath" For="@(() => _model.ImagePath)" Label="Profile photo" Variant="Variant.Outlined" Disabled="_saving" Class="mb-4">
-                    @foreach (var path in MemberImageAssets.Paths)
-                    {
-                        <MudSelectItem T="string" Value="@path">@path</MudSelectItem>
-                    }
-                </MudSelect>
-                <MemberImagePreview ImagePath="@_model.ImagePath" Name="@_model.Name" />
+                <CmsImageField @key="_model" @ref="_imageField" @bind-Value="_model.ImagePath" Kind="MediaKind.Member" Label="Profile image" Hint="Use a centered portrait, ideally 800 × 1000 px." Disabled="_saving" Changed="ClearSaved" />
             </section>
             <MudDivider />
             <section class="dashboard-editor-section" aria-label="Member skills">
@@ -93,9 +86,10 @@ else
     [Parameter] public int? Id { get; set; }
     private int? _editingId;
     private MemberEditModel? _model;
+    private CmsImageField? _imageField;
     private readonly EditorSnapshot _snapshot = new();
     private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
-    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues) || _imageField?.HasPendingSelection == true);
     private bool _saving;
     private bool _saved;
     private string? _error;
@@ -111,7 +105,7 @@ else
         _showCreated = false;
         try
         {
-            _model = Id is int id ? await MembersService.GetForEditAsync(id) : new MemberEditModel();
+            _model = Id is int id ? await MembersService.GetForEditAsync(id) : new MemberEditModel { ImagePath = MemberImageAssets.Paths[0] };
             _snapshot.Capture(CurrentValues);
         }
         catch (Exception exception) when (IsExpected(exception))
@@ -139,12 +133,15 @@ else
         _saving = true;
         _saved = false;
         _error = null;
+        var previousImagePath = _model.ImagePath;
         try
         {
+            if (_imageField is not null) _model.ImagePath = await _imageField.CommitAsync();
             if (_editingId is int id) await MembersService.UpdateAsync(id, _model);
             else _editingId = await MembersService.CreateAsync(_model);
             _model.Slug = MemberSlugs.Normalize(_model.Slug);
             _snapshot.Capture(CurrentValues);
+            _imageField?.AcceptSaved();
             _saved = true;
             // Leave /new after creation so refresh cannot accidentally create a duplicate.
             if (Id is null)
@@ -155,6 +152,7 @@ else
         }
         catch (Exception exception) when (IsExpected(exception))
         {
+            _model.ImagePath = previousImagePath;
             Logger.LogError(exception, "Unable to save member.");
             _error = exception is ValidationException validation ? validation.Message
                 : exception is KeyNotFoundException or DbUpdateConcurrencyException
@@ -170,5 +168,5 @@ else
         // The clean snapshot has now reached NavigationLock before leaving the /new route.
         Navigation.NavigateTo(target, replace: true);
     }
-    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+    private static bool IsExpected(Exception exception) => exception is IOException or DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
 }

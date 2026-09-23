@@ -12,9 +12,10 @@ public sealed class HomeWelcomeSettings
     public string ParagraphTwo { get; set; } = "";
     public string CtaLabel { get; set; } = "";
     public string CtaHref { get; set; } = "";
+    public string ImagePath { get; set; } = MediaPolicy.WelcomeDefault;
     public DateTime UpdatedAtUtc { get; set; }
 
-    public WelcomeContent ToContent() => new(Title, Introduction, [ParagraphOne, ParagraphTwo], CtaLabel, CtaHref);
+    public WelcomeContent ToContent() => new(Title, Introduction, [ParagraphOne, ParagraphTwo], CtaLabel, CtaHref, ImagePath);
 
     public void SetContent(WelcomeContent content)
     {
@@ -24,6 +25,7 @@ public sealed class HomeWelcomeSettings
         ParagraphTwo = content.Paragraphs[1];
         CtaLabel = content.CtaLabel;
         CtaHref = content.CtaHref;
+        ImagePath = content.ImagePath;
         UpdatedAtUtc = DateTime.UtcNow;
     }
 }

@@ -139,6 +139,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         hero.Property(x => x.Description).IsRequired().HasMaxLength(500);
         hero.Property(x => x.CtaLabel).IsRequired().HasMaxLength(60);
         hero.Property(x => x.CtaHref).IsRequired().HasMaxLength(200);
+        hero.Property(x => x.ImagePath).IsRequired().HasMaxLength(200).HasDefaultValue(Models.MediaPolicy.HeroDefault);
         var welcome = builder.Entity<HomeWelcomeSettings>();
         welcome.ToTable("HomeWelcomeSettings", table => table.HasCheckConstraint("CK_HomeWelcomeSettings_Singleton", "Id = 1"));
         welcome.HasKey(x => x.Id);
@@ -149,6 +150,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         welcome.Property(x => x.ParagraphTwo).IsRequired().HasMaxLength(1000);
         welcome.Property(x => x.CtaLabel).IsRequired().HasMaxLength(60);
         welcome.Property(x => x.CtaHref).IsRequired().HasMaxLength(200);
+        welcome.Property(x => x.ImagePath).IsRequired().HasMaxLength(200).HasDefaultValue(Models.MediaPolicy.WelcomeDefault);
         var services = builder.Entity<HomeServicesSectionSettings>();
         services.ToTable("HomeServicesSectionSettings", table => table.HasCheckConstraint("CK_HomeServicesSectionSettings_Singleton", "Id = 1"));
         services.HasKey(x => x.Id);

@@ -22,7 +22,7 @@ public sealed class PartnerEditModel
 
 public sealed record PartnerListItem(int Id, int DisplayOrder, string Name, string ImagePath, bool HasLogoBackground, string? Href);
 
-// Public asset allow-list, not a second content catalog. No disk access, uploads or remote images.
+// Approved bundled assets; generated upload paths are validated separately.
 public static class PartnerLogoAssets
 {
     public static IReadOnlyList<string> Paths { get; } = Array.AsReadOnly(new[]
@@ -30,12 +30,12 @@ public static class PartnerLogoAssets
         "image/partnership/TechCo.png", "image/partnership/digitalco.png", "image/partnership/netechco.png",
         "image/partnership/nedigitalco.png", "image/partnership/alphaco.png", "image/partnership/nealphaco.png"
     });
-    public static bool IsAllowed(string? path) => Paths.Contains(path, StringComparer.Ordinal);
+    public static bool IsAllowed(string? path) => Paths.Contains(path, StringComparer.Ordinal) || MediaPolicy.IsGenerated(path, MediaKind.Partner);
 }
 
 public sealed class PartnerLogoPathAttribute : ValidationAttribute
 {
-    public PartnerLogoPathAttribute() => ErrorMessage = "Choose one of the existing bundled partner logos.";
+    public PartnerLogoPathAttribute() => ErrorMessage = "Choose a bundled image or a validated upload.";
     public override bool IsValid(object? value) => value is string path && PartnerLogoAssets.IsAllowed(path);
 }
 

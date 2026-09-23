@@ -1,0 +1,7 @@
+.cms-image-field { min-width: 0; max-width: 100%; }
+.cms-image-preview { display: block; width: 240px; max-width: 100%; height: 160px; object-fit: contain; background: #eef3f6; border: 1px solid #dce4ed; border-radius: 8px; margin-block: 16px; }
+.cms-image-choose { display: flex; flex-direction: column; gap: 8px; margin-block: 16px; min-width: 0; }
+.cms-image-choose label { font-weight: 600; }
+.cms-image-choose ::deep input[type=file] { width: 100%; max-width: 100%; min-width: 0; font: inherit; }
+.cms-image-choose ::deep input::file-selector-button { padding: 8px 12px; margin-right: 8px; border: 1px solid #087590; border-radius: 4px; background: white; color: #087590; cursor: pointer; }
+.cms-image-filename { overflow-wrap: anywhere; }

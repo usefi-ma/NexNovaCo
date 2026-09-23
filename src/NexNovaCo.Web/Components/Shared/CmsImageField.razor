@@ -1,0 +1,101 @@
+@using System.ComponentModel.DataAnnotations
+@inject IMediaStorageService Media
+@implements IDisposable
+
+<div class="cms-image-field">
+    <MudText Typo="Typo.h6" HtmlTag="h2">@Label</MudText>
+    <MudText Typo="Typo.body2" Class="dashboard-muted mb-3">@Hint JPG, PNG or WebP; up to @(MediaPolicy.MaxBytes(Kind) / 1024 / 1024) MB. Saved with the form.</MudText>
+    @if (!_previewFailed)
+    {
+        <img class="cms-image-preview" src="@Preview" alt="@($"{Label} preview")" @onerror="PreviewFailed" />
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info">Image unavailable. Choose a replacement; the public page uses a fallback.</MudAlert>
+    }
+    <div class="cms-image-choose">
+        <label for="@_inputId">Choose / replace image</label>
+        <InputFile @key="_inputVersion" id="@_inputId" OnChange="SelectAsync" accept=".jpg,.jpeg,.png,.webp" disabled="@(Disabled || _reading)" />
+    </div>
+    @if (_reading) { <MudText role="status">Validating image…</MudText> }
+    @if (_selectedName is not null)
+    {
+        <MudText Class="cms-image-filename" Typo="Typo.body2">@_selectedName</MudText>
+        <MudButton OnClick="ClearAsync" Disabled="@(Disabled || _reading)" Size="Size.Small">Discard selected file</MudButton>
+    }
+    @if (_error is not null) { <MudAlert Severity="Severity.Error" role="alert" Class="my-3">@_error</MudAlert> }
+    <MudSelect T="string" Value="Value" ValueChanged="ChooseBundledAsync" Label="Current / bundled image" Variant="Variant.Outlined" Disabled="@(Disabled || _reading)" Class="mt-4">
+        @if (MediaPolicy.IsGenerated(Value, Kind))
+        {
+            <MudSelectItem T="string" Value="@Value">Current uploaded image</MudSelectItem>
+        }
+        @foreach (var path in MediaPolicy.Bundled(Kind))
+        {
+            <MudSelectItem T="string" Value="@path">@System.IO.Path.GetFileName(path)</MudSelectItem>
+        }
+    </MudSelect>
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public MediaKind Kind { get; set; }
+    [Parameter] public string Label { get; set; } = "Image";
+    [Parameter] public string Hint { get; set; } = "";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback Changed { get; set; }
+    private readonly string _inputId = "cms-image-" + Guid.NewGuid().ToString("N");
+    private readonly CancellationTokenSource _lifetime = new();
+    private MediaUpload? _pending;
+    private string? _selectedName, _error, _preview, _storedPath;
+    private bool _reading, _previewFailed;
+    private int _inputVersion;
+    public bool HasPendingSelection => _selectedName is not null || _reading;
+    private string Preview => _preview ?? Media.ResolvePublicPath(Value, Kind);
+
+    private async Task SelectAsync(InputFileChangeEventArgs args)
+    {
+        if (Disabled || _reading) return;
+        _reading = true; _pending = null; _preview = null; _storedPath = null;
+        _error = null; _previewFailed = false; _selectedName = args.File.Name;
+        await Changed.InvokeAsync();
+        try
+        {
+            _pending = await Media.ReadAsync(args.File, Kind, _lifetime.Token);
+            _preview = _pending.PreviewUrl;
+        }
+        catch (ValidationException exception) { _error = exception.Message; }
+        catch (UnauthorizedAccessException) { _error = "Your Admin session is no longer valid. Sign in again."; }
+        catch (System.Data.Common.DbException) { _error = "Your Admin session could not be checked. Try selecting the image again."; }
+        catch (IOException) { _error = "The image could not be read. Check its size and select it again."; }
+        catch (OperationCanceledException) { }
+        finally { _reading = false; }
+        await Changed.InvokeAsync();
+    }
+    public async Task<string> CommitAsync()
+    {
+        if (_reading || _error is not null) throw new ValidationException("Resolve the image selection error before saving.");
+        if (_pending is null) return Value;
+        // Retry a failed entity save using the same already-persisted file.
+        return _storedPath ??= await Media.SaveAsync(_pending, _lifetime.Token);
+    }
+    public void AcceptSaved()
+    {
+        _pending = null; _preview = null; _storedPath = null; _selectedName = null; _error = null;
+        _previewFailed = false; _inputVersion++;
+    }
+    private async Task ClearAsync() { AcceptSaved(); await Changed.InvokeAsync(); }
+    private async Task ChooseBundledAsync(string path)
+    {
+        if (Disabled || _reading || !MediaPolicy.IsAllowed(path, Kind)) return;
+        AcceptSaved();
+        await ValueChanged.InvokeAsync(path);
+        await Changed.InvokeAsync();
+    }
+    private void PreviewFailed()
+    {
+        _previewFailed = true;
+        if (_pending is not null) _error = "This image could not be decoded by the browser. Choose another image.";
+    }
+    public void Dispose() { _lifetime.Cancel(); _lifetime.Dispose(); _pending = null; _preview = null; }
+}

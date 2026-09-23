@@ -30,3 +30,6 @@ Desktop.ini
 *.sqlite-shm
 *.sqlite-wal
 
+# CMS runtime uploads (persist independently of code/deployments)
+/src/NexNovaCo.Web/wwwroot/uploads/
+

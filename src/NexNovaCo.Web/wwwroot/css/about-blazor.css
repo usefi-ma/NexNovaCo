@@ -8,3 +8,9 @@
     .about-page .custome_btn, .about-page .partnership_logo,
     .about-page .partnership_link, .about-page .mision_item { transition: none; }
 }
+/* CMS image source only; original hero geometry and other pages are untouched. */
+.about-page .inner_page_header_pic .hexagon_with_back {
+    background-image: var(--about-hero-image, url(../image/home/welcome.jpg));
+}
+/* The decorative three-stop connector is only meaningful for complete timeline rows. */
+.about-page .history .container .history_boxes.timeline-partial { background-image: none; }

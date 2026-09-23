@@ -1,0 +1,5 @@
+@page "/dashboard/content/about"
+@inject NavigationManager Navigation
+@code {
+    protected override void OnInitialized() => Navigation.NavigateTo("/dashboard/content/about/hero", replace: true);
+}

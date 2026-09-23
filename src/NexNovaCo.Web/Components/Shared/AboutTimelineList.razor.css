@@ -1,0 +1,3 @@
+::deep .about-cms-table { width: 100%; min-width: 0; }
+::deep .about-cms-table td { overflow-wrap: anywhere; }
+::deep .about-cms-table .mud-table-cell { min-width: 0; }

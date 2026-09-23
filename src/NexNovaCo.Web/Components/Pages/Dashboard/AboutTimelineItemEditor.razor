@@ -1,0 +1,89 @@
+@page "/dashboard/content/about/timeline/new"
+@page "/dashboard/content/about/timeline/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IAboutCmsService AboutService
+@inject NavigationManager Navigation
+@inject ILogger<AboutTimelineItemEditor> Logger
+
+<PageTitle>About milestone | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">About / Timeline / milestone</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add" : "Edit") milestone</MudText>
+<MudText Class="dashboard-muted mb-7">Edit the existing year and plain-text description. Position is managed separately in the Timeline list.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">milestone saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="about-milestone">
+            <DataAnnotationsValidator /><ValidationSummary />
+            <section class="dashboard-editor-section">
+                <MudNumericField T="int" @bind-Value="_model.Year" For="@(() => _model.Year)" Label="Year" Min="1000" Max="9999" Variant="Variant.Outlined" Disabled="_saving" Immediate="true" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" MaxLength="600" HelperText="Required plain text. Up to 600 characters." Lines="4" Variant="Variant.Outlined" Disabled="_saving" Immediate="true" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudButton OnClick="Back" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Class="dashboard-action-buttons" Spacing="2">
+                    <MudButton OnClick="OpenAbout" Variant="Variant.Outlined" Disabled="_saving">View About Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving">@(_saving ? "Saving…" : "Save milestone")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else { <MudButton Href="/dashboard/content/about/timeline">Back to list</MudButton> }
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private AboutTimelineItemEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving, _saved, _showCreated;
+    private string? _error, _navigateAfterSave;
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id; _model = null; _error = null; _saved = _showCreated; _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await AboutService.GetTimelineItemForEditAsync(id) : new();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to load About milestone.");
+            _error = "The item could not be loaded or no longer exists. Return to the list and refresh.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void Back() => Navigation.NavigateTo("/dashboard/content/about/timeline");
+    private void OpenAbout() => Navigation.NavigateTo("/about", forceLoad: true);
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        try
+        {
+            if (_editingId is int id) await AboutService.UpdateTimelineAsync(id, _model);
+            else _editingId = await AboutService.CreateTimelineAsync(_model);
+            _snapshot.Capture(CurrentValues); _saved = true;
+            if (Id is null) { _showCreated = true; _navigateAfterSave = $"/dashboard/content/about/timeline/{_editingId}"; }
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to save About milestone.");
+            _error = "The item could not be saved. Your changes are retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null; Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool Expected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

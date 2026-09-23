@@ -1,6 +1,7 @@
 @page "/about"
 @inject IAboutContentService ContentService
 @inject IJSRuntime JS
+@inject NavigationManager Navigation
 @implements IAsyncDisposable
 
 <PageTitle>About | NexNovaCo</PageTitle>
@@ -14,7 +15,7 @@
 
 @if (_content is not null)
 {
-    <div class="about-page" @ref="_root">
+    <div class="about-page" @ref="_root" style="--about-hero-image: url('@Navigation.ToAbsoluteUri(_content.HeroImagePath)')">
         <InnerPageHero Content="_content.Hero" />
         <AboutStorySection Content="_content.Story" />
         <AboutVisionSection Content="_content.Vision" />

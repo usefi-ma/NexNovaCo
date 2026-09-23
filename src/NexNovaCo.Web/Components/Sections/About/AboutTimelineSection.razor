@@ -1,12 +1,14 @@
 <section class="history">
     <div class="container">
         <div class="row"><div class="col-12 hisory_header"><SectionHeader Content="Content.Heading" /></div></div>
-        <ol class="row history_boxes about-timeline" aria-label="Company milestones">
-            @for (var i = 0; i < Content.Milestones.Count; i++)
+        @foreach (var group in Content.Milestones.Chunk(3))
+        {
+        <ol class="@(group.Length < 3 ? "row history_boxes about-timeline timeline-partial" : "row history_boxes about-timeline")" aria-label="Company milestones">
+            @for (var i = 0; i < group.Length; i++)
             {
-                var milestone = Content.Milestones[i];
+                var milestone = group[i];
                 var year = milestone.Year.ToString("D4", System.Globalization.CultureInfo.InvariantCulture);
-                <li @key="milestone.Year" class="@SlotClass(i)" data-aos="fade-up" data-aos-delay="@((i + 2) * 100)">
+                <li @key="i" class="@SlotClass(i)" data-aos="fade-up" data-aos-delay="@((i + 2) * 100)">
                     <h3 class="visually-hidden">@year</h3>
                     @if (i == 1) { <div class="history_content"><p>@milestone.Description</p></div> }
                     @* Split numerals are decorative; the full year is the accessible heading. *@
@@ -15,6 +17,7 @@
                 </li>
             }
         </ol>
+        }
         <div class="row mt-4">
             <div class="col-12 col-md-12 text-center"><a href="@Content.CtaHref" class="custome_btn" data-aos="fade-up" data-aos-delay="500">@Content.CtaLabel</a></div>
         </div>

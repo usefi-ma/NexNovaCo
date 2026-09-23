@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -50,8 +51,14 @@ internal static class AuthChecks
         response.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.SeeOther &&
         response.Headers.Location is { } uri && (uri.IsAbsoluteUri ? uri.AbsolutePath : uri.OriginalString.Split('?')[0]) == path;
 
-    public static async Task Main()
+    public static async Task Main(string[] args)
     {
+        if (args.SequenceEqual(new[] { "--about" }))
+        {
+            await AboutCmsChecks.RunAsync();
+            Console.WriteLine($"PASS: {_checks} focused About CMS checks. Historical full-site suite not run; isolated databases only.");
+            return;
+        }
         // Credentials exist only in memory/environment configuration for isolated test databases.
         await using var app = new AuthFactory(NewPassword());
         using var anonymous = app.NewClient();
@@ -117,11 +124,11 @@ internal static class AuthChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 16, "Expected Identity, approved CMS migrations and additive Home image paths.");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 17, "Expected Identity, approved CMS migrations and additive Home image paths.");
             Check(!db.Database.HasPendingModelChanges(), "Migration and runtime model must agree.");
             var tables = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table'").ToListAsync();
             Check(new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetUserLogins", "AspNetUserTokens", "AspNetRoleClaims" }.All(tables.Contains), "Identity tables missing.");
-            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings" or "HomeTeamSectionSettings" or "HomeStatistics" or "HomePartnersSectionSettings" or "HomeTestimonialsSectionSettings" or "Testimonials" or "TestimonialInitializationState" or "Partners" or "PartnerInitializationState" or "Services" or "HomeFeaturedServices" or "ServiceInitializationState" or "Projects" or "ProjectGalleryImages" or "ProjectFeatures" or "HomeFeaturedProjects" or "ProjectInitializationState" or "Members" or "MemberSkills" or "HomeFeaturedMembers" or "MemberInitializationState"), "Unexpected schema beyond Identity and approved CMS content.");
+            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x.StartsWith("About") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings" or "HomeTeamSectionSettings" or "HomeStatistics" or "HomePartnersSectionSettings" or "HomeTestimonialsSectionSettings" or "Testimonials" or "TestimonialInitializationState" or "Partners" or "PartnerInitializationState" or "Services" or "HomeFeaturedServices" or "ServiceInitializationState" or "Projects" or "ProjectGalleryImages" or "ProjectFeatures" or "HomeFeaturedProjects" or "ProjectInitializationState" or "Members" or "MemberSkills" or "HomeFeaturedMembers" or "MemberInitializationState"), "Unexpected schema beyond Identity and approved CMS content.");
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var admin = await users.FindByEmailAsync(AuthFactory.Email);
             Check(admin is not null && await users.IsInRoleAsync(admin, "Admin"), "Admin must exist and have Admin role.");
@@ -186,6 +193,7 @@ internal static class AuthChecks
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             Check(await db.Users.CountAsync() == 0 && await db.Roles.CountAsync() == 1, "Missing credentials must create the role, not a default user.");
         }
+        await AboutCmsChecks.RunAsync();
         await MediaChecks.RunAsync();
         await HomeHeroChecks.RunAsync();
         await HomeWelcomeChecks.RunAsync();
@@ -224,6 +232,9 @@ internal sealed class AuthFactory(string password, string environment = "Develop
         builder.UseSetting("AdminUser:Email", Email);
         builder.UseSetting("AdminUser:Password", Password);
         builder.UseSetting("Identity:InitializeDatabase", "true");
+        // Test cookies/antiforgery keys belong to the isolated fixture, never the developer key ring.
+        builder.ConfigureServices(services => services.AddDataProtection().PersistKeysToFileSystem(
+            new DirectoryInfo(Path.Combine(Path.GetDirectoryName(DatabasePath)!, "keys"))));
         builder.ConfigureLogging(logging => logging.ClearProviders());
     }
     public HttpClient NewClient() => CreateClient(new WebApplicationFactoryClientOptions

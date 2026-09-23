@@ -1,0 +1,16 @@
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <DialogContent>
+        <MudText>Delete “@Name”?</MudText>
+        <MudText Class="dashboard-muted mt-3">This removes the item from About and cannot be undone. Deleting the final item keeps the collection empty, including after restart.</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined">Cancel</MudButton>
+        <MudButton OnClick="Delete" Color="Color.Error" Variant="Variant.Filled">Delete item</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public string Name { get; set; } = "";
+    private void Cancel() => Dialog.Cancel();
+    private void Delete() => Dialog.Close(DialogResult.Ok(true));
+}

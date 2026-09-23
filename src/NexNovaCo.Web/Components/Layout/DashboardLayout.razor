@@ -39,6 +39,14 @@
                     <MudNavLink Href="/dashboard/content/home/partners" Match="NavLinkMatch.All">Partners Section</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/testimonials" Match="NavLinkMatch.All">Testimonials Section</MudNavLink>
                 </MudNavGroup>
+                <MudNavGroup Title="About" Icon="@Icons.Material.Outlined.Info" @bind-Expanded="_aboutExpanded">
+                    <MudNavLink Href="/dashboard/content/about/hero" Match="NavLinkMatch.Prefix">Hero</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/about/story" Match="NavLinkMatch.Prefix">Story</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/about/vision" Match="NavLinkMatch.Prefix">Vision</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/about/timeline" Match="NavLinkMatch.Prefix">Timeline</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/about/mission" Match="NavLinkMatch.Prefix">Mission</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/about/partners" Match="NavLinkMatch.Prefix">Partners</MudNavLink>
+                </MudNavGroup>
                 <MudText Typo="Typo.overline" Class="dashboard-nav-label">Shared Content</MudText>
                 <MudNavLink Href="/dashboard/content/testimonials" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.FormatQuote">Testimonials</MudNavLink>
                 <MudNavLink Href="/dashboard/content/partners" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Handshake">Partners</MudNavLink>
@@ -60,6 +68,7 @@
     private bool _drawerOpen = true;
     private bool _compact;
     private bool _homeExpanded;
+    private bool _aboutExpanded;
     private MudIconButton? _toggleButton;
     private string _pageTitle = "Dashboard";
     protected override void OnInitialized()
@@ -81,7 +90,10 @@
         var isHome = path.StartsWith("dashboard/content/home", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("dashboard/home/hero", StringComparison.OrdinalIgnoreCase);
         if (isHome) _homeExpanded = true;
-        _pageTitle = path.StartsWith("dashboard/content/testimonials", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Testimonials"
+        var isAbout = path.StartsWith("dashboard/content/about", StringComparison.OrdinalIgnoreCase);
+        if (isAbout) _aboutExpanded = true;
+        _pageTitle = isAbout ? "About / " + AboutSectionName(path)
+            : path.StartsWith("dashboard/content/testimonials", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Testimonials"
             : path.StartsWith("dashboard/content/partners", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Partners"
             : path.StartsWith("dashboard/content/services/home-featured", StringComparison.OrdinalIgnoreCase) ? "Services / Home Featured"
             : path.StartsWith("dashboard/content/services", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Services"
@@ -98,7 +110,11 @@
             : path.StartsWith("dashboard/content/home/services", StringComparison.OrdinalIgnoreCase) ? "Home / Services"
             : path.StartsWith("dashboard/content/home/welcome", StringComparison.OrdinalIgnoreCase) ? "Home / Welcome" : "Home / Hero";
     }
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(() => { UpdateTitle(); StateHasChanged(); });
+    private static string AboutSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() switch
+    {
+        "story" => "Story", "vision" => "Vision", "timeline" => "Timeline", "mission" => "Mission", "partners" => "Partners", _ => "Hero"
+    };
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(() => { UpdateTitle(); if (_compact) _drawerOpen = false; StateHasChanged(); });
     private void OpenPublicSite() => Navigation.NavigateTo("/", forceLoad: true);
     public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
 }

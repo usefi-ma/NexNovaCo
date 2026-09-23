@@ -1,14 +1,13 @@
 @* Shared link order and clean routes for both header and footer. *@
 <ul id="@Id">
-    <li><NavLink href="" Match="NavLinkMatch.All" @onclick="OnNavigate">Home</NavLink></li>
-    <li><NavLink href="about" @onclick="OnNavigate">About</NavLink></li>
-    <li><NavLink href="services" @onclick="OnNavigate">Services</NavLink></li>
-    <li><NavLink href="projects" @onclick="OnNavigate">Projects</NavLink></li>
-    <li><NavLink href="team" @onclick="OnNavigate">Team</NavLink></li>
-    <li><NavLink href="contact" @onclick="OnNavigate">Contact</NavLink></li>
+    @foreach (var item in Items)
+    {
+        <li @key="item.Id"><NavLink href="@(item.Url == "/" ? "" : item.Url)" Match="@(item.Url == "/" ? NavLinkMatch.All : NavLinkMatch.Prefix)" @onclick="OnNavigate">@item.Label</NavLink></li>
+    }
 </ul>
 
 @code {
+    [Parameter] public IReadOnlyList<NavigationListItem> Items { get; set; } = GlobalSiteDefaults.Navigation;
     [Parameter] public string? Id { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnNavigate { get; set; }
 }

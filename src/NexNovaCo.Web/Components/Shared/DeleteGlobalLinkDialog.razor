@@ -1,0 +1,22 @@
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <DialogContent>
+        <MudText>Delete “@Name”?</MudText>
+        <MudText Class="dashboard-muted mt-3">This removes the item from the public site. This cannot be undone.</MudText>
+        @if (IsLast)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-3">This collection will stay empty until you add another item. Restarting will not restore deleted items.</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined">Cancel</MudButton>
+        <MudButton OnClick="Delete" Color="Color.Error" Variant="Variant.Filled" DropShadow="false">Delete item</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public bool IsLast { get; set; }
+    private void Cancel() => Dialog.Cancel();
+    private void Delete() => Dialog.Close(DialogResult.Ok(true));
+}

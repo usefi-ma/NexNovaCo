@@ -1,0 +1,130 @@
+@page "/dashboard/settings/social/new"
+@page "/dashboard/settings/social/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject ISocialLinkContentService ContentService
+@inject ILogger<SocialLinkEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>@(_editingId is null ? "Add" : "Edit") Social Link | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Global Settings / Social Links</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add social link" : "Edit social link")</MudText>
+<MudText Class="dashboard-muted mb-7">Global Footer icons only; member-specific links stay separate. Each platform can appear once.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="global-social">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Social Links content">
+                <MudSelect T="SocialPlatform" Value="_model.Platform" ValueChanged="ChangePlatform" For="@(() => _model.Platform)" Label="Platform" Variant="Variant.Outlined" Disabled="_saving" Class="mb-5">
+                    @foreach (var platform in Enum.GetValues<SocialPlatform>()) { <MudSelectItem Value="platform">@platform</MudSelectItem> }
+                </MudSelect>
+                @if (_model.Platform == SocialPlatform.Email)
+                {
+                    <MudText Class="dashboard-muted">This icon uses the shared email from Global Settings → Contact Info. No separate email is stored here.</MudText>
+                }
+                else
+                {
+                <MudTextField @bind-Value="_model.Url" For="@(() => _model.Url)" Label="HTTPS URL (optional)" HelperText="Leave empty to retain the existing decorative, non-clickable icon." Variant="Variant.Outlined" MaxLength="500" Immediate="true" Disabled="_saving" Class="mb-5" />
+                }
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes affect the public site when saved.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save social link")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else
+{
+    <MudButton Href="/dashboard/settings/social" Variant="Variant.Outlined">Back to list</MudButton>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private SocialLinkEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+    private string? _navigateAfterSave;
+    private bool _showCreated;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id;
+        _model = null;
+        _error = null;
+        _saved = _showCreated;
+        _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await ContentService.GetForEditAsync(id) : new SocialLinkEditModel();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to load social link editor.");
+            _error = exception is KeyNotFoundException ? "This social link no longer exists. Return to the list."
+                : "The social link could not be loaded. Check your session and try again.";
+        }
+    }
+    private void ChangePlatform(SocialPlatform platform)
+    {
+        if (_model is null) return;
+        _model.Platform = platform;
+        if (platform == SocialPlatform.Email) _model.Url = "";
+        ClearSaved();
+    }
+    private void ClearSaved() => _saved = false;
+    private void Cancel() => Navigation.NavigateTo("/dashboard/settings/social");
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            if (_editingId is int id) await ContentService.UpdateAsync(id, _model);
+            else _editingId = await ContentService.CreateAsync(_model);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+            // Leave /new after creation so refresh cannot accidentally create a duplicate.
+            if (Id is null)
+            {
+                _showCreated = true;
+                _navigateAfterSave = $"/dashboard/settings/social/{_editingId}";
+            }
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to save social link.");
+            _error = exception is ValidationException ? exception.Message : exception is KeyNotFoundException or DbUpdateConcurrencyException
+                ? "This social link changed or no longer exists. Your input is retained; return to the list to reload."
+                : "The social link could not be saved. Your input is retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null;
+        // The clean snapshot has now reached NavigationLock before leaving the /new route.
+        Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool IsExpected(Exception exception) => exception is IOException or DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

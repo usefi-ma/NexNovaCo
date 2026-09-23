@@ -1,0 +1,104 @@
+@page "/dashboard/settings/social"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject ISocialLinkContentService ContentService
+@inject IDialogService Dialogs
+@inject ILogger<GlobalSocialLinkList> Logger
+
+<PageTitle>Social Links | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Global Settings / Social Links</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Social Links</MudText>
+<MudText Class="dashboard-muted mb-5">Manage the global Footer icons. Email reuses Contact Info; empty profile URLs preserve decorative icons.</MudText>
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_message is not null) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">@_message</MudAlert> }
+<MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-5" Spacing="2">
+    <MudButton Href="/dashboard/settings/social/new" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.Add" DropShadow="false" Disabled="_busy">Add social link</MudButton>
+    <MudButton OnClick="ReloadAsync" Variant="Variant.Outlined" Disabled="_busy">Refresh list</MudButton>
+</MudStack>
+<MudText Typo="Typo.body2" Class="dashboard-muted mb-4">Move up/down saves immediately. There is no separate ordering Save step.</MudText>
+@if (_items is not null)
+{
+    <div class="partners-list">
+    <MudTable T="SocialLinkListItem" Items="_items" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Md" Class="partners-table" Loading="_busy">
+        <HeaderContent>
+            <MudTh>Order</MudTh><MudTh>Platform</MudTh><MudTh>URL</MudTh><MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Order">@context.DisplayOrder</MudTd>
+            <MudTd DataLabel="Platform"><span class="partner-cell-text">@context.Platform</span></MudTd>
+            <MudTd DataLabel="URL"><span class="partner-cell-text">@(context.Platform == SocialPlatform.Email ? "Shared Contact Info email" : string.IsNullOrWhiteSpace(context.Url) ? "Decorative (no URL)" : context.Url)</span></MudTd>
+            <MudTd DataLabel="Actions">
+                <div class="partner-actions">
+                    <MudIconButton Icon="@Icons.Material.Outlined.ArrowUpward" aria-label="@($"Move up {context.Platform}")" Disabled="@(_busy || context.Id == _items[0].Id)" OnClick="@(() => MoveAsync(context.Id, -1))" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.ArrowDownward" aria-label="@($"Move down {context.Platform}")" Disabled="@(_busy || context.Id == _items[^1].Id)" OnClick="@(() => MoveAsync(context.Id, 1))" />
+                    <MudIconButton Href="@($"/dashboard/settings/social/{context.Id}")" Icon="@Icons.Material.Outlined.Edit" Color="Color.Primary" aria-label="@($"Edit {context.Platform}")" Disabled="_busy" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" aria-label="@($"Delete {context.Platform}")" Disabled="_busy" OnClick="@(() => DeleteAsync(context))" />
+                </div>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent><MudText>No social links yet. Add an item to show it publicly. Restarting will not restore deleted items.</MudText></NoRecordsContent>
+    </MudTable>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<SocialLinkListItem>? _items;
+    private bool _busy;
+    private string? _error;
+    private string? _message;
+    protected override Task OnInitializedAsync() => ReloadAsync();
+    private Task ReloadAsync() => RunAsync(async () => { _items = await ContentService.ListAsync(); }, null);
+    private Task MoveAsync(int id, int direction) => RunAsync(async () =>
+    {
+        var ids = _items!.Select(item => item.Id).ToList();
+        var index = ids.IndexOf(id);
+        var target = index + direction;
+        if (index < 0 || target < 0 || target >= ids.Count) return;
+        (ids[index], ids[target]) = (ids[target], ids[index]);
+        await ContentService.ReorderAsync(ids);
+        _items = await ContentService.ListAsync();
+    }, "Social link order saved.");
+
+    private async Task DeleteAsync(SocialLinkListItem item)
+    {
+        if (_busy) return;
+        _busy = true;
+        try
+        {
+            var parameters = new DialogParameters<DeleteGlobalLinkDialog>
+            {
+                { dialog => dialog.Name, item.Platform.ToString() }, { dialog => dialog.IsLast, _items?.Count == 1 }
+            };
+            var dialog = await Dialogs.ShowAsync<DeleteGlobalLinkDialog>("Delete social link?", parameters,
+                new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false, CloseOnEscapeKey = true });
+            var result = await dialog.Result;
+            if (result?.Canceled != false) return;
+            _busy = false;
+            await RunAsync(async () =>
+            {
+                await ContentService.DeleteAsync(item.Id);
+                _items = await ContentService.ListAsync();
+            }, "Social link deleted.");
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task RunAsync(Func<Task> action, string? success)
+    {
+        if (_busy) return;
+        _busy = true;
+        _error = null;
+        _message = null;
+        try { await action(); _message = success; }
+        catch (Exception exception) when (exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException)
+        {
+            Logger.LogError(exception, "Unable to complete social link management operation.");
+            _error = exception is KeyNotFoundException or ValidationException or DbUpdateConcurrencyException
+                ? "The collection changed or an item no longer exists. Refresh the list and try again."
+                : "The operation could not be completed. Check your session, refresh the list, and try again.";
+        }
+        finally { _busy = false; }
+    }
+}

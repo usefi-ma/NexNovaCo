@@ -76,6 +76,13 @@
                 <MudNavLink Href="/dashboard/content/shared-team" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Groups">Team Members</MudNavLink>
                 <MudNavLink Href="/dashboard/content/shared-projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.WorkOutline">Projects</MudNavLink>
                 <MudNavLink Href="/dashboard/content/shared-services" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.DesignServices">Services</MudNavLink>
+                <MudNavGroup Title="Global Settings" Icon="@Icons.Material.Outlined.Settings" @bind-Expanded="_settingsExpanded">
+                    <MudNavLink Href="/dashboard/settings/site" Match="NavLinkMatch.All">Site Identity</MudNavLink>
+                    <MudNavLink Href="/dashboard/settings/navigation" Match="NavLinkMatch.Prefix">Navigation</MudNavLink>
+                    <MudNavLink Href="/dashboard/settings/footer" Match="NavLinkMatch.All">Footer</MudNavLink>
+                    <MudNavLink Href="/dashboard/settings/social" Match="NavLinkMatch.Prefix">Social Links</MudNavLink>
+                    <MudNavLink Href="/dashboard/settings/contact" Match="NavLinkMatch.All">Contact Info</MudNavLink>
+                </MudNavGroup>
             </MudNavMenu>
         </nav>
         <div class="dashboard-drawer-note"><MudIcon Icon="@Icons.Material.Outlined.VerifiedUser" Size="Size.Small" /><span>Administrator workspace</span></div>
@@ -96,6 +103,7 @@
     private bool _projectsExpanded;
     private bool _teamExpanded;
     private bool _contactExpanded;
+    private bool _settingsExpanded;
     private MudIconButton? _toggleButton;
     private string _pageTitle = "Dashboard";
     protected override void OnInitialized()
@@ -114,6 +122,15 @@
     private void UpdateTitle()
     {
         var path = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (path.StartsWith("dashboard/settings", StringComparison.OrdinalIgnoreCase))
+        {
+            _settingsExpanded = true;
+            _pageTitle = "Global Settings / " + (path.Split('/').ElementAtOrDefault(2)?.ToLowerInvariant() switch
+            {
+                "navigation" => "Navigation", "footer" => "Footer", "social" => "Social Links", "contact" => "Contact Info", _ => "Site Identity"
+            });
+            return;
+        }
         var isHome = path.StartsWith("dashboard/content/home", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("dashboard/home/hero", StringComparison.OrdinalIgnoreCase);
         if (isHome) _homeExpanded = true;

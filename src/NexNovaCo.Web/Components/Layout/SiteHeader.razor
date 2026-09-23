@@ -1,25 +1,27 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 
-@* Home's approved header; page-specific heroes are deferred to Phase 2. *@
+@* One canonical brand and navigation collection; mobile is only a presentation toggle. *@
 <header class="container-fluid main_menu" @onkeydown="HandleKeyDown">
     <div class="row header_top">
         <div class="col-3">
             <div class="brand_container">
-                <NavLink href="" Match="NavLinkMatch.All" aria-label="NexNovaCo home" @onclick="CloseMenu">
-                    <img src="image/logo.png" alt="NexNovaCo logo" />
-                    <span>NexNovaCo</span>
+                <NavLink href="" Match="NavLinkMatch.All" aria-label="@($"{Identity.SiteName} home")" @onclick="CloseMenu">
+                    <img src="@Identity.ImagePath" alt="@($"{Identity.SiteName} logo")" />
+                    <span>@Identity.SiteName</span>
                 </NavLink>
             </div>
         </div>
         <nav class="menu col-9 @(_isOpen ? "is-open" : null)" aria-label="Primary">
             <MobileNavigation @ref="_mobileNavigation" IsOpen="_isOpen" OnToggle="ToggleMenu" />
-            <PrimaryNavigation Id="primary-navigation" OnNavigate="CloseMenu" />
+            <PrimaryNavigation Id="primary-navigation" Items="Items" OnNavigate="CloseMenu" />
         </nav>
     </div>
 </header>
 
 @code {
+    [Parameter] public SiteIdentityEditModel Identity { get; set; } = SiteIdentityEditModel.Approved();
+    [Parameter] public IReadOnlyList<NavigationListItem> Items { get; set; } = GlobalSiteDefaults.Navigation;
     private bool _isOpen;
     private MobileNavigation? _mobileNavigation;
 

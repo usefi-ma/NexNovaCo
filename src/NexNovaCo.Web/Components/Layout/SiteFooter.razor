@@ -1,38 +1,52 @@
 @inject IContactPageCmsService ContactSettings
+@inject IGlobalSettingsService GlobalSettings
+@inject ISocialLinkContentService SocialContent
 <footer class="footer">
     <div class="container mb-5">
         <div class="row">
             <div class="col-12 col-lg-5 col-xl-4">
                 <div class="footer_logo_container">
-                    <img src="image/logo.png" alt="NexNovaCo logo" />
-                    <h3>NexNovaCo</h3>
+                    <img src="@Identity.ImagePath" alt="@($"{Identity.SiteName} logo")" />
+                    <h3>@Identity.SiteName</h3>
                 </div>
-                <p>NexNovaCo specializes in delivering innovative solutions and exceptional services tailored to your needs. Empowering businesses with creativity and expertise.</p>
-                <SocialLinks Email="@_contact.Email" />
+                <p>@_settings.Description</p>
+                <GlobalSocialLinks Items="_social" Name="@Identity.SiteName" Email="@_contact.Email" />
             </div>
             <nav class="col_footer col-12 col-lg-2 col-xl-3" aria-label="Footer">
-                <PrimaryNavigation />
+                <PrimaryNavigation Items="Items" />
             </nav>
+            @if (_settings.NewsletterVisible)
+            {
             <div class="col_footer col-12 col-lg-5 col-xl-5">
                 <div class="footer_form_container">
-                    <h4>Subscribe to our newsletter</h4>
+                    <h4>@_settings.NewsletterHeading</h4>
                     <p id="newsletter-notice">Newsletter signup is not available yet.</p>
                     @* Static demo shell only: no submission, storage, or email service. *@
                     <div class="form">
-                        <input type="email" placeholder="Your Email" aria-label="Newsletter email (unavailable)" aria-describedby="newsletter-notice" disabled />
-                        <button type="button" disabled aria-disabled="true" title="Newsletter signup is not connected yet"> Submit </button>
+                        <input type="email" placeholder="@_settings.NewsletterPlaceholder" aria-label="Newsletter email (unavailable)" aria-describedby="newsletter-notice" disabled />
+                        <button type="button" disabled aria-disabled="true" title="Newsletter signup is not connected yet"> @_settings.NewsletterSubmitLabel </button>
                     </div>
                 </div>
             </div>
+            }
         </div>
     </div>
     <div class="footer_toolbar">
-        <div class="reserved"><p>&copy; 2026. All rights reserved.</p></div>
+        <div class="reserved"><p>@_settings.Copyright</p></div>
     </div>
     <BackToTop />
 </footer>
 
 @code {
+    [Parameter] public SiteIdentityEditModel Identity { get; set; } = SiteIdentityEditModel.Approved();
+    [Parameter] public IReadOnlyList<NavigationListItem> Items { get; set; } = GlobalSiteDefaults.Navigation;
+    private FooterEditModel _settings = FooterEditModel.Approved();
+    private IReadOnlyList<SocialLinkListItem> _social = GlobalSiteDefaults.SocialLinks;
     private SiteContactContent _contact = new(ContactPageDefaults.Content.Info.Phone, ContactPageDefaults.Content.Info.Email, ContactPageDefaults.Content.Info.Address);
-    protected override async Task OnInitializedAsync() => _contact = await ContactSettings.ReadSiteContactAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        _contact = await ContactSettings.ReadSiteContactAsync();
+        _settings = await GlobalSettings.ReadFooterAsync();
+        _social = await SocialContent.GetAsync();
+    }
 }

@@ -2,6 +2,8 @@
 
 @implements IAsyncDisposable
 @inject IJSRuntime JS
+@inject IGlobalSettingsService GlobalSettings
+@inject INavigationContentService NavigationContent
 
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -9,11 +11,11 @@
 <MudSnackbarProvider />
 
 <a class="skip-link" href="#main-content">Skip to content</a>
-<SiteHeader />
+<SiteHeader Identity="_identity" Items="_navigation" />
 <main id="main-content" tabindex="-1">
     @Body
 </main>
-<SiteFooter />
+<SiteFooter Identity="_identity" Items="_navigation" />
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -23,6 +25,13 @@
 
 @code {
     private IJSObjectReference? _shellModule;
+    private SiteIdentityEditModel _identity = SiteIdentityEditModel.Approved();
+    private IReadOnlyList<NavigationListItem> _navigation = GlobalSiteDefaults.Navigation;
+    protected override async Task OnInitializedAsync()
+    {
+        _identity = await GlobalSettings.ReadSiteIdentityAsync();
+        _navigation = await NavigationContent.GetAsync();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

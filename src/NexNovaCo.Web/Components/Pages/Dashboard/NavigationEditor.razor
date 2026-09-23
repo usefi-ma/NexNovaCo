@@ -1,0 +1,114 @@
+@page "/dashboard/settings/navigation/new"
+@page "/dashboard/settings/navigation/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject INavigationContentService ContentService
+@inject ILogger<NavigationEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>@(_editingId is null ? "Add" : "Edit") Navigation | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Global Settings / Navigation</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add navigation item" : "Edit navigation item")</MudText>
+<MudText Class="dashboard-muted mb-7">One ordered menu for desktop, mobile and Footer.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="global-navigation">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Navigation content">
+                <MudTextField @bind-Value="_model.Label" For="@(() => _model.Label)" Label="Label" HelperText="Required; up to 40 characters. Keep menu labels concise." Variant="Variant.Outlined" MaxLength="40" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Url" For="@(() => _model.Url)" Label="Route" HelperText="Use / for Home or another public route. External and Admin routes are not supported." Variant="Variant.Outlined" MaxLength="200" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes affect the public site when saved.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save navigation item")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else
+{
+    <MudButton Href="/dashboard/settings/navigation" Variant="Variant.Outlined">Back to list</MudButton>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private NavigationEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+    private string? _navigateAfterSave;
+    private bool _showCreated;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id;
+        _model = null;
+        _error = null;
+        _saved = _showCreated;
+        _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await ContentService.GetForEditAsync(id) : new NavigationEditModel();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to load navigation item editor.");
+            _error = exception is KeyNotFoundException ? "This navigation item no longer exists. Return to the list."
+                : "The navigation item could not be loaded. Check your session and try again.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void Cancel() => Navigation.NavigateTo("/dashboard/settings/navigation");
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            if (_editingId is int id) await ContentService.UpdateAsync(id, _model);
+            else _editingId = await ContentService.CreateAsync(_model);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+            // Leave /new after creation so refresh cannot accidentally create a duplicate.
+            if (Id is null)
+            {
+                _showCreated = true;
+                _navigateAfterSave = $"/dashboard/settings/navigation/{_editingId}";
+            }
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to save navigation item.");
+            _error = exception is ValidationException ? exception.Message : exception is KeyNotFoundException or DbUpdateConcurrencyException
+                ? "This navigation item changed or no longer exists. Your input is retained; return to the list to reload."
+                : "The navigation item could not be saved. Your input is retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null;
+        // The clean snapshot has now reached NavigationLock before leaving the /new route.
+        Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool IsExpected(Exception exception) => exception is IOException or DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

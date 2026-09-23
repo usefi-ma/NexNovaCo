@@ -1,0 +1,80 @@
+@page "/dashboard/settings/site"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IGlobalSettingsService GlobalSettings
+@inject NavigationManager Navigation
+@inject ILogger<GlobalSiteIdentityEditor> Logger
+
+<PageTitle>Site Identity | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Global Settings / Site Identity</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Site Identity</MudText>
+<MudText Class="dashboard-muted mb-7">One name and logo for the public Header and Footer. Authored page copy and metadata are edited separately.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" role="alert" Class="mb-4">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" role="status" Class="mb-4">Site Identity saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="global-site">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Site Identity content">
+                <MudTextField @bind-Value="_model.SiteName" For="@(() => _model.SiteName)" Label="Site name" HelperText="Required; up to 80 characters. Use a concise brand name to fit the existing header." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <CmsImageField @ref="_imageField" @bind-Value="_model.ImagePath" Kind="MediaKind.SiteLogo" Label="Site logo" Hint="Used in both Header and Footer. Transparent PNG/WebP is supported. The original logo remains available." Disabled="_saving" Changed="ClearSaved" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes go live on the public site when saved.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenWebsite" Variant="Variant.Outlined" Disabled="_saving">View Website</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+
+
+@code {
+    private SiteIdentityEditModel? _model;
+    private CmsImageField? _imageField;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues) || _imageField?.HasPendingSelection == true);
+    private bool _saving, _saved;
+    private string? _error;
+    protected override async Task OnInitializedAsync()
+    {
+        try { _model = await GlobalSettings.GetSiteIdentityForEditAsync(); _snapshot.Capture(CurrentValues); }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to load Site Identity.");
+            _error = "Content could not be loaded. Check your session and refresh; defaults are not shown as saved content.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void OpenWebsite() => Navigation.NavigateTo("/", forceLoad: true);
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        var previousImagePath = _model.ImagePath;
+        try
+        {
+            if (_imageField is not null) _model.ImagePath = await _imageField.CommitAsync();
+            await GlobalSettings.SaveSiteIdentityAsync(_model);
+            _imageField?.AcceptSaved();
+            _snapshot.Capture(CurrentValues); _saved = true;
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            _model.ImagePath = previousImagePath;
+            Logger.LogError(exception, "Unable to save Site Identity.");
+            _error = "Content could not be saved. Your changes are retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    private static bool Expected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException or IOException or InvalidOperationException;
+}

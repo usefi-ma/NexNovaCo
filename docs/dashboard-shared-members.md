@@ -6,7 +6,7 @@ Started from clean `f6c9b45874b34186a8fdb062dc49ec140183e681` on `feature/dashbo
 
 ## 2. Dashboard IA
 
-Shared Content → Team Members opens the full list. Its Home Featured action opens `/dashboard/content/team/home-featured`. Home → Team Section remains the separate introduction/CTA editor, with helper text explaining the distinction. No duplicated navigation tree.
+Shared Content → Team Members opens the full list. Its Home Featured action opens `/dashboard/content/shared-team/home-featured`. Home → Team Section remains the separate introduction/CTA editor, with helper text explaining the distinction. No duplicated navigation tree.
 
 ## 3. Data model
 
@@ -28,11 +28,11 @@ The existing `IMemberCatalog` resolves to the scoped SQLite service. The concret
 
 ## 6. Team list
 
-`/dashboard/content/team` uses a responsive MudTable with order, bounded photo preview, name, role, slug, Home membership/order and actions. Add, Edit, confirmed Delete, Refresh and immediate Up/Down controls match the existing collection UX. Edge moves are disabled and controls have member-specific accessible labels.
+`/dashboard/content/shared-team` uses a responsive MudTable with order, bounded photo preview, name, role, slug, Home membership/order and actions. Add, Edit, confirmed Delete, Refresh and immediate Up/Down controls match the existing collection UX. Edge moves are disabled and controls have member-specific accessible labels.
 
 ## 7. Add/edit
 
-`/dashboard/content/team/new` and `/dashboard/content/team/{id:int}` group basic information, profile, photo, skills and contact/social fields. Skills support Add, Remove, text editing and Up/Down. All repeated values and sequence persist. The portrait selector allows only the six approved bundled Team photos, with a bounded preview and unavailable-image placeholder. Traversal, arbitrary filesystem/remote paths and unapproved assets are rejected. No uploads or file writes.
+`/dashboard/content/shared-team/new` and `/dashboard/content/shared-team/{id:int}` group basic information, profile, photo, skills and contact/social fields. Skills support Add, Remove, text editing and Up/Down. All repeated values and sequence persist. The portrait selector allows only the six approved bundled Team photos, with a bounded preview and unavailable-image placeholder. Traversal, arbitrary filesystem/remote paths and unapproved assets are rejected. No uploads or file writes.
 
 Required/length and nested skill validation run at the service boundary and on submission. Optional social destinations must be absolute HTTPS URLs without credentials, whitespace or unsafe characters. Email rejects mailto prefixes, query/header injection and multiple addresses. Razor continues to encode editorial text.
 
@@ -104,3 +104,5 @@ No upload/media library, role management, Team categories, redirects/history, dr
 ## 21. Recommendation
 
 Review and approve this shared Team phase before expanding scope. Keep the established shared-entity/independent-Home-selection pattern for future work. A future media-management phase should be scoped separately; it is not started here.
+
+Phase 14 route note: `/dashboard/content/team` now redirects to the page-specific Hero editor. Legacy `/dashboard/content/team/new`, `/dashboard/content/team/{id:int}` and `/dashboard/content/team/home-featured` redirect to their `/dashboard/content/shared-team/...` counterparts. Member CRUD, per-member media and public detail routes are unchanged.

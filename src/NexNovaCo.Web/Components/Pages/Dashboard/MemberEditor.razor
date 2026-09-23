@@ -1,5 +1,5 @@
-@page "/dashboard/content/team/new"
-@page "/dashboard/content/team/{Id:int}"
+@page "/dashboard/content/shared-team/new"
+@page "/dashboard/content/shared-team/{Id:int}"
 @using System.ComponentModel.DataAnnotations
 @using System.Data.Common
 @using Microsoft.EntityFrameworkCore
@@ -79,7 +79,7 @@
 }
 else
 {
-    <MudButton Href="/dashboard/content/team" Variant="Variant.Outlined">Back to list</MudButton>
+    <MudButton Href="/dashboard/content/shared-team" Variant="Variant.Outlined">Back to list</MudButton>
 }
 
 @code {
@@ -126,7 +126,7 @@ else
         (rows[index], rows[target]) = (rows[target], rows[index]); _saved = false;
     }
     private void ClearSaved() => _saved = false;
-    private void Cancel() => Navigation.NavigateTo("/dashboard/content/team");
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/shared-team");
     private async Task SaveAsync()
     {
         if (_saving || _model is null) return;
@@ -147,7 +147,7 @@ else
             if (Id is null)
             {
                 _showCreated = true;
-                _navigateAfterSave = $"/dashboard/content/team/{_editingId}";
+                _navigateAfterSave = $"/dashboard/content/shared-team/{_editingId}";
             }
         }
         catch (Exception exception) when (IsExpected(exception))

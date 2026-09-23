@@ -1,0 +1,91 @@
+@page "/dashboard/content/team/overview"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject ITeamPageCmsService TeamPageService
+@inject NavigationManager Navigation
+@inject ILogger<TeamSectionEditor> Logger
+
+<PageTitle>Team Section | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Team / Team Section</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Team Section</MudText>
+<MudText Class="dashboard-muted mb-7">Edit the existing Team introduction. Member identities, portraits, profiles and social links remain in Shared Content → Team Members.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" role="alert" Class="mb-4">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" role="status" Class="mb-4">Team Section saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="team-section">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Team introduction">
+                <MudTextField @bind-Value="_model.Eyebrow" For="@(() => _model.Eyebrow)" Label="Eyebrow" HelperText="Required. Up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Title" For="@(() => _model.Title)" Label="Title" HelperText="Required. Up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Introduction" For="@(() => _model.Introduction)" Label="Introduction" HelperText="Required. Up to 500 characters." Variant="Variant.Outlined" MaxLength="500" Lines="4" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Highlight" For="@(() => _model.Highlight)" Label="Highlighted text" HelperText="Required. Up to 300 characters." Variant="Variant.Outlined" MaxLength="300" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" HelperText="Required. Up to 1000 characters." Variant="Variant.Outlined" MaxLength="1000" Lines="4" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" HelperText="Required. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.CtaHref" For="@(() => _model.CtaHref)" Label="CTA route" HelperText="Public site route, such as /contact." Variant="Variant.Outlined" MaxLength="200" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <CmsImageField @ref="_imageField" @bind-Value="_model.ImagePath" Kind="MediaKind.TeamSection" Label="Introduction image" Hint="The existing decorative crop is retained." Disabled="_saving" Changed="ClearSaved" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes go live on Team when saved. Layout and styling stay the same.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenTeam" Variant="Variant.Outlined" Disabled="_saving">View Team Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+
+
+<MudPaper Class="dashboard-editor pa-6 mt-6" Elevation="0" Outlined="true">
+    <MudText Class="mb-4">The member grid uses the shared catalog. These introduction settings affect the Team page only.</MudText>
+    <MudButton Href="/dashboard/content/shared-team" Variant="Variant.Outlined" Color="Color.Primary">Manage Team Members</MudButton>
+</MudPaper>
+
+@code {
+    private TeamSectionEditModel? _model;
+    private CmsImageField? _imageField;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues) || _imageField?.HasPendingSelection == true);
+    private bool _saving, _saved;
+    private string? _error;
+    protected override async Task OnInitializedAsync()
+    {
+        try { _model = await TeamPageService.GetSectionForEditAsync(); _snapshot.Capture(CurrentValues); }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to load Team Section.");
+            _error = "Content could not be loaded. Check your session and refresh; defaults are not shown as saved content.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void OpenTeam() => Navigation.NavigateTo("/team", forceLoad: true);
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        var previousImagePath = _model.ImagePath;
+        try
+        {
+            if (_imageField is not null) _model.ImagePath = await _imageField.CommitAsync();
+            await TeamPageService.SaveSectionAsync(_model);
+            _imageField?.AcceptSaved();
+            _snapshot.Capture(CurrentValues); _saved = true;
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            _model.ImagePath = previousImagePath;
+            Logger.LogError(exception, "Unable to save Team Section.");
+            _error = "Content could not be saved. Your changes are retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    private static bool Expected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException or IOException;
+}

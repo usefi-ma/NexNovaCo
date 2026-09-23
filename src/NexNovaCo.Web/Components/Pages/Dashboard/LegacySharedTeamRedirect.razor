@@ -1,0 +1,13 @@
+@page "/dashboard/content/team/new"
+@page "/dashboard/content/team/{Id:int}"
+@page "/dashboard/content/team/home-featured"
+@inject NavigationManager Navigation
+@code {
+    [Parameter] public int? Id { get; set; }
+    protected override void OnParametersSet()
+    {
+        var path = Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0];
+        var suffix = Id is int id ? id.ToString(System.Globalization.CultureInfo.InvariantCulture) : path.EndsWith("/new", StringComparison.OrdinalIgnoreCase) ? "new" : "home-featured";
+        Navigation.NavigateTo("/dashboard/content/shared-team/" + suffix, replace: true);
+    }
+}

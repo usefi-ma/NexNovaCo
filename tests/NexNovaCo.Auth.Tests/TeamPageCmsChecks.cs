@@ -22,7 +22,7 @@ using static NexNovaCo.Auth.Tests.AuthChecks;
 
 namespace NexNovaCo.Auth.Tests;
 
-internal static class ProjectsPageCmsChecks
+internal static class TeamPageCmsChecks
 {
     public static async Task RunAsync()
     {
@@ -42,43 +42,43 @@ internal static class ProjectsPageCmsChecks
         var auth = new TestAuth(principal);
         var media = new LocalMediaStorageService(app.Services.GetRequiredService<MediaFilePaths>(), factory, auth, options);
         var logger = new TestLogger();
-        var service = new ProjectsPageCmsService(factory, auth, options, media, logger);
-        var sections = new[] { "Hero", "Testimonials" };
-        var types = new[] { typeof(ProjectsHeroEditor), typeof(ProjectsTestimonialsEditor) };
+        var service = new TeamPageCmsService(factory, auth, options, media, logger);
+        var sections = new[] { "Hero", "Section" };
+        var types = new[] { typeof(TeamHeroEditor), typeof(TeamSectionEditor) };
 
         var baseline = await service.ReadPublicAsync();
-        Check(JsonSerializer.Serialize(baseline) == JsonSerializer.Serialize(ProjectsPageDefaults.Content), "Fresh Projects content exactly matches approved typed defaults.");
+        Check(JsonSerializer.Serialize(baseline) == JsonSerializer.Serialize(TeamPageDefaults.Content), "Fresh Team content exactly matches approved typed defaults.");
         await RestartAsync(app);
-        Check(JsonSerializer.Serialize(await service.ReadPublicAsync()) == JsonSerializer.Serialize(baseline), "Restart does not duplicate/default-overwrite Projects content.");
+        Check(JsonSerializer.Serialize(await service.ReadPublicAsync()) == JsonSerializer.Serialize(baseline), "Restart does not duplicate/default-overwrite Team content.");
         await using (var db = await factory.CreateDbContextAsync())
         {
-            Check(!db.Database.HasPendingModelChanges(), "Projects migration matches model.");
+            Check(!db.Database.HasPendingModelChanges(), "Team migration matches model.");
         }
         await MigrationAsync(factory);
-        Check((await anonymous.GetStringAsync("/projects")).Contains("http://localhost/image/home/inner-banner.jpg") ||
-              (await anonymous.GetStringAsync("/projects")).Contains("https://localhost/image/home/inner-banner.jpg"), "CSS media uses base-aware absolute URLs, not stylesheet-relative paths.");
+        Check((await anonymous.GetStringAsync("/team")).Contains("http://localhost/image/team/ourteam-header.jpg") ||
+              (await anonymous.GetStringAsync("/team")).Contains("https://localhost/image/team/ourteam-header.jpg"), "CSS media uses base-aware absolute URLs, not stylesheet-relative paths.");
 
         var viewerPassword = NewPassword();
-        var viewerUser = new ApplicationUser { Email = "projects-viewer@example.invalid", UserName = "projects-viewer@example.invalid" };
+        var viewerUser = new ApplicationUser { Email = "team-viewer@example.invalid", UserName = "team-viewer@example.invalid" };
         Check((await users.CreateAsync(viewerUser, viewerPassword)).Succeeded, "Create isolated non-Admin viewer.");
         using var viewer = app.NewClient();
         await Login(viewer, viewerUser.Email, viewerPassword);
-        var routes = sections.Select(x => "/dashboard/content/projects/" + x.ToLowerInvariant())
-            .Concat(new[] { "/dashboard/content/projects", "/dashboard/content/projects/overview",
-                "/dashboard/content/shared-projects", "/dashboard/content/shared-projects/new", "/dashboard/content/shared-projects/1", "/dashboard/content/shared-projects/home-featured", "/dashboard/content/testimonials" });
+        var routes = sections.Select(x => "/dashboard/content/team/" + (x == "Section" ? "overview" : "hero"))
+            .Concat(new[] { "/dashboard/content/team", "/dashboard/content/team/overview",
+                "/dashboard/content/shared-team", "/dashboard/content/shared-team/new", "/dashboard/content/shared-team/1", "/dashboard/content/shared-team/home-featured" });
         foreach (var route in routes)
         {
             var challenge = await anonymous.GetAsync(route);
-            Check(challenge.StatusCode == HttpStatusCode.Redirect && challenge.Headers.Location!.ToString().Contains("/admin/login"), "Anonymous Projects route challenges: " + route);
+            Check(challenge.StatusCode == HttpStatusCode.Redirect && challenge.Headers.Location!.ToString().Contains("/admin/login"), "Anonymous Team route challenges: " + route);
             var denied = await viewer.GetAsync(route);
-            Check(denied.StatusCode == HttpStatusCode.Redirect && denied.Headers.Location!.ToString().Contains("access-denied"), "Non-Admin Projects route denied: " + route);
+            Check(denied.StatusCode == HttpStatusCode.Redirect && denied.Headers.Location!.ToString().Contains("access-denied"), "Non-Admin Team route denied: " + route);
             for (var attempt = 0; attempt < 2; attempt++)
             {
                 var response = await adminClient.GetAsync(route);
-                Check(response.IsSuccessStatusCode || route == "/dashboard/content/projects" && response.StatusCode == HttpStatusCode.Redirect, "Admin direct/refresh route: " + route);
+                Check(response.IsSuccessStatusCode || route == "/dashboard/content/team" && response.StatusCode == HttpStatusCode.Redirect, "Admin direct/refresh route: " + route);
             }
         }
-        Check((await adminClient.GetAsync("/dashboard/content/shared-projects")).IsSuccessStatusCode, "Shared Projects Admin smoke.");
+        Check((await adminClient.GetAsync("/dashboard/content/shared-team")).IsSuccessStatusCode, "Shared Team Admin smoke.");
         Check((await anonymous.GetAsync("/")).IsSuccessStatusCode, "Home anonymous shared smoke.");
 
         string prior;
@@ -93,30 +93,39 @@ internal static class ProjectsPageCmsChecks
             var title = model.GetType().GetProperty("Title")!;
             title.SetValue(model, section + " isolated edit");
             model.GetType().GetProperty("Description")!.SetValue(model, section + " isolated description");
-            if (model is ProjectsHeroEditModel hero)
+            if (model is TeamHeroEditModel hero)
             {
-                hero.MobileTitle = "Isolated mobile title";
                 hero.CtaLabel = "Isolated CTA";
-                hero.CtaHref = "/projects#Project";
+                hero.CtaHref = "/team#Team";
+            }
+            if (model is TeamSectionEditModel intro)
+            {
+                intro.Eyebrow = "Isolated eyebrow";
+                intro.Introduction = "Isolated introduction";
+                intro.Highlight = "Isolated highlight";
+                intro.CtaLabel = "Isolated section CTA";
+                intro.CtaHref = "/contact";
             }
             Check(Dirty(editor), section + " becomes dirty.");
             // Actual handler failure must preserve the local model and dirty state.
             await using (var db = await factory.CreateDbContextAsync())
-                await ExecuteFixtureDdlAsync(db, "CREATE TRIGGER BlockProjectsSave BEFORE UPDATE ON Projects" + section + "Settings BEGIN SELECT RAISE(ABORT, 'isolated failure'); END;");
+                await ExecuteFixtureDdlAsync(db, "CREATE TRIGGER BlockTeamSave BEFORE UPDATE ON Team" + section + "Settings BEGIN SELECT RAISE(ABORT, 'isolated failure'); END;");
             await CallAsync(editor, "SaveAsync");
             Check(Dirty(editor) && GetField(editor, "_error") is string && !(bool)GetField(editor, "_saved")!, section + " failed save stays dirty.");
             await using (var db = await factory.CreateDbContextAsync())
-                await db.Database.ExecuteSqlRawAsync("DROP TRIGGER BlockProjectsSave;");
+                await db.Database.ExecuteSqlRawAsync("DROP TRIGGER BlockTeamSave;");
             title.SetValue(model, "");
             await CallAsync(editor, "SaveAsync");
             Check(Dirty(editor) && !(bool)GetField(editor, "_saved")!, section + " server validation failure stays dirty.");
             title.SetValue(model, section + " isolated edit");
             await CallAsync(editor, "SaveAsync");
             Check(!Dirty(editor) && (bool)GetField(editor, "_saved")!, section + " successful save clean.");
-            var html = await anonymous.GetStringAsync("/projects");
+            var html = await anonymous.GetStringAsync("/team");
             Check(html.Contains(section + " isolated edit") && html.Contains(section + " isolated description"), section + " public SQLite fields visible.");
-            if (model is ProjectsHeroEditModel)
-                Check(html.Contains("Isolated mobile title") && html.Contains("Isolated CTA") && html.Contains("href=\"/projects#Project\""), "Hero mobile title and CTA render from SQLite.");
+            if (model is TeamHeroEditModel)
+                Check(html.Contains("Isolated CTA") && html.Contains("href=\"/team#Team\""), "Hero CTA renders from SQLite.");
+            if (model is TeamSectionEditModel)
+                Check(new[] { "Isolated eyebrow", "Isolated introduction", "Isolated highlight", "Isolated section CTA", "href=\"/contact\"" }.All(html.Contains), "Every intro text/CTA field renders from SQLite.");
             await RestartAsync(app);
             var persisted = (await CallAsync(service, "Get" + section + "ForEditAsync", CancellationToken.None))!;
             Check(JsonSerializer.Serialize(persisted) == JsonSerializer.Serialize(model), section + " survives host restart.");
@@ -133,15 +142,15 @@ internal static class ProjectsPageCmsChecks
         var operations = new Func<Task>[]
         {
             () => service.GetHeroForEditAsync(),
-            () => service.SaveHeroAsync(ProjectsHeroEditModel.Approved()),
-            () => service.GetTestimonialsForEditAsync(),
-            () => service.SaveTestimonialsAsync(ProjectsTestimonialsEditModel.Approved())
+            () => service.SaveHeroAsync(TeamHeroEditModel.Approved()),
+            () => service.GetSectionForEditAsync(),
+            () => service.SaveSectionAsync(TeamSectionEditModel.Approved())
         };
         foreach (var identity in new[] { new ClaimsPrincipal(new ClaimsIdentity()), await signIn.CreateUserPrincipalAsync(viewerUser) })
         {
             auth.User = identity;
             foreach (var operation in operations) await RejectAsync<UnauthorizedAccessException>(operation, "Every Admin read/write denies anonymous/non-Admin service invocation.");
-            Check((await service.ReadPublicAsync()).Hero.Title == ProjectsPageDefaults.Content.Hero.Title, "Public Projects read remains anonymous.");
+            Check((await service.ReadPublicAsync()).Hero.Title == TeamPageDefaults.Content.Hero.Title, "Public Team read remains anonymous.");
         }
         auth.User = principal;
         await users.RemoveFromRoleAsync(admin, "Admin");
@@ -152,46 +161,45 @@ internal static class ProjectsPageCmsChecks
         Validation();
     }
 
-    private static async Task SharedAndEmptyAsync(AuthFactory app, ProjectsPageCmsService page, IDbContextFactory<ApplicationDbContext> factory, HttpClient client, HttpClient admin)
+    private static async Task SharedAndEmptyAsync(AuthFactory app, TeamPageCmsService page, IDbContextFactory<ApplicationDbContext> factory, HttpClient client, HttpClient admin)
     {
-        Check((await client.GetAsync("/projects/nexconnect")).IsSuccessStatusCode, "Shared Project detail smoke.");
-        Check((await admin.GetStringAsync("/dashboard/content/projects/overview")).Contains("/dashboard/content/shared-projects"), "Projects Section links canonical catalog.");
-        Check((await admin.GetStringAsync("/dashboard/content/projects/testimonials")).Contains("/dashboard/content/testimonials"), "Testimonials editor links canonical catalog.");
+        var originalDetail = await client.GetStringAsync("/team/emilyjohnson");
+        Check(originalDetail.Contains("Emily Johnson") && originalDetail.Contains("Skills"), "Shared Member detail smoke.");
+        Check((await admin.GetStringAsync("/dashboard/content/team/overview")).Contains("/dashboard/content/shared-team"), "Team Section links canonical member catalog.");
         foreach (var suffix in new[] { "new", "1", "home-featured" })
         {
-            var response = await admin.GetAsync("/dashboard/content/projects/" + suffix);
-            Check(response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location!.ToString().EndsWith("/dashboard/content/shared-projects/" + suffix), "Legacy shared route redirects: " + suffix);
+            var response = await admin.GetAsync("/dashboard/content/team/" + suffix);
+            Check(response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location!.ToString().EndsWith("/dashboard/content/shared-team/" + suffix), "Legacy shared route redirects: " + suffix);
         }
-        var edited = ProjectsTestimonialsEditModel.Approved(); edited.Title = "Projects only brand";
-        await page.SaveTestimonialsAsync(edited);
-        Check((await client.GetStringAsync("/projects")).Contains(edited.Title) && !(await client.GetStringAsync("/")).Contains(edited.Title), "Projects brand does not change Home brand.");
-        await page.SaveTestimonialsAsync(ProjectsTestimonialsEditModel.Approved());
+        var edited = TeamSectionEditModel.Approved(); edited.Title = "Team only intro";
+        await page.SaveSectionAsync(edited);
+        Check((await client.GetStringAsync("/team")).Contains(edited.Title) && !(await client.GetStringAsync("/")).Contains(edited.Title), "Team intro does not change Home intro.");
+        Check(!(await client.GetStringAsync("/team/emilyjohnson")).Contains(edited.Title), "Team intro does not leak into Member Detail.");
+        await page.SaveSectionAsync(TeamSectionEditModel.Approved());
         await using (var db = await factory.CreateDbContextAsync())
         {
-            await db.Projects.ExecuteDeleteAsync();
-            await db.Testimonials.ExecuteDeleteAsync();
+            await db.Members.ExecuteDeleteAsync();
         }
         await RestartAsync(app);
-        foreach (var route in new[] { "/projects", "/" })
+        foreach (var route in new[] { "/team", "/" })
         {
             var html = await client.GetStringAsync(route);
-            Check(!html.Contains("Client testimonials"), "Intentionally empty testimonials omit carousel on " + route);
-            if (route == "/projects")
-                Check(!html.Contains("project_item") && html.Contains("class=\"pagination\""), "Empty Projects has no fake cards and retains decorative pagination.");
+            Check(!html.Contains("team_member_box"), "Intentionally empty member catalog produces no fake cards on " + route);
         }
+        Check((await client.GetAsync("/team/emilyjohnson")).StatusCode == HttpStatusCode.NotFound, "Deleted shared member detail returns not found.");
         await using (var db = await factory.CreateDbContextAsync())
-            Check(!await db.Projects.AnyAsync() && !await db.Testimonials.AnyAsync(), "Restart keeps both shared collections intentionally empty.");
+            Check(!await db.Members.AnyAsync() && !await db.HomeFeaturedMembers.AnyAsync(), "Restart keeps catalog/featured relations intentionally empty.");
     }
 
-    private static async Task ImagesAsync(ProjectsPageCmsService service, IMediaStorageService media, IDbContextFactory<ApplicationDbContext> factory, HttpClient client)
+    private static async Task ImagesAsync(TeamPageCmsService service, IMediaStorageService media, IDbContextFactory<ApplicationDbContext> factory, HttpClient client)
     {
         var root = Path.GetFullPath("../../../../../src/NexNovaCo.Web/wwwroot", AppContext.BaseDirectory);
-        var bytes = await File.ReadAllBytesAsync(Path.Combine(root, MediaPolicy.ProjectsHeroDefault));
-        foreach (var kind in new[] { MediaKind.ProjectsHero })
+        var bytes = await File.ReadAllBytesAsync(Path.Combine(root, MediaPolicy.TeamHeroDefault));
+        foreach (var kind in new[] { MediaKind.TeamHero, MediaKind.TeamSection })
         {
-            var section = "Hero";
+            var section = kind == MediaKind.TeamHero ? "Hero" : "Section";
             var model = (await CallAsync(service, "Get" + section + "ForEditAsync", CancellationToken.None))!;
-            object editor = new ProjectsHeroEditor();
+            object editor = kind == MediaKind.TeamHero ? new TeamHeroEditor() : new TeamSectionEditor();
             WireEditor(editor, model, service);
             var field = new CmsImageField();
             SetProperty(field, "Media", media); SetProperty(field, "Value", model.GetType().GetProperty("ImagePath")!.GetValue(model));
@@ -201,38 +209,46 @@ internal static class ProjectsPageCmsChecks
             SetField(editor, "_imageField", field);
             Check(Dirty(editor), section + " image-only selection dirty.");
             await using (var db = await factory.CreateDbContextAsync())
-                await ExecuteFixtureDdlAsync(db, "CREATE TRIGGER BlockProjectsImage BEFORE UPDATE ON Projects" + section + "Settings BEGIN SELECT RAISE(ABORT, 'isolated failure'); END;");
+                await ExecuteFixtureDdlAsync(db, "CREATE TRIGGER BlockTeamImage BEFORE UPDATE ON Team" + section + "Settings BEGIN SELECT RAISE(ABORT, 'isolated failure'); END;");
             await CallAsync(editor, "SaveAsync");
             Check(Dirty(editor) && field.HasPendingSelection, section + " failed DB save keeps selected image/dirty state.");
             var path = (string)GetField(field, "_storedPath")!;
             await using (var db = await factory.CreateDbContextAsync())
-                await db.Database.ExecuteSqlRawAsync("DROP TRIGGER BlockProjectsImage;");
+                await db.Database.ExecuteSqlRawAsync("DROP TRIGGER BlockTeamImage;");
             await CallAsync(editor, "SaveAsync");
             Check(!Dirty(editor) && !field.HasPendingSelection && MediaPolicy.IsGenerated(path, kind), section + " retry reuses validated upload and marks clean.");
             var image = await client.GetAsync("/" + path);
-            Check(image.IsSuccessStatusCode && image.Content.Headers.ContentType!.MediaType == "image/jpeg" && image.Headers.GetValues("X-Content-Type-Options").Single() == "nosniff", "Projects media served as safe raster.");
-            Check((await client.GetStringAsync("/projects")).Contains(path), section + " public image path from database.");
+            Check(image.IsSuccessStatusCode && image.Content.Headers.ContentType!.MediaType == "image/jpeg" && image.Headers.GetValues("X-Content-Type-Options").Single() == "nosniff", "Team media served as safe raster.");
+            Check((await client.GetStringAsync("/team")).Contains(path), section + " public image path from database.");
             var approved = model.GetType().GetMethod("Approved")!.Invoke(null, null)!;
             await CallAsync(service, "Save" + section + "Async", approved, CancellationToken.None);
             field.Dispose();
         }
     }
 
-    private static async Task FallbackAsync(ProjectsPageCmsService service, IDbContextFactory<ApplicationDbContext> factory, HttpClient client)
+    private static async Task FallbackAsync(TeamPageCmsService service, IDbContextFactory<ApplicationDbContext> factory, HttpClient client)
     {
-        var before = JsonSerializer.Serialize(await service.ReadPublicAsync());
-        foreach (var table in new[] { "ProjectsHeroSettings", "ProjectsTestimonialsSettings" })
+        var hero = TeamHeroEditModel.Approved(); hero.Title = "Stored Hero";
+        var intro = TeamSectionEditModel.Approved(); intro.Title = "Stored Intro";
+        await service.SaveHeroAsync(hero); await service.SaveSectionAsync(intro);
+        var stored = await service.ReadPublicAsync();
+        foreach (var table in new[] { "TeamHeroSettings", "TeamSectionSettings" })
         {
             await using var db = await factory.CreateDbContextAsync();
+            var before = JsonSerializer.Serialize(new { Hero = await db.TeamHeroSettings.AsNoTracking().SingleAsync(), Intro = await db.TeamSectionSettings.AsNoTracking().SingleAsync() });
             await ExecuteFixtureDdlAsync(db, "ALTER TABLE " + table + " RENAME TO IsolatedUnavailable;");
             try
             {
-                Check(JsonSerializer.Serialize(await service.ReadPublicAsync()) == before, table + " read failure uses approved slice defaults.");
-                Check((await client.GetAsync("/projects")).IsSuccessStatusCode, table + " missing slice does not crash public.");
+                var expected = table == "TeamHeroSettings" ? stored with { Hero = TeamPageDefaults.Content.Hero }
+                    : stored with { Eyebrow = TeamPageDefaults.Content.Eyebrow, Introduction = TeamPageDefaults.Content.Introduction };
+                Check(JsonSerializer.Serialize(await service.ReadPublicAsync()) == JsonSerializer.Serialize(expected), table + " failure falls back only its slice.");
+                Check((await client.GetAsync("/team")).IsSuccessStatusCode, table + " missing slice does not crash public.");
             }
             finally { await ExecuteFixtureDdlAsync(db, "ALTER TABLE IsolatedUnavailable RENAME TO " + table + ";"); }
-            Check(JsonSerializer.Serialize(await service.ReadPublicAsync()) == before, "Fallback did not persist or overwrite content.");
+            var after = JsonSerializer.Serialize(new { Hero = await db.TeamHeroSettings.AsNoTracking().SingleAsync(), Intro = await db.TeamSectionSettings.AsNoTracking().SingleAsync() });
+            Check(after == before, "Fallback did not write settings or timestamps.");
         }
+        await service.SaveHeroAsync(TeamHeroEditModel.Approved()); await service.SaveSectionAsync(TeamSectionEditModel.Approved());
     }
 
     // Only compile-time fixture table names enter this helper; DDL identifiers cannot be SQL parameters.
@@ -241,24 +257,21 @@ internal static class ProjectsPageCmsChecks
     {
         await using var db = await factory.CreateDbContextAsync();
         var migrations = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
-        var projectsIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddProjectsPageCms", StringComparison.Ordinal));
-        Check(projectsIndex == 18, "One additive Projects migration.");
+        Check(migrations.Length == 20, "One additive Team migration.");
         // This is exclusively AuthFactory's disposable database, not the normal developer database.
-        await db.GetService<IMigrator>().MigrateAsync(migrations[projectsIndex - 1]);
+        await db.GetService<IMigrator>().MigrateAsync(migrations[^2]);
         var before = await SnapshotPriorTablesAsync(db);
-        await db.GetService<IMigrator>().MigrateAsync(migrations[projectsIndex]);
-        await ProjectsPageInitializer.InitializeAsync(db);
-        Check(await SnapshotPriorTablesAsync(db) == before, "Upgrade preserves every prior Identity/Home/shared table, row, timestamp and account.");
         await db.Database.MigrateAsync();
         await TeamPageInitializer.InitializeAsync(db);
+        Check(await SnapshotPriorTablesAsync(db) == before, "Upgrade preserves every prior Identity/Home/shared table, row, timestamp and account.");
         Check(!db.Database.HasPendingModelChanges(), "Upgrade leaves no pending model changes.");
         var assembly = db.GetService<IMigrationsAssembly>();
-        var migration = assembly.CreateMigration(assembly.Migrations[migrations[projectsIndex]], db.Database.ProviderName!);
-        Check(migration.UpOperations.Count == 2 && migration.UpOperations.All(x => x is Microsoft.EntityFrameworkCore.Migrations.Operations.CreateTableOperation), "Projects migration only creates its tables/indexes; no destructive operations.");
+        var migration = assembly.CreateMigration(assembly.Migrations[migrations[^1]], db.Database.ProviderName!);
+        Check(migration.UpOperations.Count == 2 && migration.UpOperations.All(x => x is Microsoft.EntityFrameworkCore.Migrations.Operations.CreateTableOperation), "Team migration only creates its tables/indexes; no destructive operations.");
     }
     private static async Task<string> SnapshotPriorTablesAsync(ApplicationDbContext db)
     {
-        var names = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table' AND name NOT LIKE 'Projects%Settings' AND name NOT LIKE 'Team%Settings' AND name NOT LIKE '__EF%' AND name <> 'sqlite_sequence' ORDER BY name").ToArrayAsync();
+        var names = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table' AND name NOT LIKE 'Team%Settings' AND name NOT LIKE '__EF%' AND name <> 'sqlite_sequence' ORDER BY name").ToArrayAsync();
         var connection = db.Database.GetDbConnection();
         await db.Database.OpenConnectionAsync();
         var snapshot = new List<string>();
@@ -276,23 +289,23 @@ internal static class ProjectsPageCmsChecks
     {
         await using var restart = new AuthFactory(app.Password, databasePath: app.DatabasePath);
         using var client = restart.NewClient();
-        Check((await client.GetAsync("/projects")).IsSuccessStatusCode, "Separate host restart on isolated existing database.");
+        Check((await client.GetAsync("/team")).IsSuccessStatusCode, "Separate host restart on isolated existing database.");
     }
     private static void Validation()
     {
-        foreach (var route in new[] { "/", "projects", "/projects/nexconnect", "/team/alex", "projects#Project", "/projects#Project" })
-            Check(new ProjectsPageCtaRouteAttribute().IsValid(route), "Approved internal CTA accepted.");
-        foreach (var route in new[] { "//evil.test", "https://evil.test", "javascript:alert(1)", "/dashboard", "/projects?x=1", "/projects#fake", "/projects\n", "/../admin", "/%2fadmin" })
-            Check(!new ProjectsPageCtaRouteAttribute().IsValid(route), "Unsafe CTA rejected.");
-        var longHero = ProjectsHeroEditModel.Approved(); longHero.Title = new string('x', 81);
-        var emptyBrand = ProjectsTestimonialsEditModel.Approved(); emptyBrand.Description = "";
+        foreach (var route in new[] { "/", "team", "/projects/nexconnect", "/team/alex", "team#Team", "/team#Team" })
+            Check(new TeamPageCtaRouteAttribute().IsValid(route), "Approved internal CTA accepted.");
+        foreach (var route in new[] { "//evil.test", "https://evil.test", "javascript:alert(1)", "/dashboard", "/team?x=1", "/team#fake", "/team\n", "/../admin", "/%2fadmin" })
+            Check(!new TeamPageCtaRouteAttribute().IsValid(route), "Unsafe CTA rejected.");
+        var longHero = TeamHeroEditModel.Approved(); longHero.Title = new string('x', 81);
+        var emptyBrand = TeamSectionEditModel.Approved(); emptyBrand.Description = "";
         foreach (var model in new object[] { longHero, emptyBrand })
             Check(!Validator.TryValidateObject(model, new ValidationContext(model), new List<ValidationResult>(), true), "Required fields and length limits enforced.");
     }
     private static readonly BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-    private static void WireEditor(object editor, object model, IProjectsPageCmsService service)
+    private static void WireEditor(object editor, object model, ITeamPageCmsService service)
     {
-        SetField(editor, "_model", model); SetProperty(editor, "ProjectsPageService", service);
+        SetField(editor, "_model", model); SetProperty(editor, "TeamPageService", service);
         var logger = Activator.CreateInstance(typeof(NullLogger<>).MakeGenericType(editor.GetType()));
         SetProperty(editor, "Logger", logger);
         ((EditorSnapshot)GetField(editor, "_snapshot")!).Capture((string[])GetProperty(editor, "CurrentValues")!);
@@ -313,7 +326,7 @@ internal static class ProjectsPageCmsChecks
         try { await action(); } catch (T) { Check(true, message); return; }
         Check(false, message);
     }
-    private sealed class TestLogger : ILogger<ProjectsPageCmsService>
+    private sealed class TestLogger : ILogger<TeamPageCmsService>
     {
         public int Errors { get; private set; }
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
@@ -330,7 +343,7 @@ internal static class ProjectsPageCmsChecks
     }
     private sealed class TestFile(byte[] bytes) : IBrowserFile
     {
-        public string Name => "projects-test.jpg";
+        public string Name => "team-test.jpg";
         public DateTimeOffset LastModified => DateTimeOffset.UtcNow;
         public long Size => bytes.Length;
         public string ContentType => "image/jpeg";

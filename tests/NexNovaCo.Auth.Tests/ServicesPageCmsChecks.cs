@@ -434,6 +434,7 @@ internal static class ServicesPageCmsChecks
         Check(await SnapshotPriorTablesAsync(db) == before, "Upgrade preserves every prior Identity/Home/shared table, row, timestamp and account.");
         await db.Database.MigrateAsync();
         await ProjectsPageInitializer.InitializeAsync(db);
+        await TeamPageInitializer.InitializeAsync(db);
         Check(!db.Database.HasPendingModelChanges(), "Upgrade leaves no pending model changes.");
         var assembly = db.GetService<IMigrationsAssembly>();
         var migration = assembly.CreateMigration(assembly.Migrations[migrations[servicesIndex]], db.Database.ProviderName!);
@@ -441,7 +442,7 @@ internal static class ServicesPageCmsChecks
     }
     private static async Task<string> SnapshotPriorTablesAsync(ApplicationDbContext db)
     {
-        var names = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table' AND name NOT LIKE 'Services%Settings' AND name NOT LIKE 'Projects%Settings' AND name NOT LIKE 'ServiceBenefit%' AND name NOT LIKE 'ServiceProcess%' AND name NOT LIKE 'ServicePricing%' AND name NOT LIKE 'ServiceFaq%' AND name NOT LIKE '__EF%' AND name <> 'sqlite_sequence' ORDER BY name").ToArrayAsync();
+        var names = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table' AND name NOT LIKE 'Services%Settings' AND name NOT LIKE 'Projects%Settings' AND name NOT LIKE 'Team%Settings' AND name NOT LIKE 'ServiceBenefit%' AND name NOT LIKE 'ServiceProcess%' AND name NOT LIKE 'ServicePricing%' AND name NOT LIKE 'ServiceFaq%' AND name NOT LIKE '__EF%' AND name <> 'sqlite_sequence' ORDER BY name").ToArrayAsync();
         var connection = db.Database.GetDbConnection();
         await db.Database.OpenConnectionAsync();
         var snapshot = new List<string>();

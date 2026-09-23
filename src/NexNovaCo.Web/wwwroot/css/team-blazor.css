@@ -5,3 +5,10 @@
     .team-page [data-aos] { opacity: 1; transform: none; transition: none; }
     .team-page .team_member_box, .team-page .team_member_header { transition: none; }
 }
+
+.team-page .inner_page_header_pic .hexagon_with_back {
+    background-image: var(--team-hero-image, url("../image/team/ourteam-header.jpg"));
+}
+.team-page .team .image_hexagon {
+    background-image: var(--team-section-image, url("../image/team/our-team.jpg"));
+}

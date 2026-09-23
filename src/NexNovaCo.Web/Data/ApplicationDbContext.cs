@@ -46,6 +46,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<AboutMissionPointItem> AboutMissionPointItems => Set<AboutMissionPointItem>();
     public DbSet<AboutMissionPointInitializationState> AboutMissionPointInitializationStates => Set<AboutMissionPointInitializationState>();
 
+    public DbSet<TeamHeroSettings> TeamHeroSettings => Set<TeamHeroSettings>();
+    public DbSet<TeamSectionSettings> TeamSectionSettings => Set<TeamSectionSettings>();
     public DbSet<ProjectsHeroSettings> ProjectsHeroSettings => Set<ProjectsHeroSettings>();
     public DbSet<ProjectsTestimonialsSettings> ProjectsTestimonialsSettings => Set<ProjectsTestimonialsSettings>();
     public DbSet<ServicesHeroSettings> ServicesHeroSettings => Set<ServicesHeroSettings>();
@@ -68,6 +70,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         AboutModelConfiguration.Configure(builder);
         ServicesPageModelConfiguration.Configure(builder);
         ProjectsPageModelConfiguration.Configure(builder);
+        TeamPageModelConfiguration.Configure(builder);
         var member = builder.Entity<MemberEntity>();
         member.ToTable("Members", table => table.HasCheckConstraint("CK_Members_Order", "DisplayOrder > 0"));
         member.HasKey(x => x.Id);

@@ -1,0 +1,91 @@
+using Microsoft.EntityFrameworkCore;
+
+namespace NexNovaCo.Web.Data;
+
+internal static class AboutModelConfiguration
+{
+    public static void Configure(ModelBuilder builder)
+    {
+        var hero = builder.Entity<AboutHeroSettings>();
+        hero.ToTable("AboutHeroSettings", table => table.HasCheckConstraint("CK_AboutHeroSettings_Singleton", "Id = 1"));
+        hero.HasKey(x => x.Id);
+        hero.Property(x => x.Id).ValueGeneratedNever();
+        hero.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        hero.Property(x => x.Title).IsRequired().HasMaxLength(80);
+        hero.Property(x => x.MobileTitle).IsRequired().HasMaxLength(60);
+        hero.Property(x => x.Description).IsRequired().HasMaxLength(600);
+        hero.Property(x => x.CtaLabel).IsRequired().HasMaxLength(60);
+        hero.Property(x => x.CtaHref).IsRequired().HasMaxLength(200);
+        hero.Property(x => x.ImagePath).IsRequired().HasMaxLength(200);
+        var story = builder.Entity<AboutStorySettings>();
+        story.ToTable("AboutStorySettings", table => table.HasCheckConstraint("CK_AboutStorySettings_Singleton", "Id = 1"));
+        story.HasKey(x => x.Id);
+        story.Property(x => x.Id).ValueGeneratedNever();
+        story.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        story.Property(x => x.Title).IsRequired().HasMaxLength(120);
+        story.Property(x => x.Subtitle).IsRequired().HasMaxLength(200);
+        story.Property(x => x.IntroductionOne).IsRequired().HasMaxLength(1000);
+        story.Property(x => x.IntroductionTwo).IsRequired().HasMaxLength(1000);
+        story.Property(x => x.DetailOne).IsRequired().HasMaxLength(1000);
+        story.Property(x => x.DetailTwo).IsRequired().HasMaxLength(1000);
+        story.Property(x => x.Closing).IsRequired().HasMaxLength(500);
+        var vision = builder.Entity<AboutVisionSettings>();
+        vision.ToTable("AboutVisionSettings", table => table.HasCheckConstraint("CK_AboutVisionSettings_Singleton", "Id = 1"));
+        vision.HasKey(x => x.Id);
+        vision.Property(x => x.Id).ValueGeneratedNever();
+        vision.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        vision.Property(x => x.Title).IsRequired().HasMaxLength(120);
+        vision.Property(x => x.ParagraphOne).IsRequired().HasMaxLength(1000);
+        vision.Property(x => x.ParagraphTwo).IsRequired().HasMaxLength(1000);
+        vision.Property(x => x.CtaLabel).IsRequired().HasMaxLength(60);
+        vision.Property(x => x.CtaHref).IsRequired().HasMaxLength(200);
+        vision.Property(x => x.ImagePath).IsRequired().HasMaxLength(200);
+        vision.Property(x => x.ImageAlt).IsRequired().HasMaxLength(200);
+        var timeline = builder.Entity<AboutTimelineSettings>();
+        timeline.ToTable("AboutTimelineSettings", table => table.HasCheckConstraint("CK_AboutTimelineSettings_Singleton", "Id = 1"));
+        timeline.HasKey(x => x.Id);
+        timeline.Property(x => x.Id).ValueGeneratedNever();
+        timeline.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        timeline.Property(x => x.Title).IsRequired().HasMaxLength(120);
+        timeline.Property(x => x.Description).IsRequired().HasMaxLength(1000);
+        timeline.Property(x => x.CtaLabel).IsRequired().HasMaxLength(60);
+        timeline.Property(x => x.CtaHref).IsRequired().HasMaxLength(200);
+        var mission = builder.Entity<AboutMissionSettings>();
+        mission.ToTable("AboutMissionSettings", table => table.HasCheckConstraint("CK_AboutMissionSettings_Singleton", "Id = 1"));
+        mission.HasKey(x => x.Id);
+        mission.Property(x => x.Id).ValueGeneratedNever();
+        mission.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        mission.Property(x => x.BrandTitle).IsRequired().HasMaxLength(80);
+        mission.Property(x => x.BrandDescription).IsRequired().HasMaxLength(500);
+        mission.Property(x => x.Title).IsRequired().HasMaxLength(120);
+        mission.Property(x => x.ParagraphOne).IsRequired().HasMaxLength(1000);
+        mission.Property(x => x.ParagraphTwo).IsRequired().HasMaxLength(1000);
+        var partners = builder.Entity<AboutPartnersSettings>();
+        partners.ToTable("AboutPartnersSettings", table => table.HasCheckConstraint("CK_AboutPartnersSettings_Singleton", "Id = 1"));
+        partners.HasKey(x => x.Id);
+        partners.Property(x => x.Id).ValueGeneratedNever();
+        partners.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        partners.Property(x => x.Title).IsRequired().HasMaxLength(120);
+        partners.Property(x => x.Description).IsRequired().HasMaxLength(1000);
+        var timelineItems = builder.Entity<AboutTimelineItem>();
+        timelineItems.ToTable("AboutTimelineItems", table => { table.HasCheckConstraint("CK_AboutTimelineItem_Order", "DisplayOrder > 0"); table.HasCheckConstraint("CK_AboutTimelineItem_Year", "Year BETWEEN 1000 AND 9999"); });
+        timelineItems.HasKey(x => x.Id);
+        timelineItems.HasIndex(x => x.DisplayOrder);
+        timelineItems.Property(x => x.Description).IsRequired().HasMaxLength(600);
+        timelineItems.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        var timelineState = builder.Entity<AboutTimelineInitializationState>();
+        timelineState.ToTable("AboutTimelineInitializationState", table => table.HasCheckConstraint("CK_AboutTimelineInitializationState_Singleton", "Id = 1"));
+        timelineState.HasKey(x => x.Id);
+        timelineState.Property(x => x.Id).ValueGeneratedNever();
+        var missionpoint = builder.Entity<AboutMissionPointItem>();
+        missionpoint.ToTable("AboutMissionPointItems", table => { table.HasCheckConstraint("CK_AboutMissionPointItem_Order", "DisplayOrder > 0"); });
+        missionpoint.HasKey(x => x.Id);
+        missionpoint.HasIndex(x => x.DisplayOrder);
+        missionpoint.Property(x => x.Description).IsRequired().HasMaxLength(300);
+        missionpoint.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        var missionpointState = builder.Entity<AboutMissionPointInitializationState>();
+        missionpointState.ToTable("AboutMissionPointInitializationState", table => table.HasCheckConstraint("CK_AboutMissionPointInitializationState_Singleton", "Id = 1"));
+        missionpointState.HasKey(x => x.Id);
+        missionpointState.Property(x => x.Id).ValueGeneratedNever();
+    }
+}

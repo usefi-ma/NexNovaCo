@@ -35,9 +35,21 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<HomeFeaturedMember> HomeFeaturedMembers => Set<HomeFeaturedMember>();
     public DbSet<MemberInitializationState> MemberInitializationStates => Set<MemberInitializationState>();
 
+    public DbSet<AboutHeroSettings> AboutHeroSettings => Set<AboutHeroSettings>();
+    public DbSet<AboutStorySettings> AboutStorySettings => Set<AboutStorySettings>();
+    public DbSet<AboutVisionSettings> AboutVisionSettings => Set<AboutVisionSettings>();
+    public DbSet<AboutTimelineSettings> AboutTimelineSettings => Set<AboutTimelineSettings>();
+    public DbSet<AboutMissionSettings> AboutMissionSettings => Set<AboutMissionSettings>();
+    public DbSet<AboutPartnersSettings> AboutPartnersSettings => Set<AboutPartnersSettings>();
+    public DbSet<AboutTimelineItem> AboutTimelineItems => Set<AboutTimelineItem>();
+    public DbSet<AboutTimelineInitializationState> AboutTimelineInitializationStates => Set<AboutTimelineInitializationState>();
+    public DbSet<AboutMissionPointItem> AboutMissionPointItems => Set<AboutMissionPointItem>();
+    public DbSet<AboutMissionPointInitializationState> AboutMissionPointInitializationStates => Set<AboutMissionPointInitializationState>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        AboutModelConfiguration.Configure(builder);
         var member = builder.Entity<MemberEntity>();
         member.ToTable("Members", table => table.HasCheckConstraint("CK_Members_Order", "DisplayOrder > 0"));
         member.HasKey(x => x.Id);

@@ -11,4 +11,4 @@ public sealed record AboutMissionContent(SectionHeading Brand, string Title,
     IReadOnlyList<string> Paragraphs, IReadOnlyList<string> Commitments);
 public sealed record AboutContent(InnerPageHeroContent Hero, AboutStoryContent Story,
     AboutVisionContent Vision, AboutTimelineContent Timeline, AboutMissionContent Mission,
-    SectionHeading PartnersHeading, IReadOnlyList<Partner> Partners);
+    SectionHeading PartnersHeading, IReadOnlyList<Partner> Partners, string HeroImagePath = MediaPolicy.AboutHeroDefault);

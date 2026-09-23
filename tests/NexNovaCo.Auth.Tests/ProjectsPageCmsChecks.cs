@@ -252,6 +252,7 @@ internal static class ProjectsPageCmsChecks
         await db.Database.MigrateAsync();
         await TeamPageInitializer.InitializeAsync(db);
         await ContactPageInitializer.InitializeAsync(db);
+        await GlobalSiteInitializer.InitializeAsync(db);
         Check(!db.Database.HasPendingModelChanges(), "Upgrade leaves no pending model changes.");
         var assembly = db.GetService<IMigrationsAssembly>();
         var migration = assembly.CreateMigration(assembly.Migrations[migrations[projectsIndex]], db.Database.ProviderName!);

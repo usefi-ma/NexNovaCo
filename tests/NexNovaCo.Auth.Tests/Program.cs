@@ -53,6 +53,16 @@ internal static class AuthChecks
 
     public static async Task Main(string[] args)
     {
+        if (args.SequenceEqual(new[] { "--global-settings" }))
+        {
+            try
+            {
+                await GlobalSettingsChecks.RunAsync();
+                Console.WriteLine($"PASS: {_checks} focused Global Settings checks.");
+            }
+            catch (Exception exception) { Console.Error.WriteLine(exception); Environment.ExitCode = 1; }
+            return;
+        }
         if (args.SequenceEqual(new[] { "--contact-page" }))
         {
             try
@@ -164,11 +174,11 @@ internal static class AuthChecks
         await using (var scope = app.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 21, "Expected Identity and approved CMS migrations.");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 22, "Expected Identity and approved CMS migrations.");
             Check(!db.Database.HasPendingModelChanges(), "Migration and runtime model must agree.");
             var tables = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table'").ToListAsync();
             Check(new[] { "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetUserLogins", "AspNetUserTokens", "AspNetRoleClaims" }.All(tables.Contains), "Identity tables missing.");
-            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x.StartsWith("About") || x.StartsWith("Services") || x.StartsWith("ServiceBenefit") || x.StartsWith("ServiceProcess") || x.StartsWith("ServicePricing") || x.StartsWith("ServiceFaq") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings" or "HomeTeamSectionSettings" or "HomeStatistics" or "HomePartnersSectionSettings" or "HomeTestimonialsSectionSettings" or "Testimonials" or "TestimonialInitializationState" or "Partners" or "PartnerInitializationState" or "Services" or "HomeFeaturedServices" or "ServiceInitializationState" or "ContactPageSettings" or "ContactFormSettings" or "SiteContactSettings" or "TeamHeroSettings" or "TeamSectionSettings" or "ProjectsHeroSettings" or "ProjectsTestimonialsSettings" or "Projects" or "ProjectGalleryImages" or "ProjectFeatures" or "HomeFeaturedProjects" or "ProjectInitializationState" or "Members" or "MemberSkills" or "HomeFeaturedMembers" or "MemberInitializationState"), "Unexpected schema beyond Identity and approved CMS content.");
+            Check(tables.All(x => x.StartsWith("AspNet") || x.StartsWith("__EF") || x.StartsWith("About") || x.StartsWith("Services") || x.StartsWith("ServiceBenefit") || x.StartsWith("ServiceProcess") || x.StartsWith("ServicePricing") || x.StartsWith("ServiceFaq") || x is "sqlite_sequence" or "HomeHeroSettings" or "HomeWelcomeSettings" or "HomeServicesSectionSettings" or "HomeProjectsSectionSettings" or "HomeTeamSectionSettings" or "HomeStatistics" or "HomePartnersSectionSettings" or "HomeTestimonialsSectionSettings" or "Testimonials" or "TestimonialInitializationState" or "Partners" or "PartnerInitializationState" or "Services" or "HomeFeaturedServices" or "ServiceInitializationState" or "ContactPageSettings" or "ContactFormSettings" or "SiteContactSettings" or "SiteIdentitySettings" or "FooterSettings" or "NavigationItems" or "NavigationInitializationState" or "SocialLinkItems" or "SocialLinkInitializationState" or "TeamHeroSettings" or "TeamSectionSettings" or "ProjectsHeroSettings" or "ProjectsTestimonialsSettings" or "Projects" or "ProjectGalleryImages" or "ProjectFeatures" or "HomeFeaturedProjects" or "ProjectInitializationState" or "Members" or "MemberSkills" or "HomeFeaturedMembers" or "MemberInitializationState"), "Unexpected schema beyond Identity and approved CMS content.");
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var admin = await users.FindByEmailAsync(AuthFactory.Email);
             Check(admin is not null && await users.IsInRoleAsync(admin, "Admin"), "Admin must exist and have Admin role.");

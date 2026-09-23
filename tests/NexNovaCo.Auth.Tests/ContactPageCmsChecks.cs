@@ -240,20 +240,22 @@ internal static class ContactPageCmsChecks
     {
         await using var db = await factory.CreateDbContextAsync();
         var migrations = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
-        Check(migrations.Length == 21, "One additive Contact migration.");
-        await db.GetService<IMigrator>().MigrateAsync(migrations[^2]);
+        var contactIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddContactPageCms", StringComparison.Ordinal));
+        Check(contactIndex > 0, "Contact migration present.");
+        await db.GetService<IMigrator>().MigrateAsync(migrations[contactIndex - 1]);
         var before = await SnapshotPriorTablesAsync(db);
         await db.Database.MigrateAsync();
         await ContactPageInitializer.InitializeAsync(db);
+        await GlobalSiteInitializer.InitializeAsync(db);
         Check(await SnapshotPriorTablesAsync(db) == before, "Upgrade preserves every prior row/timestamp.");
         Check(!db.Database.HasPendingModelChanges(), "Migration matches runtime model.");
         var assembly = db.GetService<IMigrationsAssembly>();
-        var migration = assembly.CreateMigration(assembly.Migrations[migrations[^1]], db.Database.ProviderName!);
+        var migration = assembly.CreateMigration(assembly.Migrations[migrations[contactIndex]], db.Database.ProviderName!);
         Check(migration.UpOperations.Count == 3 && migration.UpOperations.All(x => x is Microsoft.EntityFrameworkCore.Migrations.Operations.CreateTableOperation), "Exactly three additive tables.");
     }
     private static async Task<string> SnapshotPriorTablesAsync(ApplicationDbContext db)
     {
-        var names = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table' AND name NOT IN ('ContactPageSettings', 'ContactFormSettings', 'SiteContactSettings') AND name NOT LIKE '__EF%' AND name <> 'sqlite_sequence' ORDER BY name").ToArrayAsync();
+        var names = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table' AND name NOT IN ('ContactPageSettings', 'ContactFormSettings', 'SiteContactSettings', 'SiteIdentitySettings', 'FooterSettings', 'NavigationItems', 'NavigationInitializationState', 'SocialLinkItems', 'SocialLinkInitializationState') AND name NOT LIKE '__EF%' AND name <> 'sqlite_sequence' ORDER BY name").ToArrayAsync();
         var connection = db.Database.GetDbConnection();
         await db.Database.OpenConnectionAsync();
         var snapshot = new List<string>();

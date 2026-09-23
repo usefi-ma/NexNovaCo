@@ -129,3 +129,5 @@ No uploads/media library, filesystem manager, Service detail routes, Projects/Te
 ## 19. Recommendation
 
 Recommend **Shared Projects** next, with a separate Home Featured Projects relation while preserving existing detail-route identities. This phase does not implement it. Stop for approval.
+
+Phase 12 routing note: Shared Services now lives at `/dashboard/content/shared-services` (including `/new`, `/{id}`, and `/home-featured`). The old child routes redirect to their equivalents. `/dashboard/content/services` now opens the page-specific Services Hero editor; shared data and CRUD semantics are unchanged.

@@ -1,0 +1,3 @@
+::deep .services-page-cms-table { width: 100%; min-width: 0; }
+::deep .services-page-cms-table td { overflow-wrap: anywhere; }
+::deep .services-page-cms-table .mud-table-cell { min-width: 0; }

@@ -1,5 +1,5 @@
-@page "/dashboard/content/services/new"
-@page "/dashboard/content/services/{Id:int}"
+@page "/dashboard/content/shared-services/new"
+@page "/dashboard/content/shared-services/{Id:int}"
 @using System.ComponentModel.DataAnnotations
 @using System.Data.Common
 @using Microsoft.EntityFrameworkCore
@@ -46,7 +46,7 @@
 }
 else
 {
-    <MudButton Href="/dashboard/content/services" Variant="Variant.Outlined">Back to list</MudButton>
+    <MudButton Href="/dashboard/content/shared-services" Variant="Variant.Outlined">Back to list</MudButton>
 }
 
 @code {
@@ -82,7 +82,7 @@ else
         }
     }
     private void ClearSaved() => _saved = false;
-    private void Cancel() => Navigation.NavigateTo("/dashboard/content/services");
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/shared-services");
     private async Task SaveAsync()
     {
         if (_saving || _model is null) return;
@@ -99,7 +99,7 @@ else
             if (Id is null)
             {
                 _showCreated = true;
-                _navigateAfterSave = $"/dashboard/content/services/{_editingId}";
+                _navigateAfterSave = $"/dashboard/content/shared-services/{_editingId}";
             }
         }
         catch (Exception exception) when (IsExpected(exception))

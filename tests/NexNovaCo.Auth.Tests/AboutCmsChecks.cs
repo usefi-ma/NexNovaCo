@@ -278,21 +278,24 @@ internal static class AboutCmsChecks
     {
         await using var db = await factory.CreateDbContextAsync();
         var migrations = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
-        Check(migrations.Length == 17, "One additive About migration.");
+        var aboutIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddCompleteAboutCms", StringComparison.Ordinal));
+        Check(aboutIndex == 16, "One additive About migration after the established foundation.");
         // This is exclusively AuthFactory's disposable database, not the normal developer database.
-        await db.GetService<IMigrator>().MigrateAsync(migrations[^2]);
+        await db.GetService<IMigrator>().MigrateAsync(migrations[aboutIndex - 1]);
         var before = await SnapshotPriorTablesAsync(db);
-        await db.Database.MigrateAsync();
+        await db.GetService<IMigrator>().MigrateAsync(migrations[aboutIndex]);
         await AboutInitializer.InitializeAsync(db);
         Check(await SnapshotPriorTablesAsync(db) == before, "Upgrade preserves every prior Identity/Home/shared table, row, timestamp and account.");
+        await db.Database.MigrateAsync();
+        await ServicesPageInitializer.InitializeAsync(db);
         Check(!db.Database.HasPendingModelChanges(), "Upgrade leaves no pending model changes.");
         var assembly = db.GetService<IMigrationsAssembly>();
-        var migration = assembly.CreateMigration(assembly.Migrations[migrations[^1]], db.Database.ProviderName!);
+        var migration = assembly.CreateMigration(assembly.Migrations[migrations[aboutIndex]], db.Database.ProviderName!);
         Check(migration.UpOperations.All(x => x is Microsoft.EntityFrameworkCore.Migrations.Operations.CreateTableOperation or Microsoft.EntityFrameworkCore.Migrations.Operations.CreateIndexOperation), "About migration only creates its tables/indexes; no destructive operations.");
     }
     private static async Task<string> SnapshotPriorTablesAsync(ApplicationDbContext db)
     {
-        var names = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table' AND name NOT LIKE 'About%' AND name NOT LIKE '__EF%' AND name <> 'sqlite_sequence' ORDER BY name").ToArrayAsync();
+        var names = await db.Database.SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type='table' AND name NOT LIKE 'About%' AND name NOT LIKE 'Services%Settings' AND name NOT LIKE 'ServiceBenefit%' AND name NOT LIKE 'ServiceProcess%' AND name NOT LIKE 'ServicePricing%' AND name NOT LIKE 'ServiceFaq%' AND name NOT LIKE '__EF%' AND name <> 'sqlite_sequence' ORDER BY name").ToArrayAsync();
         var connection = db.Database.GetDbConnection();
         await db.Database.OpenConnectionAsync();
         var snapshot = new List<string>();

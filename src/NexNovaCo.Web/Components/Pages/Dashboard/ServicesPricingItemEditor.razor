@@ -1,0 +1,118 @@
+@page "/dashboard/content/services/pricing/new"
+@page "/dashboard/content/services/pricing/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IServicesPageCmsService ServicesPageService
+@inject NavigationManager Navigation
+@inject ILogger<ServicesPricingItemEditor> Logger
+
+<PageTitle>Services plan | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Services / Pricing / plan</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add" : "Edit") plan</MudText>
+<MudText Class="dashboard-muted mb-7">Edit the demo plan content. Premium is the single highlighted treatment; the public CTA remains disabled.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">plan saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="services-plan">
+            <DataAnnotationsValidator /><ValidationSummary />
+            <section class="dashboard-editor-section">
+                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" HelperText="Required. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Subtitle" For="@(() => _model.Subtitle)" Label="Subtitle" HelperText="Required. Up to 100 characters." Variant="Variant.Outlined" MaxLength="100" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.DisplayPrice" For="@(() => _model.DisplayPrice)" Label="Display price" HelperText="Currency code and amount, for example CAD 1,800." Variant="Variant.Outlined" MaxLength="40" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.IdealFor" For="@(() => _model.IdealFor)" Label="Ideal for" HelperText="Required. Up to 200 characters." Variant="Variant.Outlined" MaxLength="200" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.CtaLabel" For="@(() => _model.CtaLabel)" Label="CTA text" HelperText="Required. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudSelect T="PricingTreatment" @bind-Value="_model.Treatment" For="@(() => _model.Treatment)" Label="Treatment" Variant="Variant.Outlined" Disabled="_saving" Class="mb-5">
+                    @foreach (var choice in Enum.GetValues<PricingTreatment>()) { <MudSelectItem T="PricingTreatment" Value="choice">@choice</MudSelectItem> }
+                </MudSelect>
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-3">Plan features</MudText>
+                @for (var i = 0; i < _model.Features.Count; i++)
+                {
+                    var index = i;
+                    <div @key="index" class="mb-4">
+                        <MudTextField @bind-Value="_model.Features[index]" Label="@($"Feature {index + 1}")" MaxLength="200" Variant="Variant.Outlined" Immediate="true" Disabled="_saving" />
+                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="0">
+                            <MudIconButton Icon="@Icons.Material.Outlined.ArrowUpward" aria-label="@($"Move up feature {index + 1}")" Disabled="@(_saving || index == 0)" OnClick="@(() => MoveFeature(index, -1))" />
+                            <MudIconButton Icon="@Icons.Material.Outlined.ArrowDownward" aria-label="@($"Move down feature {index + 1}")" Disabled="@(_saving || index == _model.Features.Count - 1)" OnClick="@(() => MoveFeature(index, 1))" />
+                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" aria-label="@($"Remove feature {index + 1}")" Disabled="_saving" OnClick="@(() => { _model.Features.RemoveAt(index); ClearSaved(); })" />
+                        </MudStack>
+                    </div>
+                }
+                <MudButton Variant="Variant.Outlined" Disabled="@(_saving || _model.Features.Count >= 20)" OnClick="@(() => { _model.Features.Add(""); ClearSaved(); })">Add feature</MudButton>
+                <ValidationMessage For="@(() => _model.Features)" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudButton OnClick="Back" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Class="dashboard-action-buttons" Spacing="2">
+                    <MudButton OnClick="OpenServices" Variant="Variant.Outlined" Disabled="_saving">View Services Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving">@(_saving ? "Saving…" : "Save plan")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else { <MudButton Href="/dashboard/content/services/pricing">Back to list</MudButton> }
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private ServicePricingEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving, _saved, _showCreated;
+    private string? _error, _navigateAfterSave;
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id; _model = null; _error = null; _saved = _showCreated; _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await ServicesPageService.GetPricingItemForEditAsync(id) : new();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to load Services plan.");
+            _error = "The item could not be loaded or no longer exists. Return to the list and refresh.";
+        }
+    }
+    private void MoveFeature(int index, int direction)
+    {
+        if (_saving || _model is null) return;
+        var target = index + direction;
+        if (target < 0 || target >= _model.Features.Count) return;
+        (_model.Features[index], _model.Features[target]) = (_model.Features[target], _model.Features[index]);
+        ClearSaved();
+    }
+    private void ClearSaved() => _saved = false;
+    private void Back() => Navigation.NavigateTo("/dashboard/content/services/pricing");
+    private void OpenServices() => Navigation.NavigateTo("/services", forceLoad: true);
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        try
+        {
+            if (_editingId is int id) await ServicesPageService.UpdatePricingAsync(id, _model);
+            else _editingId = await ServicesPageService.CreatePricingAsync(_model);
+            _snapshot.Capture(CurrentValues); _saved = true;
+            if (Id is null) { _showCreated = true; _navigateAfterSave = $"/dashboard/content/services/pricing/{_editingId}"; }
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to save Services plan.");
+            _error = exception is ValidationException ? exception.Message : "The item could not be saved. Your changes are retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null; Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool Expected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

@@ -39,7 +39,7 @@ internal static class SharedServiceChecks
         }
         using var viewer = app.NewClient();
         await Login(viewer, "shared-viewer@example.invalid", viewerPassword);
-        foreach (var route in new[] { "/dashboard/content/services", "/dashboard/content/services/new", "/dashboard/content/services/1", "/dashboard/content/services/home-featured" })
+        foreach (var route in new[] { "/dashboard/content/shared-services", "/dashboard/content/shared-services/new", "/dashboard/content/shared-services/1", "/dashboard/content/shared-services/home-featured" })
         {
             var challenge = await anonymous.GetAsync(route);
             Check(challenge.StatusCode == HttpStatusCode.Redirect && challenge.Headers.Location!.ToString().Contains("/admin/login"), "Anonymous shared management route challenges.");
@@ -48,8 +48,8 @@ internal static class SharedServiceChecks
             foreach (var attempt in Enumerable.Range(0, 2))
                 Check((await admin.GetAsync(route)).StatusCode == HttpStatusCode.OK, "Admin route supports bookmarks/refresh.");
         }
-        Check((await admin.GetStringAsync("/dashboard/content/services/2147483647")).Contains("no longer exists"), "Missing edit route gives safe feedback.");
-        Check((await admin.GetStringAsync("/dashboard/content/services")).Contains("Shared Content") &&
+        Check((await admin.GetStringAsync("/dashboard/content/shared-services/2147483647")).Contains("no longer exists"), "Missing edit route gives safe feedback.");
+        Check((await admin.GetStringAsync("/dashboard/content/shared-services")).Contains("Shared Content") &&
             (await admin.GetStringAsync("/dashboard/content/home/services")).Contains("Services Section"), "Shared collection and Home presentation navigation are distinct.");
 
         var auth = new TestAuth(principal);

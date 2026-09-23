@@ -1,0 +1,77 @@
+@page "/dashboard/content/services/faq"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IServicesPageCmsService ServicesPageService
+@inject NavigationManager Navigation
+@inject ILogger<ServicesFaqEditor> Logger
+
+<PageTitle>Services FAQ | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Services / FAQ</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Services FAQ</MudText>
+<MudText Class="dashboard-muted mb-7">Edit the section introduction and manage its ordered items below.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" role="alert" Class="mb-4">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" role="status" Class="mb-4">Services FAQ saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="services-faq">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Faq content">
+                <MudTextField @bind-Value="_model.Title" For="@(() => _model.Title)" Label="Title" HelperText="Required. Up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" HelperText="Required. Up to 1000 characters." Variant="Variant.Outlined" MaxLength="1000" Lines="4" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes go live on Services when saved. Layout and styling stay the same.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenServices" Variant="Variant.Outlined" Disabled="_saving">View Services Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+
+
+<ServicesFaqList />
+
+@code {
+    private ServicesFaqEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues));
+    private bool _saving, _saved;
+    private string? _error;
+    protected override async Task OnInitializedAsync()
+    {
+        try { _model = await ServicesPageService.GetFaqForEditAsync(); _snapshot.Capture(CurrentValues); }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to load Services FAQ.");
+            _error = "Content could not be loaded. Check your session and refresh; defaults are not shown as saved content.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void OpenServices() => Navigation.NavigateTo("/services", forceLoad: true);
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        try
+        {
+            await ServicesPageService.SaveFaqAsync(_model);
+            _snapshot.Capture(CurrentValues); _saved = true;
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to save Services FAQ.");
+            _error = "Content could not be saved. Your changes are retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    private static bool Expected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException or IOException;
+}

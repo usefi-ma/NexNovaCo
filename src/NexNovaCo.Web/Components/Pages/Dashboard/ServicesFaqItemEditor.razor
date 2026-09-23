@@ -1,0 +1,89 @@
+@page "/dashboard/content/services/faq/new"
+@page "/dashboard/content/services/faq/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IServicesPageCmsService ServicesPageService
+@inject NavigationManager Navigation
+@inject ILogger<ServicesFaqItemEditor> Logger
+
+<PageTitle>Services question | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Services / FAQ / question</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add" : "Edit") question</MudText>
+<MudText Class="dashboard-muted mb-7">Edit the plain-text content. Manage position in the section list.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">question saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="services-question">
+            <DataAnnotationsValidator /><ValidationSummary />
+            <section class="dashboard-editor-section">
+                <MudTextField @bind-Value="_model.Question" For="@(() => _model.Question)" Label="Question" HelperText="Required. Up to 200 characters." Variant="Variant.Outlined" MaxLength="200" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Answer" For="@(() => _model.Answer)" Label="Answer" HelperText="Required. Up to 2000 characters." Variant="Variant.Outlined" MaxLength="2000" Lines="4" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudButton OnClick="Back" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Class="dashboard-action-buttons" Spacing="2">
+                    <MudButton OnClick="OpenServices" Variant="Variant.Outlined" Disabled="_saving">View Services Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving">@(_saving ? "Saving…" : "Save question")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else { <MudButton Href="/dashboard/content/services/faq">Back to list</MudButton> }
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private ServiceFaqEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving, _saved, _showCreated;
+    private string? _error, _navigateAfterSave;
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id; _model = null; _error = null; _saved = _showCreated; _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await ServicesPageService.GetFaqItemForEditAsync(id) : new();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to load Services question.");
+            _error = "The item could not be loaded or no longer exists. Return to the list and refresh.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void Back() => Navigation.NavigateTo("/dashboard/content/services/faq");
+    private void OpenServices() => Navigation.NavigateTo("/services", forceLoad: true);
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        try
+        {
+            if (_editingId is int id) await ServicesPageService.UpdateFaqAsync(id, _model);
+            else _editingId = await ServicesPageService.CreateFaqAsync(_model);
+            _snapshot.Capture(CurrentValues); _saved = true;
+            if (Id is null) { _showCreated = true; _navigateAfterSave = $"/dashboard/content/services/faq/{_editingId}"; }
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to save Services question.");
+            _error = "The item could not be saved. Your changes are retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null; Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool Expected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

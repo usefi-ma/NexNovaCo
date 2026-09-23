@@ -1,0 +1,80 @@
+@using NexNovaCo.Web.Data
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IServicesPageCmsService ServicesPageService
+@inject IDialogService Dialogs
+@inject ILogger<ServicesBenefitList> Logger
+
+<section class="mt-8" aria-label="Benefits items">
+    <MudText Typo="Typo.h5" HtmlTag="h2" Class="mb-3">Benefits items</MudText>
+    <MudText Class="dashboard-muted mb-4">Move up/down saves immediately. Deleting every item keeps this list empty until you add another.</MudText>
+    @if (_error is not null) { <MudAlert Severity="Severity.Error" role="alert" Class="mb-4">@_error</MudAlert> }
+    @if (_message is not null) { <MudAlert Severity="Severity.Success" role="status" Class="mb-4">@_message</MudAlert> }
+    <MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-4">
+        <MudButton Href="/dashboard/content/services/benefits/new" Variant="Variant.Filled" Color="Color.Primary" Disabled="_busy">Add benefit</MudButton>
+        <MudButton OnClick="ReloadAsync" Variant="Variant.Outlined" Disabled="_busy">Refresh list</MudButton>
+    </MudStack>
+    @if (_items is not null)
+    {
+        <MudTable T="ServiceBenefitItem" Items="_items" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Md" Loading="_busy" Class="services-page-cms-table">
+            <HeaderContent><MudTh>Order</MudTh><MudTh>Title</MudTh><MudTh>Actions</MudTh></HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Order">@context.DisplayOrder</MudTd>
+                <MudTd DataLabel="Title">@context.Title</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="0">
+                        <MudIconButton Icon="@Icons.Material.Outlined.ArrowUpward" aria-label="@($"Move up benefit {context.DisplayOrder}")" Disabled="@(_busy || context.Id == _items[0].Id)" OnClick="@(() => MoveAsync(context.Id, -1))" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.ArrowDownward" aria-label="@($"Move down benefit {context.DisplayOrder}")" Disabled="@(_busy || context.Id == _items[^1].Id)" OnClick="@(() => MoveAsync(context.Id, 1))" />
+                        <MudIconButton Href="@($"/dashboard/content/services/benefits/{context.Id}")" Icon="@Icons.Material.Outlined.Edit" Color="Color.Primary" aria-label="@($"Edit benefit {context.DisplayOrder}")" Disabled="_busy" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" aria-label="@($"Delete benefit {context.DisplayOrder}")" Disabled="_busy" OnClick="@(() => DeleteAsync(context))" />
+                    </MudStack>
+                </MudTd>
+            </RowTemplate>
+            <NoRecordsContent><MudText>No benefits yet. Add one to show it on Services.</MudText></NoRecordsContent>
+        </MudTable>
+    }
+</section>
+@code {
+    private IReadOnlyList<ServiceBenefitItem>? _items;
+    private bool _busy;
+    private string? _error, _message;
+    protected override Task OnInitializedAsync() => ReloadAsync();
+    private Task ReloadAsync() => RunAsync(async () => { _items = await ServicesPageService.ListBenefitAsync(); }, null);
+    private Task MoveAsync(int id, int direction) => RunAsync(async () =>
+    {
+        var ids = _items!.Select(x => x.Id).ToList();
+        var index = ids.IndexOf(id); var target = index + direction;
+        if (index < 0 || target < 0 || target >= ids.Count) return;
+        (ids[index], ids[target]) = (ids[target], ids[index]);
+        await ServicesPageService.ReorderBenefitAsync(ids); _items = await ServicesPageService.ListBenefitAsync();
+    }, "Benefits items order saved.");
+    private async Task DeleteAsync(ServiceBenefitItem item)
+    {
+        if (_busy) return;
+        _busy = true;
+        try
+        {
+            var dialog = await Dialogs.ShowAsync<DeleteServicesItemDialog>("Delete benefit?",
+                new DialogParameters<DeleteServicesItemDialog> { { x => x.Name, item.Title } },
+                new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false, CloseOnEscapeKey = true });
+            var result = await dialog.Result;
+            if (result?.Canceled != false) return;
+            _busy = false;
+            await RunAsync(async () => { await ServicesPageService.DeleteBenefitAsync(item.Id); _items = await ServicesPageService.ListBenefitAsync(); }, "benefit deleted.");
+        }
+        finally { _busy = false; }
+    }
+    private async Task RunAsync(Func<Task> action, string? success)
+    {
+        if (_busy) return;
+        _busy = true; _error = null; _message = null;
+        try { await action(); _message = success; }
+        catch (Exception exception) when (exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException)
+        {
+            Logger.LogError(exception, "Services benefit operation failed.");
+            _error = "The operation could not be completed. Check your session, refresh the list and try again.";
+        }
+        finally { _busy = false; }
+    }
+}

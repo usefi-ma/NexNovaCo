@@ -1,4 +1,4 @@
-@page "/dashboard/content/services"
+@page "/dashboard/content/shared-services"
 @using System.ComponentModel.DataAnnotations
 @using System.Data.Common
 @using Microsoft.EntityFrameworkCore
@@ -14,8 +14,8 @@
 @if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
 @if (_message is not null) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">@_message</MudAlert> }
 <MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-5" Spacing="2">
-    <MudButton Href="/dashboard/content/services/new" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.Add" DropShadow="false" Disabled="_busy">Add service</MudButton>
-    <MudButton Href="/dashboard/content/services/home-featured" Variant="Variant.Outlined" Disabled="_busy">Home Featured</MudButton>
+    <MudButton Href="/dashboard/content/shared-services/new" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.Add" DropShadow="false" Disabled="_busy">Add service</MudButton>
+    <MudButton Href="/dashboard/content/shared-services/home-featured" Variant="Variant.Outlined" Disabled="_busy">Home Featured</MudButton>
     <MudButton OnClick="ReloadAsync" Variant="Variant.Outlined" Disabled="_busy">Refresh list</MudButton>
 </MudStack>
 <MudText Typo="Typo.body2" Class="dashboard-muted mb-4">Move up/down saves the Services page order immediately. Home Featured order is independent.</MudText>
@@ -35,7 +35,7 @@
                 <div class="service-actions">
                     <MudIconButton Icon="@Icons.Material.Outlined.ArrowUpward" aria-label="@($"Move up {context.Name}")" Disabled="@(_busy || context.Id == _items[0].Id)" OnClick="@(() => MoveAsync(context.Id, -1))" />
                     <MudIconButton Icon="@Icons.Material.Outlined.ArrowDownward" aria-label="@($"Move down {context.Name}")" Disabled="@(_busy || context.Id == _items[^1].Id)" OnClick="@(() => MoveAsync(context.Id, 1))" />
-                    <MudIconButton Href="@($"/dashboard/content/services/{context.Id}")" Icon="@Icons.Material.Outlined.Edit" Color="Color.Primary" aria-label="@($"Edit {context.Name}")" Disabled="_busy" />
+                    <MudIconButton Href="@($"/dashboard/content/shared-services/{context.Id}")" Icon="@Icons.Material.Outlined.Edit" Color="Color.Primary" aria-label="@($"Edit {context.Name}")" Disabled="_busy" />
                     <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" aria-label="@($"Delete {context.Name}")" Disabled="_busy" OnClick="@(() => DeleteAsync(context))" />
                 </div>
             </MudTd>

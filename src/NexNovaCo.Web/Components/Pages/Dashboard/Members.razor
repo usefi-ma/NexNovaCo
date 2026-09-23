@@ -1,0 +1,108 @@
+@page "/dashboard/content/team"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IMemberContentService MembersService
+@inject IDialogService Dialogs
+@inject ILogger<Members> Logger
+
+<PageTitle>Shared Members | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Members</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Team Members</MudText>
+<MudText Class="dashboard-muted mb-5">Manage the full Members catalog. Home → Team Section edits the introduction; Home Featured selects and orders shared cards.</MudText>
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_message is not null) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">@_message</MudAlert> }
+<MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-5" Spacing="2">
+    <MudButton Href="/dashboard/content/team/new" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.Add" DropShadow="false" Disabled="_busy">Add member</MudButton>
+    <MudButton Href="/dashboard/content/team/home-featured" Variant="Variant.Outlined" Disabled="_busy">Home Featured</MudButton>
+    <MudButton OnClick="ReloadAsync" Variant="Variant.Outlined" Disabled="_busy">Refresh list</MudButton>
+</MudStack>
+<MudText Typo="Typo.body2" Class="dashboard-muted mb-4">Move up/down saves the Team page order immediately. Home Featured order is independent.</MudText>
+@if (_items is not null)
+{
+    <div class="members-list">
+    <MudTable T="MemberListItem" Items="_items" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Md" Class="members-table" Loading="_busy">
+        <HeaderContent>
+            <MudTh>Order</MudTh><MudTh>Photo</MudTh><MudTh>Name</MudTh><MudTh>Role</MudTh><MudTh>Slug</MudTh><MudTh>Home Featured</MudTh><MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Order">@context.DisplayOrder</MudTd>
+            <MudTd DataLabel="Photo"><MemberImagePreview ImagePath="@context.ImagePath" Name="@context.Name" /></MudTd>
+            <MudTd DataLabel="Name"><span class="member-cell-text">@context.Name</span></MudTd>
+            <MudTd DataLabel="Role"><span class="member-cell-text">@context.Role</span></MudTd>
+            <MudTd DataLabel="Slug"><span class="member-cell-text">@context.Slug</span></MudTd>
+            <MudTd DataLabel="Home Featured">@(context.HomeDisplayOrder is int order ? $"Yes — {order}" : "Not featured")</MudTd>
+            <MudTd DataLabel="Actions">
+                <div class="member-actions">
+                    <MudIconButton Icon="@Icons.Material.Outlined.ArrowUpward" aria-label="@($"Move up {context.Name}")" Disabled="@(_busy || context.Id == _items[0].Id)" OnClick="@(() => MoveAsync(context.Id, -1))" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.ArrowDownward" aria-label="@($"Move down {context.Name}")" Disabled="@(_busy || context.Id == _items[^1].Id)" OnClick="@(() => MoveAsync(context.Id, 1))" />
+                    <MudIconButton Href="@($"/dashboard/content/team/{context.Id}")" Icon="@Icons.Material.Outlined.Edit" Color="Color.Primary" aria-label="@($"Edit {context.Name}")" Disabled="_busy" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" aria-label="@($"Delete {context.Name}")" Disabled="_busy" OnClick="@(() => DeleteAsync(context))" />
+                </div>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent><MudText>No members yet. Add one to show it on the Team page.</MudText></NoRecordsContent>
+    </MudTable>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<MemberListItem>? _items;
+    private bool _busy;
+    private string? _error;
+    private string? _message;
+    protected override Task OnInitializedAsync() => ReloadAsync();
+    private Task ReloadAsync() => RunAsync(async () => { _items = await MembersService.ListAsync(); }, null);
+    private Task MoveAsync(int id, int direction) => RunAsync(async () =>
+    {
+        var ids = _items!.Select(item => item.Id).ToList();
+        var index = ids.IndexOf(id);
+        var target = index + direction;
+        if (index < 0 || target < 0 || target >= ids.Count) return;
+        (ids[index], ids[target]) = (ids[target], ids[index]);
+        await MembersService.ReorderAsync(ids);
+        _items = await MembersService.ListAsync();
+    }, "Team page order saved. Home Featured order is unchanged.");
+
+    private async Task DeleteAsync(MemberListItem item)
+    {
+        if (_busy) return;
+        _busy = true;
+        try
+        {
+            var parameters = new DialogParameters<DeleteMemberDialog>
+            {
+                { dialog => dialog.Name, item.Name }, { dialog => dialog.IsFeatured, item.HomeDisplayOrder is not null }, { dialog => dialog.IsLast, _items?.Count == 1 }
+            };
+            var dialog = await Dialogs.ShowAsync<DeleteMemberDialog>("Delete member?", parameters,
+                new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false, CloseOnEscapeKey = true });
+            var result = await dialog.Result;
+            if (result?.Canceled != false) return;
+            _busy = false;
+            await RunAsync(async () =>
+            {
+                await MembersService.DeleteAsync(item.Id);
+                _items = await MembersService.ListAsync();
+            }, "Member deleted from Home and Members.");
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task RunAsync(Func<Task> action, string? success)
+    {
+        if (_busy) return;
+        _busy = true;
+        _error = null;
+        _message = null;
+        try { await action(); _message = success; }
+        catch (Exception exception) when (exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException)
+        {
+            Logger.LogError(exception, "Unable to complete member management operation.");
+            _error = exception is KeyNotFoundException or ValidationException or DbUpdateConcurrencyException
+                ? "The collection changed or an item no longer exists. Refresh the list and try again."
+                : "The operation could not be completed. Check your session, refresh the list, and try again.";
+        }
+        finally { _busy = false; }
+    }
+}

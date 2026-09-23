@@ -65,8 +65,10 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options => options.Val
 builder.Services.AddSingleton<ProjectCatalog>();
 builder.Services.AddScoped<IProjectContentService, ProjectContentService>();
 builder.Services.AddScoped<IProjectCatalog>(services => services.GetRequiredService<IProjectContentService>());
-builder.Services.AddSingleton<IMemberCatalog, MemberCatalog>();
-builder.Services.AddSingleton<ITeamContentService, TeamContentService>();
+builder.Services.AddSingleton<MemberCatalog>();
+builder.Services.AddScoped<IMemberContentService, MemberContentService>();
+builder.Services.AddScoped<IMemberCatalog>(services => services.GetRequiredService<IMemberContentService>());
+builder.Services.AddScoped<ITeamContentService, TeamContentService>();
 builder.Services.AddSingleton<IContactContentService, ContactContentService>();
 builder.Services.AddSingleton<IContactFormService, DemoContactFormService>();
 builder.Services.AddScoped<IHomeHeroContentService, HomeHeroContentService>();

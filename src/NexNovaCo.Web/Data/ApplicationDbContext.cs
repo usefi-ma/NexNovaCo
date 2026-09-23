@@ -30,9 +30,45 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<HomeFeaturedProject> HomeFeaturedProjects => Set<HomeFeaturedProject>();
     public DbSet<ProjectInitializationState> ProjectInitializationStates => Set<ProjectInitializationState>();
 
+    public DbSet<MemberEntity> Members => Set<MemberEntity>();
+    public DbSet<MemberSkill> MemberSkills => Set<MemberSkill>();
+    public DbSet<HomeFeaturedMember> HomeFeaturedMembers => Set<HomeFeaturedMember>();
+    public DbSet<MemberInitializationState> MemberInitializationStates => Set<MemberInitializationState>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        var member = builder.Entity<MemberEntity>();
+        member.ToTable("Members", table => table.HasCheckConstraint("CK_Members_Order", "DisplayOrder > 0"));
+        member.HasKey(x => x.Id);
+        member.HasIndex(x => x.DisplayOrder);
+        member.HasIndex(x => x.Slug).IsUnique();
+        member.Property(x => x.Slug).IsRequired().HasMaxLength(80).UseCollation("NOCASE");
+        member.Property(x => x.Name).IsRequired().HasMaxLength(80);
+        member.Property(x => x.Role).IsRequired().HasMaxLength(100);
+        member.Property(x => x.Introduction).IsRequired().HasMaxLength(300);
+        member.Property(x => x.Biography).IsRequired().HasMaxLength(10000);
+        member.Property(x => x.ImagePath).IsRequired().HasMaxLength(200);
+        member.Property(x => x.Email).HasMaxLength(254);
+        member.Property(x => x.LinkedIn).HasMaxLength(500);
+        member.Property(x => x.Telegram).HasMaxLength(500);
+        member.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        member.HasMany(x => x.Skills).WithOne().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Cascade);
+        var skill = builder.Entity<MemberSkill>();
+        skill.ToTable("MemberSkills", table => table.HasCheckConstraint("CK_MemberSkills_Order", "DisplayOrder > 0"));
+        skill.HasKey(x => x.Id);
+        skill.HasIndex(x => new { x.MemberId, x.DisplayOrder });
+        skill.Property(x => x.Text).IsRequired().HasMaxLength(200);
+        var featuredMember = builder.Entity<HomeFeaturedMember>();
+        featuredMember.ToTable("HomeFeaturedMembers", table => table.HasCheckConstraint("CK_HomeFeaturedMembers_Order", "DisplayOrder > 0"));
+        featuredMember.HasKey(x => x.MemberId);
+        featuredMember.Property(x => x.MemberId).ValueGeneratedNever();
+        featuredMember.HasIndex(x => x.DisplayOrder);
+        featuredMember.HasOne(x => x.Member).WithOne(x => x.HomeFeatured).HasForeignKey<HomeFeaturedMember>(x => x.MemberId).OnDelete(DeleteBehavior.Cascade);
+        var memberInitialization = builder.Entity<MemberInitializationState>();
+        memberInitialization.ToTable("MemberInitializationState", table => table.HasCheckConstraint("CK_MemberInitializationState_Singleton", "Id = 1"));
+        memberInitialization.HasKey(x => x.Id);
+        memberInitialization.Property(x => x.Id).ValueGeneratedNever();
         var project = builder.Entity<ProjectEntity>();
         project.ToTable("Projects", table => table.HasCheckConstraint("CK_Projects_Order", "DisplayOrder > 0"));
         project.HasKey(x => x.Id);

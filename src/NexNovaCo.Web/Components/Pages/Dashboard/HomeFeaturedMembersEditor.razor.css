@@ -1,0 +1,4 @@
+.featured-actions { display: flex; flex-wrap: wrap; }
+.featured-name { min-width: 0; overflow-wrap: anywhere; }
+::deep .featured-table .mud-table-cell::before { flex: 0 0 6rem; max-width: 35%; }
+::deep .featured-table .mud-table-container { overflow-x: visible; }

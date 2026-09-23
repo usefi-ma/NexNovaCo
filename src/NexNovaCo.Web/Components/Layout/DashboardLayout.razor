@@ -34,7 +34,7 @@
                     <MudNavLink Href="/dashboard/content/home/welcome" Match="NavLinkMatch.All">Welcome</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/services" Match="NavLinkMatch.All">Services Section</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/projects" Match="NavLinkMatch.All">Projects Section</MudNavLink>
-                    <MudNavLink Href="/dashboard/content/home/team" Match="NavLinkMatch.All">Team</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/home/team" Match="NavLinkMatch.All">Team Section</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/statistics" Match="NavLinkMatch.All">Statistics</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/partners" Match="NavLinkMatch.All">Partners Section</MudNavLink>
                     <MudNavLink Href="/dashboard/content/home/testimonials" Match="NavLinkMatch.All">Testimonials Section</MudNavLink>
@@ -42,6 +42,7 @@
                 <MudText Typo="Typo.overline" Class="dashboard-nav-label">Shared Content</MudText>
                 <MudNavLink Href="/dashboard/content/testimonials" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.FormatQuote">Testimonials</MudNavLink>
                 <MudNavLink Href="/dashboard/content/partners" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Handshake">Partners</MudNavLink>
+                <MudNavLink Href="/dashboard/content/team" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Groups">Team Members</MudNavLink>
                 <MudNavLink Href="/dashboard/content/projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.WorkOutline">Projects</MudNavLink>
                 <MudNavLink Href="/dashboard/content/services" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.DesignServices">Services</MudNavLink>
             </MudNavMenu>
@@ -86,6 +87,8 @@
             : path.StartsWith("dashboard/content/services", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Services"
             : path.StartsWith("dashboard/content/projects/home-featured", StringComparison.OrdinalIgnoreCase) ? "Projects / Home Featured"
             : path.StartsWith("dashboard/content/projects", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Projects"
+            : path.StartsWith("dashboard/content/team/home-featured", StringComparison.OrdinalIgnoreCase) ? "Team Members / Home Featured"
+            : path.StartsWith("dashboard/content/team", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Team Members"
             : !isHome ? "Dashboard"
             : path.StartsWith("dashboard/content/home/testimonials", StringComparison.OrdinalIgnoreCase) ? "Home / Testimonials"
             : path.StartsWith("dashboard/content/home/partners", StringComparison.OrdinalIgnoreCase) ? "Home / Partners"

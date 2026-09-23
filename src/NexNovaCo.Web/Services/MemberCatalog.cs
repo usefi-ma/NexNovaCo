@@ -3,10 +3,17 @@ using NexNovaCo.Web.Models;
 
 namespace NexNovaCo.Web.Services;
 
-// One canonical snapshot for Home, Team and Member Detail. Replace this DI implementation
-// for a future content source; identities/profile fields remain owned by member.json.
-public sealed class MemberCatalog(IWebHostEnvironment environment) : IMemberCatalog
+// Approved defaults used only for one-time initialization and public read-failure fallback.
+public sealed class MemberCatalog(IWebHostEnvironment environment)
 {
+    public static IReadOnlyList<string> HomeFeaturedSlugs { get; } = Array.AsReadOnly(new[] { "emilyjohnson", "emmawilliams", "sophialee", "danielkim" });
+    public async Task<IReadOnlyList<MemberDetail>> GetDetailsAsync(CancellationToken cancellationToken = default)
+        => (await _members.Value.WaitAsync(cancellationToken)).Details;
+    public async Task<IReadOnlyList<TeamMemberSummary>> GetHomeFeaturedAsync(CancellationToken cancellationToken = default)
+    {
+        var members = await GetAsync(cancellationToken);
+        return HomeFeaturedSlugs.Select(slug => members.Single(x => x.Slug == slug)).ToArray();
+    }
     private readonly Lazy<Task<Snapshot>> _members = new(() => LoadAsync(environment.WebRootPath));
 
     public async Task<IReadOnlyList<TeamMemberSummary>> GetAsync(CancellationToken cancellationToken = default)

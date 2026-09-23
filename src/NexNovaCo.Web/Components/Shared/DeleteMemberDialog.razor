@@ -1,0 +1,27 @@
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <DialogContent>
+        <MudText>Delete member “@Name”?</MudText>
+        <MudText Class="dashboard-muted mt-3">It will be removed from the listing and its public detail URL. Its skills will also be deleted. This cannot be undone.</MudText>
+        @if (IsFeatured)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-3">This Member is featured on Home. Deleting it also removes that selection.</MudAlert>
+        }
+        @if (IsLast)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-3">This is the last Member. Both card collections will be empty. Restarting will not restore deleted Members. New Members must be selected in Home Featured to appear on Home.</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined">Cancel</MudButton>
+        <MudButton OnClick="Delete" Color="Color.Error" Variant="Variant.Filled" DropShadow="false">Delete member</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public bool IsFeatured { get; set; }
+    [Parameter] public bool IsLast { get; set; }
+    private void Cancel() => Dialog.Cancel();
+    private void Delete() => Dialog.Close(DialogResult.Ok(true));
+}

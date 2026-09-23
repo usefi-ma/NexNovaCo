@@ -6,7 +6,7 @@ namespace NexNovaCo.Web.Services;
 /// Home intros and Statistics are CMS-backed. Shared entity collections retain their canonical sources.
 /// Editable content is read on every request/navigation, never held in the static snapshot.
 /// </summary>
-public sealed class HomeContentService(IProjectContentService projectCatalog, IMemberCatalog memberCatalog,
+public sealed class HomeContentService(IProjectContentService projectCatalog, IMemberContentService memberCatalog,
     IHomeHeroContentService heroContent, IHomeWelcomeContentService welcomeContent,
     IHomeServicesSectionContentService servicesContent, IHomeProjectsSectionContentService projectsContent,
     IHomeTeamSectionContentService teamContent, IHomeStatisticsContentService statisticsContent,
@@ -14,7 +14,7 @@ public sealed class HomeContentService(IProjectContentService projectCatalog, IM
     IHomeTestimonialsSectionContentService testimonialsContent,
     ITestimonialContentService testimonials, IPartnerContentService partners, IServiceContentService services) : IHomeContentService
 {
-    private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync(memberCatalog));
+    private readonly Lazy<Task<HomeContent>> _content = new(() => LoadAsync());
 
     public async Task<HomeContent> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -27,6 +27,7 @@ public sealed class HomeContentService(IProjectContentService projectCatalog, IM
             Services = await services.GetHomeFeaturedAsync(cancellationToken),
             Projects = await projectCatalog.GetHomeFeaturedAsync(cancellationToken),
             ProjectsHeading = await projectsContent.GetAsync(cancellationToken),
+            Members = await memberCatalog.GetHomeFeaturedAsync(cancellationToken),
             Team = await teamContent.GetAsync(cancellationToken),
             Statistics = await statisticsContent.GetAsync(cancellationToken),
             Partners = await partners.GetAsync(cancellationToken),
@@ -36,13 +37,9 @@ public sealed class HomeContentService(IProjectContentService projectCatalog, IM
         };
     }
 
-    private static async Task<HomeContent> LoadAsync(IMemberCatalog memberCatalog)
+    private static Task<HomeContent> LoadAsync()
     {
-        var members = await memberCatalog.GetAsync();
-        var featuredMembers = new[] { "emilyjohnson", "emmawilliams", "sophialee", "danielkim" }
-            .Select(id => members.Single(member => member.Slug == id)).ToArray();
-
-        return new HomeContent(
+        return Task.FromResult(new HomeContent(
             HomeHeroDefaults.Content,
             HomeWelcomeDefaults.Content,
             HomeServicesSectionDefaults.Content,
@@ -50,10 +47,10 @@ public sealed class HomeContentService(IProjectContentService projectCatalog, IM
             HomeProjectsSectionDefaults.Content,
             [],
             HomeTeamSectionDefaults.Content,
-            featuredMembers,
+            [],
             HomeStatisticsDefaults.Content,
             HomePartnersSectionDefaults.Content, [],
-            [], HomeTestimonialsSectionDefaults.Content);
+            [], HomeTestimonialsSectionDefaults.Content));
     }
 
 }

@@ -1,0 +1,4 @@
+.member-actions { display: flex; flex-wrap: wrap; }
+.member-cell-text { min-width: 0; overflow-wrap: anywhere; }
+::deep .members-table .mud-table-cell::before { flex: 0 0 6rem; max-width: 35%; }
+::deep .members-table .mud-table-container { overflow-x: visible; }

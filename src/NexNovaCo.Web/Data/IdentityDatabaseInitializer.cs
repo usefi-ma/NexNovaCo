@@ -28,6 +28,7 @@ public static class IdentityDatabaseInitializer
         await PartnerInitializer.InitializeAsync(database, cancellationToken);
         await ServiceInitializer.InitializeAsync(database, cancellationToken);
         await ProjectInitializer.InitializeAsync(database, scope.ServiceProvider.GetRequiredService<NexNovaCo.Web.Services.ProjectCatalog>(), cancellationToken);
+        await MemberInitializer.InitializeAsync(database, scope.ServiceProvider.GetRequiredService<NexNovaCo.Web.Services.MemberCatalog>(), cancellationToken);
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         if (!await roles.RoleExistsAsync(AdminRole))
             RequireSuccess(await roles.CreateAsync(new IdentityRole(AdminRole)));

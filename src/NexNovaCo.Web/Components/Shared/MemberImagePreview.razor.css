@@ -1,0 +1,3 @@
+.member-image-preview { width: 80px; height: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: #f0f5f7; border: 1px solid #dbe4ec; }
+.member-image-preview img { object-fit: contain; max-width: 64px; max-height: 64px; }
+.member-image-preview span { font-size: .75rem; color: #536779; }

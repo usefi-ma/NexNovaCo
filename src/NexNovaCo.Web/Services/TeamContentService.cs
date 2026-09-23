@@ -5,11 +5,11 @@ namespace NexNovaCo.Web.Services;
 // Approved team.html editorial composition; member identities come only from the catalog.
 public sealed class TeamContentService(IMemberCatalog memberCatalog) : ITeamContentService
 {
-    private readonly Lazy<Task<TeamContent>> _content = new(() => LoadAsync(memberCatalog));
-    public Task<TeamContent> GetAsync(CancellationToken cancellationToken = default)
-        => _content.Value.WaitAsync(cancellationToken);
+    private readonly Lazy<Task<TeamContent>> _content = new(() => LoadAsync());
+    public async Task<TeamContent> GetAsync(CancellationToken cancellationToken = default)
+        => (await _content.Value.WaitAsync(cancellationToken)) with { Members = await memberCatalog.GetAsync(cancellationToken) };
 
-    private static async Task<TeamContent> LoadAsync(IMemberCatalog memberCatalog) => new(
+    private static Task<TeamContent> LoadAsync() => Task.FromResult<TeamContent>(new(
         new("Our Team", "Our Team", "Our team is a dynamic blend of creative minds, tech innovators, and problem-solvers dedicated to bringing your vision to life. We collaborate, strategize, and build with passion to drive success for every project.",
             "Explore Our Team", "team#Team"),
         "Behind the Scenes",
@@ -17,5 +17,5 @@ public sealed class TeamContentService(IMemberCatalog memberCatalog) : ITeamCont
             "From concept to execution, we prioritize innovation, efficiency, and user experience.",
             "With years of experience in custom software development, AI-powered applications, and web & mobile solutions, our team works collaboratively to transform ideas into reality. We believe in precision, creativity, and delivering results that exceed expectations.",
             "Want to collaborate with us?", "contact"),
-        await memberCatalog.GetAsync());
+        []));
 }

@@ -1,0 +1,114 @@
+@page "/dashboard/content/team/home-featured"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IMemberContentService MembersService
+@inject NavigationManager Navigation
+@inject ILogger<HomeFeaturedMembersEditor> Logger
+
+<PageTitle>Home Featured Members | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Members</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Home Featured Members</MudText>
+<MudText Class="dashboard-muted mb-5">Select shared members for Home's existing responsive grid, then set their Home order. Changes apply only after Save. The full Team page order and Home introduction are separate.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Home Featured selection and order saved.</MudAlert> }
+@if (_items is not null)
+{
+    <div class="featured-editor">
+    <MudPaper Class="dashboard-editor mb-5" Outlined="true" Elevation="0">
+        <section class="dashboard-editor-section" aria-labelledby="available-members-heading">
+            <MudText Typo="Typo.h6" HtmlTag="h2" id="available-members-heading">Available Members</MudText>
+            <MudText Class="dashboard-muted mb-4">@_selected.Count selected. An empty selection hides Home's member cards; its introduction remains.</MudText>
+            @if (_items.Count == 0) { <MudText>No Members yet. Add a Member from All Members first.</MudText> }
+            @foreach (var item in _items)
+            {
+                <MudCheckBox @key="item.Id" T="bool" Value="@_selected.Contains(item.Id)" ValueChanged="@((bool value) => Toggle(item.Id, value))"
+                    Label="@item.Name" Disabled="_saving" />
+            }
+        </section>
+    </MudPaper>
+    <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-4">Featured order</MudText>
+    <MudTable T="MemberListItem" Items="SelectedItems" Hover="true" Outlined="true" Elevation="0" Breakpoint="Breakpoint.Md" Class="featured-table mb-5">
+        <HeaderContent><MudTh>Home order</MudTh><MudTh>Photo</MudTh><MudTh>Name</MudTh><MudTh>Actions</MudTh></HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Home order">@(_selected.IndexOf(context.Id) + 1)</MudTd>
+            <MudTd DataLabel="Photo"><MemberImagePreview ImagePath="@context.ImagePath" Name="@context.Name" /></MudTd>
+            <MudTd DataLabel="Name"><span class="featured-name">@context.Name</span></MudTd>
+            <MudTd DataLabel="Actions"><div class="featured-actions">
+                <MudIconButton Icon="@Icons.Material.Outlined.ArrowUpward" aria-label="@($"Move up featured {context.Name}")" Disabled="@(_saving || context.Id == _selected[0])" OnClick="@(() => Move(context.Id, -1))" />
+                <MudIconButton Icon="@Icons.Material.Outlined.ArrowDownward" aria-label="@($"Move down featured {context.Name}")" Disabled="@(_saving || context.Id == _selected[^1])" OnClick="@(() => Move(context.Id, 1))" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Close" aria-label="@($"Remove featured {context.Name}")" Disabled="_saving" OnClick="@(() => Toggle(context.Id, false))" />
+            </div></MudTd>
+        </RowTemplate>
+        <NoRecordsContent><MudText>No featured Members selected. Save to keep Home's member cards hidden.</MudText></NoRecordsContent>
+    </MudTable>
+    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to All Members" : "Cancel")</MudButton>
+        <MudButton OnClick="SaveAsync" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save featured selection")</MudButton>
+    </MudStack>
+    </div>
+}
+else { <MudButton Href="/dashboard/content/team">Back to All Members</MudButton> }
+
+@code {
+    private IReadOnlyList<MemberListItem>? _items;
+    private List<int> _selected = [];
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _selected.Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+    private bool IsDirty => _items is not null && _snapshot.HasChanges(CurrentValues);
+    private IEnumerable<MemberListItem> SelectedItems => _selected.Select(id => _items!.Single(item => item.Id == id));
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _items = await MembersService.ListAsync();
+            _selected = _items.Where(x => x.HomeDisplayOrder is not null).OrderBy(x => x.HomeDisplayOrder).ThenBy(x => x.Id).Select(x => x.Id).ToList();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to load Home Featured Members.");
+            _error = "The selection could not be loaded. Check your session and return to All Members to retry.";
+        }
+    }
+    private void Toggle(int id, bool selected)
+    {
+        if (_saving || _items?.Any(x => x.Id == id) != true) return;
+        _saved = false;
+        if (!selected) _selected.Remove(id);
+        else if (!_selected.Contains(id)) _selected.Add(id);
+    }
+    private void Move(int id, int direction)
+    {
+        if (_saving) return;
+        var index = _selected.IndexOf(id);
+        var target = index + direction;
+        if (index < 0 || target < 0 || target >= _selected.Count) return;
+        (_selected[index], _selected[target]) = (_selected[target], _selected[index]);
+        _saved = false;
+    }
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/team");
+    private async Task SaveAsync()
+    {
+        if (_saving || _items is null) return;
+        _saving = true; _saved = false; _error = null;
+        try
+        {
+            await MembersService.SaveHomeFeaturedAsync(_selected);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to save Home Featured Members.");
+            _error = "Selection could not be saved. Your choices are retained. A Member may have been deleted; return to All Members and reopen this editor to reload.";
+        }
+        finally { _saving = false; }
+    }
+    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

@@ -60,7 +60,8 @@ internal static class HomeTeamSectionChecks
         Check((await adminClient.GetAsync("/dashboard/content/home/team")).StatusCode == HttpStatusCode.OK, "Team editor supports direct refresh.");
         Check(editorHtml.Contains("href=\"/dashboard/content/home/team\"") && editorHtml.Contains("Home / Team"), "Team has its own sidebar link and page context.");
         Check(typeof(HomeTeamSectionEditModel).GetProperties().Select(x => x.Name).Order().SequenceEqual(new[] { "CtaHref", "CtaLabel", "Description", "Highlight", "Introduction", "Title" }), "Only actual Team intro fields may be editable.");
-        var teamPageBefore = System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<ITeamContentService>().GetAsync());
+        await using var teamScope = app.Services.CreateAsyncScope();
+        var teamPageBefore = System.Text.Json.JsonSerializer.Serialize(await teamScope.ServiceProvider.GetRequiredService<ITeamContentService>().GetAsync());
         HomeContent homeBefore;
         await using (var scope = app.Services.CreateAsyncScope())
             homeBefore = await scope.ServiceProvider.GetRequiredService<IHomeContentService>().GetAsync();
@@ -82,7 +83,7 @@ internal static class HomeTeamSectionChecks
             Check(changed.Team == edit.ToContent(), "Home must use the edited Team intro.");
             Check(changed.Members.SequenceEqual(homeBefore.Members) && changed.Members.Count == 4, "Home member identity/order/copy/images/routes/social data must stay canonical.");
         }
-        Check(System.Text.Json.JsonSerializer.Serialize(await app.Services.GetRequiredService<ITeamContentService>().GetAsync()) == teamPageBefore, "Home edits must not change public Team-page content.");
+        Check(System.Text.Json.JsonSerializer.Serialize(await teamScope.ServiceProvider.GetRequiredService<ITeamContentService>().GetAsync()) == teamPageBefore, "Home edits must not change public Team-page content.");
         await using (var db = await factory.CreateDbContextAsync())
             Check((await db.HomeHeroSettings.SingleAsync()).ToContent() == heroBefore, "Team save must not alter Hero.");
         foreach (var attempt in Enumerable.Range(0, 2))

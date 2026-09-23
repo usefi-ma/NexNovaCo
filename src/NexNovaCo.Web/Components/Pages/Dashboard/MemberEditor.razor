@@ -1,0 +1,174 @@
+@page "/dashboard/content/team/new"
+@page "/dashboard/content/team/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IMemberContentService MembersService
+@inject ILogger<MemberEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>@(_editingId is null ? "Add" : "Edit") Member | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Team Members</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add member" : "Edit member")</MudText>
+<MudText Class="dashboard-muted mb-7">Saved changes appear on Team and on Home when selected as featured. Keep copy concise for the existing cards.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Member saved. Home uses it only when selected as featured.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="shared-member">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Basic information">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Basic information</MudText>
+                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" HelperText="Up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Slug" For="@(() => _model.Slug)" Label="Slug" HelperText="Lowercase URL identifier. Changing it changes the public detail URL; old URLs will not redirect." Variant="Variant.Outlined" MaxLength="80" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Role" For="@(() => _model.Role)" Label="Role" HelperText="Up to 100 characters." Variant="Variant.Outlined" MaxLength="100" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Introduction" For="@(() => _model.Introduction)" Label="Short description" HelperText="Up to 300 characters." Variant="Variant.Outlined" MaxLength="300" Lines="3" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Profile">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Profile</MudText>
+                <MudTextField @bind-Value="_model.Biography" For="@(() => _model.Biography)" Label="Biography" HelperText="Up to 10000 characters." Variant="Variant.Outlined" MaxLength="10000" Lines="6" Immediate="true" Disabled="_saving" Class="mb-5" />
+
+
+
+
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Member media">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Media</MudText>
+                <MudText Class="dashboard-muted mb-4">Choose approved bundled images. No uploads or arbitrary file paths.</MudText>
+                <MudSelect T="string" @bind-Value="_model.ImagePath" For="@(() => _model.ImagePath)" Label="Profile photo" Variant="Variant.Outlined" Disabled="_saving" Class="mb-4">
+                    @foreach (var path in MemberImageAssets.Paths)
+                    {
+                        <MudSelectItem T="string" Value="@path">@path</MudSelectItem>
+                    }
+                </MudSelect>
+                <MemberImagePreview ImagePath="@_model.ImagePath" Name="@_model.Name" />
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Member skills">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Skills</MudText>
+                @foreach (var row in _model.Skills)
+                {
+                    <MudPaper @key="row" Outlined="true" Elevation="0" Class="pa-4 mb-4">
+                        <MudTextField @bind-Value="row.Text" Label="Skill" MaxLength="200" Lines="2" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" />
+                        <MudStack Row="true" Wrap="Wrap.Wrap" Class="mt-3">
+                            <MudButton OnClick="@(() => MoveRow(_model.Skills, row, -1))" Disabled="@(_saving || _model.Skills.IndexOf(row) == 0)" aria-label="@($"Move up skill {_model.Skills.IndexOf(row) + 1}")">Up</MudButton>
+                            <MudButton OnClick="@(() => MoveRow(_model.Skills, row, 1))" Disabled="@(_saving || _model.Skills.IndexOf(row) == _model.Skills.Count - 1)" aria-label="@($"Move down skill {_model.Skills.IndexOf(row) + 1}")">Down</MudButton>
+                            <MudButton OnClick="@(() => RemoveRow(_model.Skills, row))" Disabled="_saving" Color="Color.Error" aria-label="@($"Remove skill {_model.Skills.IndexOf(row) + 1}")">Remove</MudButton>
+                        </MudStack>
+                    </MudPaper>
+                }
+                <MudButton OnClick="AddSkill" Disabled="_saving" Variant="Variant.Outlined">Add skill</MudButton>
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Contact and social links">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Contact and social links</MudText>
+                <MudText Class="dashboard-muted mb-4">Optional. Leave blank to remove a destination. Social links must use https://.</MudText>
+                <MudTextField @bind-Value="_model.Email" For="@(() => _model.Email)" Label="Email" MaxLength="254" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" Class="mb-5" />
+                <MudTextField @bind-Value="_model.LinkedIn" For="@(() => _model.LinkedIn)" Label="LinkedIn URL" MaxLength="500" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Telegram" For="@(() => _model.Telegram)" Label="Telegram URL" MaxLength="500" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">This changes shared content, not Home's section introduction.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save member")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else
+{
+    <MudButton Href="/dashboard/content/team" Variant="Variant.Outlined">Back to list</MudButton>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private MemberEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+    private string? _navigateAfterSave;
+    private bool _showCreated;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id;
+        _model = null;
+        _error = null;
+        _saved = _showCreated;
+        _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await MembersService.GetForEditAsync(id) : new MemberEditModel();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to load member editor.");
+            _error = exception is KeyNotFoundException ? "This member no longer exists. Return to the list."
+                : "The member could not be loaded. Check your session and try again.";
+        }
+    }
+
+    private void AddSkill() { if (!_saving) { _model!.Skills.Add(new()); _saved = false; } }
+    private void RemoveRow<T>(List<T> rows, T row) { if (!_saving) { rows.Remove(row); _saved = false; } }
+    private void MoveRow<T>(List<T> rows, T row, int direction)
+    {
+        if (_saving) return;
+        var index = rows.IndexOf(row); var target = index + direction;
+        if (index < 0 || target < 0 || target >= rows.Count) return;
+        (rows[index], rows[target]) = (rows[target], rows[index]); _saved = false;
+    }
+    private void ClearSaved() => _saved = false;
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/team");
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            if (_editingId is int id) await MembersService.UpdateAsync(id, _model);
+            else _editingId = await MembersService.CreateAsync(_model);
+            _model.Slug = MemberSlugs.Normalize(_model.Slug);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+            // Leave /new after creation so refresh cannot accidentally create a duplicate.
+            if (Id is null)
+            {
+                _showCreated = true;
+                _navigateAfterSave = $"/dashboard/content/team/{_editingId}";
+            }
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to save member.");
+            _error = exception is ValidationException validation ? validation.Message
+                : exception is KeyNotFoundException or DbUpdateConcurrencyException
+                ? "This member changed or no longer exists. Your input is retained; return to the list to reload."
+                : "The member could not be saved. Your input is retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null;
+        // The clean snapshot has now reached NavigationLock before leaving the /new route.
+        Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

@@ -71,6 +71,9 @@ builder.Services.AddScoped<IMemberCatalog>(services => services.GetRequiredServi
 builder.Services.AddScoped<ITeamContentService, TeamContentService>();
 builder.Services.AddScoped<IContactContentService, ContactContentService>();
 builder.Services.AddScoped<IContactPageCmsService, ContactPageCmsService>();
+builder.Services.AddScoped<IGlobalSettingsService, GlobalSettingsService>();
+builder.Services.AddScoped<INavigationContentService, NavigationContentService>();
+builder.Services.AddScoped<ISocialLinkContentService, SocialLinkContentService>();
 builder.Services.AddSingleton<IContactFormService, DemoContactFormService>();
 builder.Services.AddScoped<IHomeHeroContentService, HomeHeroContentService>();
 builder.Services.AddScoped<IHomeWelcomeContentService, HomeWelcomeContentService>();

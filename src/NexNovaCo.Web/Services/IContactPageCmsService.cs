@@ -6,6 +6,8 @@ public interface IContactPageCmsService
 {
     Task<ContactContent> ReadPublicAsync(CancellationToken ct = default);
     Task<SiteContactContent> ReadSiteContactAsync(CancellationToken ct = default);
+    Task<SiteContactEditModel> GetSiteContactForEditAsync(CancellationToken ct = default);
+    Task SaveSiteContactAsync(SiteContactEditModel model, CancellationToken ct = default);
     Task<ContactHeroEditModel> GetHeroForEditAsync(CancellationToken ct = default);
     Task SaveHeroAsync(ContactHeroEditModel model, CancellationToken ct = default);
     Task<ContactInfoEditModel> GetInfoForEditAsync(CancellationToken ct = default);

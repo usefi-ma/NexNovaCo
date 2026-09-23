@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace NexNovaCo.Web.Models;
 
-public enum MediaKind { Hero, Welcome, Member, Partner, AboutHero, AboutVision, ServicesHero, ServicesBenefits, ProjectsHero, TeamHero, TeamSection, ContactHero }
+public enum MediaKind { Hero, Welcome, Member, Partner, AboutHero, AboutVision, ServicesHero, ServicesBenefits, ProjectsHero, TeamHero, TeamSection, ContactHero, SiteLogo }
 
 public static partial class MediaPolicy
 {
@@ -27,6 +27,7 @@ public static partial class MediaPolicy
         MediaKind.ProjectsHero => "projects",
         MediaKind.TeamHero or MediaKind.TeamSection => "team-page",
         MediaKind.ContactHero => "contact",
+        MediaKind.SiteLogo => "site",
         MediaKind.Member => "team",
         MediaKind.Partner => "partners",
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
@@ -41,6 +42,7 @@ public static partial class MediaPolicy
         MediaKind.ServicesBenefits => [ServicesBenefitsDefault],
         MediaKind.ProjectsHero => [ProjectsHeroDefault],
         MediaKind.ContactHero => [ContactHeroDefault],
+        MediaKind.SiteLogo => ["image/logo.png"],
         MediaKind.TeamHero => [TeamHeroDefault],
         MediaKind.TeamSection => [TeamSectionDefault],
         MediaKind.Member => MemberImageAssets.Paths,
@@ -52,7 +54,7 @@ public static partial class MediaPolicy
     public static bool IsGenerated(string? path, MediaKind kind) => IsGenerated(path) && path!.StartsWith("uploads/" + Folder(kind) + "/", StringComparison.Ordinal);
     public static bool IsAllowed(string? path, MediaKind kind) => Bundled(kind).Contains(path, StringComparer.Ordinal) || IsGenerated(path, kind);
     public static string ContentType(string path) => Path.GetExtension(path) switch { ".jpg" => "image/jpeg", ".png" => "image/png", ".webp" => "image/webp", _ => throw new ValidationException("Unsupported image format.") };
-    [GeneratedRegex(@"\Auploads/(?:home|team|partners|about|services|projects|team-page|contact)/[a-f0-9]{32}\.(?:jpg|png|webp)\z", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\Auploads/(?:home|team|partners|about|services|projects|team-page|contact|site)/[a-f0-9]{32}\.(?:jpg|png|webp)\z", RegexOptions.CultureInvariant)]
     private static partial Regex GeneratedPath();
 }
 

@@ -144,6 +144,24 @@ public sealed class ContactPageCmsService(IDbContextFactory<ApplicationDbContext
         await db.SaveChangesAsync(ct);
     }
 
+    public async Task<SiteContactEditModel> GetSiteContactForEditAsync(CancellationToken ct = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        await RequireAdminAsync(db, ct);
+        var row = await db.SiteContactSettings.AsNoTracking().SingleAsync(x => x.Id == 1, ct);
+        return new() { Phone = row.Phone, Email = row.Email, Address = row.Address };
+    }
+    public async Task SaveSiteContactAsync(SiteContactEditModel model, CancellationToken ct = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(ct);
+        await RequireAdminAsync(db, ct);
+        Validate(model);
+        var row = await db.SiteContactSettings.SingleAsync(x => x.Id == 1, ct);
+        row.Phone = model.Phone; row.Email = model.Email; row.Address = model.Address;
+        row.UpdatedAtUtc = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+    }
+
     private async Task RequireAdminAsync(ApplicationDbContext database, CancellationToken cancellationToken)
     {
         var principal = (await authentication.GetAuthenticationStateAsync()).User;

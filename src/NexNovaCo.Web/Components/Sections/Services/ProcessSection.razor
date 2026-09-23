@@ -2,19 +2,23 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-12 how_it_works_mobile_header"><SectionHeader Content="Heading" /></div>
-            <div class="main_hexagon_wrapper">
-                <div class="main_horizental_hexagon horizental_hexagon">
-                    <div class="center_hexagon hexagon"><h2>@Heading.Title</h2></div>
+            @foreach (var group in Steps.OrderBy(step => step.Number).Chunk(5))
+            {
+                <div class="main_hexagon_wrapper">
+                    <div class="main_horizental_hexagon horizental_hexagon">
+                        <div class="center_hexagon hexagon"><h2>@Heading.Title</h2></div>
+                    </div>
+                    <ol class="process-steps" aria-label="Process steps">
+                        @for (var index = 0; index < group.Length; index++)
+                        {
+                            var step = group[index];
+                            <li @key="step.Number" class="outer_horizental_hexagon horizental_hexagon @PositionClass(index + 1)">
+                                <ProcessStep Content="step" />
+                            </li>
+                        }
+                    </ol>
                 </div>
-                <ol class="process-steps" aria-label="Process steps">
-                    @foreach (var step in Steps.OrderBy(step => step.Number))
-                    {
-                        <li @key="step.Number" class="outer_horizental_hexagon horizental_hexagon @PositionClass(step.Number)">
-                            <ProcessStep Content="step" />
-                        </li>
-                    }
-                </ol>
-            </div>
+            }
         </div>
     </div>
 </section>
@@ -23,7 +27,7 @@
     [Parameter, EditorRequired] public SectionHeading Heading { get; set; } = default!;
     [Parameter, EditorRequired] public IReadOnlyList<ProcessStepContent> Steps { get; set; } = [];
 
-    // The approved diagram has five slots. Content owns their order, not positioning CSS.
+    // Repeat the approved five-slot diagram for longer collections; an empty list emits no diagram.
     private static string PositionClass(int number) => "outer_horizental_hexagon_" + (number switch
     {
         1 => "top_left", 2 => "top_right", 3 => "bottom_right", 4 => "bottom_center", 5 => "bottom_left",

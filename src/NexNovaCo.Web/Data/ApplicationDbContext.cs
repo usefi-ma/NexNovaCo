@@ -46,10 +46,25 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<AboutMissionPointItem> AboutMissionPointItems => Set<AboutMissionPointItem>();
     public DbSet<AboutMissionPointInitializationState> AboutMissionPointInitializationStates => Set<AboutMissionPointInitializationState>();
 
+    public DbSet<ServicesHeroSettings> ServicesHeroSettings => Set<ServicesHeroSettings>();
+    public DbSet<ServicesBenefitsSettings> ServicesBenefitsSettings => Set<ServicesBenefitsSettings>();
+    public DbSet<ServicesProcessSettings> ServicesProcessSettings => Set<ServicesProcessSettings>();
+    public DbSet<ServicesPricingSettings> ServicesPricingSettings => Set<ServicesPricingSettings>();
+    public DbSet<ServicesFaqSettings> ServicesFaqSettings => Set<ServicesFaqSettings>();
+    public DbSet<ServiceBenefitItem> ServiceBenefits => Set<ServiceBenefitItem>();
+    public DbSet<ServiceBenefitInitializationState> ServiceBenefitInitializationStates => Set<ServiceBenefitInitializationState>();
+    public DbSet<ServiceProcessStepItem> ServiceProcessSteps => Set<ServiceProcessStepItem>();
+    public DbSet<ServiceProcessInitializationState> ServiceProcessInitializationStates => Set<ServiceProcessInitializationState>();
+    public DbSet<ServicePricingPlanItem> ServicePricingPlans => Set<ServicePricingPlanItem>();
+    public DbSet<ServicePricingInitializationState> ServicePricingInitializationStates => Set<ServicePricingInitializationState>();
+    public DbSet<ServiceFaqItem> ServiceFaqItems => Set<ServiceFaqItem>();
+    public DbSet<ServiceFaqInitializationState> ServiceFaqInitializationStates => Set<ServiceFaqInitializationState>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         AboutModelConfiguration.Configure(builder);
+        ServicesPageModelConfiguration.Configure(builder);
         var member = builder.Entity<MemberEntity>();
         member.ToTable("Members", table => table.HasCheckConstraint("CK_Members_Order", "DisplayOrder > 0"));
         member.HasKey(x => x.Id);

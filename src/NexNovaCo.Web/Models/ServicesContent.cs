@@ -25,4 +25,6 @@ public sealed record ServicesContent(
     SectionHeading PricingHeading,
     IReadOnlyList<PricingPlan> Plans,
     SectionHeading FaqHeading,
-    IReadOnlyList<FaqContent> Questions);
+    IReadOnlyList<FaqContent> Questions,
+    string HeroImagePath = MediaPolicy.ServicesHeroDefault,
+    string BenefitsImagePath = MediaPolicy.ServicesBenefitsDefault);

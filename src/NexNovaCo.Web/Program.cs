@@ -86,6 +86,7 @@ builder.Services.AddScoped<IServiceContentService, ServiceContentService>();
 builder.Services.AddScoped<IServicesContentService, ServicesContentService>();
 builder.Services.AddScoped<IAboutContentService, AboutContentService>();
 builder.Services.AddScoped<IAboutCmsService, AboutCmsService>();
+builder.Services.AddScoped<IServicesPageCmsService, ServicesPageCmsService>();
 builder.Services.AddScoped<IProjectsContentService, ProjectsContentService>();
 
 builder.Services.Configure<MediaStorageOptions>(builder.Configuration.GetSection("MediaStorage"));

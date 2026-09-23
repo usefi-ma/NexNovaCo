@@ -27,3 +27,11 @@
     .services-page .service_box, .services-page .features_wrapper, .services-page .outer_horizental_hexagon,
     .services-page .price_item, .services-page .custome_btn { transition: none; }
 }
+
+/* Validated CMS media only; the approved crop, layers and breakpoints stay in service.css. */
+.services-page .inner_page_header_pic .hexagon_with_back {
+    background-image: var(--services-hero-image);
+}
+.services-page .features .features_inner_hexagon {
+    background-image: var(--services-benefits-image);
+}

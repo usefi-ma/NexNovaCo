@@ -30,6 +30,7 @@ public static class IdentityDatabaseInitializer
         await ProjectInitializer.InitializeAsync(database, scope.ServiceProvider.GetRequiredService<NexNovaCo.Web.Services.ProjectCatalog>(), cancellationToken);
         await MemberInitializer.InitializeAsync(database, scope.ServiceProvider.GetRequiredService<NexNovaCo.Web.Services.MemberCatalog>(), cancellationToken);
         await AboutInitializer.InitializeAsync(database, cancellationToken);
+        await ServicesPageInitializer.InitializeAsync(database, cancellationToken);
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         if (!await roles.RoleExistsAsync(AdminRole))
             RequireSuccess(await roles.CreateAsync(new IdentityRole(AdminRole)));

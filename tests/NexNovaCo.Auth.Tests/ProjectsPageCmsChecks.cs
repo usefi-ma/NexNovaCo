@@ -251,6 +251,7 @@ internal static class ProjectsPageCmsChecks
         Check(await SnapshotPriorTablesAsync(db) == before, "Upgrade preserves every prior Identity/Home/shared table, row, timestamp and account.");
         await db.Database.MigrateAsync();
         await TeamPageInitializer.InitializeAsync(db);
+        await ContactPageInitializer.InitializeAsync(db);
         Check(!db.Database.HasPendingModelChanges(), "Upgrade leaves no pending model changes.");
         var assembly = db.GetService<IMigrationsAssembly>();
         var migration = assembly.CreateMigration(assembly.Migrations[migrations[projectsIndex]], db.Database.ProviderName!);

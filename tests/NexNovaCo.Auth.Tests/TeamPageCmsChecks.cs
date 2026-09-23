@@ -257,16 +257,19 @@ internal static class TeamPageCmsChecks
     {
         await using var db = await factory.CreateDbContextAsync();
         var migrations = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
-        Check(migrations.Length == 20, "One additive Team migration.");
+        var teamIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddTeamPageCms", StringComparison.Ordinal));
+        Check(teamIndex >= 0, "Additive Team migration exists.");
         // This is exclusively AuthFactory's disposable database, not the normal developer database.
-        await db.GetService<IMigrator>().MigrateAsync(migrations[^2]);
+        await db.GetService<IMigrator>().MigrateAsync(migrations[teamIndex - 1]);
         var before = await SnapshotPriorTablesAsync(db);
-        await db.Database.MigrateAsync();
+        await db.GetService<IMigrator>().MigrateAsync(migrations[teamIndex]);
         await TeamPageInitializer.InitializeAsync(db);
         Check(await SnapshotPriorTablesAsync(db) == before, "Upgrade preserves every prior Identity/Home/shared table, row, timestamp and account.");
+        await db.Database.MigrateAsync();
+        await ContactPageInitializer.InitializeAsync(db);
         Check(!db.Database.HasPendingModelChanges(), "Upgrade leaves no pending model changes.");
         var assembly = db.GetService<IMigrationsAssembly>();
-        var migration = assembly.CreateMigration(assembly.Migrations[migrations[^1]], db.Database.ProviderName!);
+        var migration = assembly.CreateMigration(assembly.Migrations[migrations[teamIndex]], db.Database.ProviderName!);
         Check(migration.UpOperations.Count == 2 && migration.UpOperations.All(x => x is Microsoft.EntityFrameworkCore.Migrations.Operations.CreateTableOperation), "Team migration only creates its tables/indexes; no destructive operations.");
     }
     private static async Task<string> SnapshotPriorTablesAsync(ApplicationDbContext db)

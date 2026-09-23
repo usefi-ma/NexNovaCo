@@ -1,0 +1,6 @@
+@page "/dashboard/content/projects"
+@inject NavigationManager Navigation
+<PageTitle>Services | NexNovaCo Dashboard</PageTitle>
+@code {
+    protected override void OnInitialized() => Navigation.NavigateTo("/dashboard/content/projects/hero", replace: true);
+}

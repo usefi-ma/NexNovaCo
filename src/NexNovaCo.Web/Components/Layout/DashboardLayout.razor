@@ -55,11 +55,16 @@
                     <MudNavLink Href="/dashboard/content/services/pricing" Match="NavLinkMatch.Prefix">Pricing</MudNavLink>
                     <MudNavLink Href="/dashboard/content/services/faq" Match="NavLinkMatch.Prefix">FAQ</MudNavLink>
                 </MudNavGroup>
+                <MudNavGroup Title="Projects" Icon="@Icons.Material.Outlined.WorkOutline" @bind-Expanded="_projectsExpanded">
+                    <MudNavLink Href="/dashboard/content/projects/hero" Match="NavLinkMatch.All">Hero</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/projects/overview" Match="NavLinkMatch.All">Projects Section</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/projects/testimonials" Match="NavLinkMatch.All">Testimonials Section</MudNavLink>
+                </MudNavGroup>
                 <MudText Typo="Typo.overline" Class="dashboard-nav-label">Shared Content</MudText>
                 <MudNavLink Href="/dashboard/content/testimonials" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.FormatQuote">Testimonials</MudNavLink>
                 <MudNavLink Href="/dashboard/content/partners" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Handshake">Partners</MudNavLink>
                 <MudNavLink Href="/dashboard/content/team" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Groups">Team Members</MudNavLink>
-                <MudNavLink Href="/dashboard/content/projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.WorkOutline">Projects</MudNavLink>
+                <MudNavLink Href="/dashboard/content/shared-projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.WorkOutline">Projects</MudNavLink>
                 <MudNavLink Href="/dashboard/content/shared-services" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.DesignServices">Services</MudNavLink>
             </MudNavMenu>
         </nav>
@@ -78,6 +83,7 @@
     private bool _homeExpanded;
     private bool _aboutExpanded;
     private bool _servicesExpanded;
+    private bool _projectsExpanded;
     private MudIconButton? _toggleButton;
     private string _pageTitle = "Dashboard";
     protected override void OnInitialized()
@@ -103,13 +109,15 @@
         if (isAbout) _aboutExpanded = true;
         var isServices = path.StartsWith("dashboard/content/services", StringComparison.OrdinalIgnoreCase);
         if (isServices) _servicesExpanded = true;
-        _pageTitle = isServices ? "Services / " + ServicesSectionName(path) : isAbout ? "About / " + AboutSectionName(path)
+        var isProjects = path.StartsWith("dashboard/content/projects", StringComparison.OrdinalIgnoreCase);
+        if (isProjects) _projectsExpanded = true;
+        _pageTitle = isProjects ? "Projects / " + ProjectsSectionName(path) : isServices ? "Services / " + ServicesSectionName(path) : isAbout ? "About / " + AboutSectionName(path)
             : path.StartsWith("dashboard/content/testimonials", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Testimonials"
             : path.StartsWith("dashboard/content/partners", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Partners"
             : path.StartsWith("dashboard/content/shared-services/home-featured", StringComparison.OrdinalIgnoreCase) ? "Services / Home Featured"
             : path.StartsWith("dashboard/content/shared-services", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Services"
-            : path.StartsWith("dashboard/content/projects/home-featured", StringComparison.OrdinalIgnoreCase) ? "Projects / Home Featured"
-            : path.StartsWith("dashboard/content/projects", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Projects"
+            : path.StartsWith("dashboard/content/shared-projects/home-featured", StringComparison.OrdinalIgnoreCase) ? "Projects / Home Featured"
+            : path.StartsWith("dashboard/content/shared-projects", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Projects"
             : path.StartsWith("dashboard/content/team/home-featured", StringComparison.OrdinalIgnoreCase) ? "Team Members / Home Featured"
             : path.StartsWith("dashboard/content/team", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Team Members"
             : !isHome ? "Dashboard"
@@ -121,6 +129,10 @@
             : path.StartsWith("dashboard/content/home/services", StringComparison.OrdinalIgnoreCase) ? "Home / Services"
             : path.StartsWith("dashboard/content/home/welcome", StringComparison.OrdinalIgnoreCase) ? "Home / Welcome" : "Home / Hero";
     }
+    private static string ProjectsSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() switch
+    {
+        "overview" => "Projects Section", "testimonials" => "Testimonials Section", _ => "Hero"
+    };
     private static string ServicesSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() switch
     {
         "overview" => "Services Section", "benefits" => "Benefits", "process" => "Process", "pricing" => "Pricing", "faq" => "FAQ", _ => "Hero"

@@ -38,10 +38,10 @@ Responsive MudTable columns: order, cover preview, name, slug, Home Featured sta
 
 Routes:
 
-- `/dashboard/content/projects`
-- `/dashboard/content/projects/new`
-- `/dashboard/content/projects/{id:int}`
-- `/dashboard/content/projects/home-featured`
+- `/dashboard/content/shared-projects`
+- `/dashboard/content/shared-projects/new`
+- `/dashboard/content/shared-projects/{id:int}`
+- `/dashboard/content/shared-projects/home-featured`
 
 ProjectEditor groups Basic Information, Project Details, Media/Gallery, and Features. Fields have required/length validation where applicable; nested gallery/feature validation runs at the service boundary and on form submission. Gallery and Features support Add, Remove and Up/Down; there is no drag/drop.
 
@@ -125,3 +125,5 @@ No Team CRUD, upload/media library, categories management, SEO redirect history,
 ## 21. Recommendation
 
 Recommend **Shared Team Members + Home Featured Team** next, preserving existing member-detail identities and separating shared content from Home selection/order. It is not implemented here. Stop for approval.
+
+Phase 13 route note: `/dashboard/content/projects` now redirects to the page-specific Hero editor. Legacy `/projects/new`, `/projects/{id:int}` and `/projects/home-featured` dashboard routes redirect to the corresponding `/dashboard/content/shared-projects/...` routes. Shared CRUD and public detail routes are unchanged.

@@ -1,4 +1,4 @@
-@page "/dashboard/content/projects/home-featured"
+@page "/dashboard/content/shared-projects/home-featured"
 @using System.ComponentModel.DataAnnotations
 @using System.Data.Common
 @using Microsoft.EntityFrameworkCore
@@ -50,7 +50,7 @@
     </MudStack>
     </div>
 }
-else { <MudButton Href="/dashboard/content/projects">Back to All Projects</MudButton> }
+else { <MudButton Href="/dashboard/content/shared-projects">Back to All Projects</MudButton> }
 
 @code {
     private IReadOnlyList<ProjectListItem>? _items;
@@ -92,7 +92,7 @@ else { <MudButton Href="/dashboard/content/projects">Back to All Projects</MudBu
         (_selected[index], _selected[target]) = (_selected[target], _selected[index]);
         _saved = false;
     }
-    private void Cancel() => Navigation.NavigateTo("/dashboard/content/projects");
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/shared-projects");
     private async Task SaveAsync()
     {
         if (_saving || _items is null) return;

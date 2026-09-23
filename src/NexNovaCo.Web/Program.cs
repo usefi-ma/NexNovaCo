@@ -62,7 +62,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 builder.Services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.FromMinutes(1));
-builder.Services.AddSingleton<IProjectCatalog, ProjectCatalog>();
+builder.Services.AddSingleton<ProjectCatalog>();
+builder.Services.AddScoped<IProjectContentService, ProjectContentService>();
+builder.Services.AddScoped<IProjectCatalog>(services => services.GetRequiredService<IProjectContentService>());
 builder.Services.AddSingleton<IMemberCatalog, MemberCatalog>();
 builder.Services.AddSingleton<ITeamContentService, TeamContentService>();
 builder.Services.AddSingleton<IContactContentService, ContactContentService>();

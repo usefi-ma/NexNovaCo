@@ -24,9 +24,54 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<HomeFeaturedService> HomeFeaturedServices => Set<HomeFeaturedService>();
     public DbSet<ServiceInitializationState> ServiceInitializationStates => Set<ServiceInitializationState>();
 
+    public DbSet<ProjectEntity> Projects => Set<ProjectEntity>();
+    public DbSet<ProjectGalleryImage> ProjectGalleryImages => Set<ProjectGalleryImage>();
+    public DbSet<ProjectFeature> ProjectFeatures => Set<ProjectFeature>();
+    public DbSet<HomeFeaturedProject> HomeFeaturedProjects => Set<HomeFeaturedProject>();
+    public DbSet<ProjectInitializationState> ProjectInitializationStates => Set<ProjectInitializationState>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        var project = builder.Entity<ProjectEntity>();
+        project.ToTable("Projects", table => table.HasCheckConstraint("CK_Projects_Order", "DisplayOrder > 0"));
+        project.HasKey(x => x.Id);
+        project.HasIndex(x => x.DisplayOrder);
+        project.HasIndex(x => x.Slug).IsUnique();
+        project.Property(x => x.Slug).IsRequired().HasMaxLength(80).UseCollation("NOCASE");
+        project.Property(x => x.Name).IsRequired().HasMaxLength(80);
+        project.Property(x => x.Tagline).IsRequired().HasMaxLength(120);
+        project.Property(x => x.Description).IsRequired().HasMaxLength(300);
+        project.Property(x => x.FullDescription).IsRequired().HasMaxLength(10000);
+        project.Property(x => x.ImagePath).IsRequired().HasMaxLength(200);
+        project.Property(x => x.Client).HasMaxLength(160);
+        project.Property(x => x.Category).HasMaxLength(160);
+        project.Property(x => x.Date).HasMaxLength(80);
+        project.Property(x => x.Technologies).HasMaxLength(500);
+        project.Property(x => x.UpdatedAtUtc).IsConcurrencyToken();
+        project.HasMany(x => x.Gallery).WithOne().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+        project.HasMany(x => x.Features).WithOne().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+        var gallery = builder.Entity<ProjectGalleryImage>();
+        gallery.ToTable("ProjectGalleryImages", table => table.HasCheckConstraint("CK_ProjectGalleryImages_Order", "DisplayOrder > 0"));
+        gallery.HasKey(x => x.Id);
+        gallery.HasIndex(x => new { x.ProjectId, x.DisplayOrder });
+        gallery.Property(x => x.Source).IsRequired().HasMaxLength(200);
+        gallery.Property(x => x.Alt).IsRequired().HasMaxLength(200);
+        var feature = builder.Entity<ProjectFeature>();
+        feature.ToTable("ProjectFeatures", table => table.HasCheckConstraint("CK_ProjectFeatures_Order", "DisplayOrder > 0"));
+        feature.HasKey(x => x.Id);
+        feature.HasIndex(x => new { x.ProjectId, x.DisplayOrder });
+        feature.Property(x => x.Text).IsRequired().HasMaxLength(300);
+        var featuredProject = builder.Entity<HomeFeaturedProject>();
+        featuredProject.ToTable("HomeFeaturedProjects", table => table.HasCheckConstraint("CK_HomeFeaturedProjects_Order", "DisplayOrder > 0"));
+        featuredProject.HasKey(x => x.ProjectId);
+        featuredProject.Property(x => x.ProjectId).ValueGeneratedNever();
+        featuredProject.HasIndex(x => x.DisplayOrder);
+        featuredProject.HasOne(x => x.Project).WithOne(x => x.HomeFeatured).HasForeignKey<HomeFeaturedProject>(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+        var projectInitialization = builder.Entity<ProjectInitializationState>();
+        projectInitialization.ToTable("ProjectInitializationState", table => table.HasCheckConstraint("CK_ProjectInitializationState_Singleton", "Id = 1"));
+        projectInitialization.HasKey(x => x.Id);
+        projectInitialization.Property(x => x.Id).ValueGeneratedNever();
         var service = builder.Entity<ServiceEntity>();
         service.ToTable("Services", table => table.HasCheckConstraint("CK_Services_Order", "DisplayOrder > 0"));
         service.HasKey(x => x.Id);

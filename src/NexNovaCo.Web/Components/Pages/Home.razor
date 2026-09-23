@@ -25,7 +25,10 @@
         {
             <HomeServicesSection Heading="_content.ServicesHeading" Items="_content.Services" />
         }
-        <HomeProjectsSection Heading="_content.ProjectsHeading" Items="_content.Projects" />
+        @if (_content.Projects.Count > 0)
+        {
+            <HomeProjectsSection Heading="_content.ProjectsHeading" Items="_content.Projects" />
+        }
         <HomeTeamSection Content="_content.Team" Members="_content.Members" />
         <HomeStatisticsSection Items="_content.Statistics" />
         @if (_content.Partners.Count > 0)

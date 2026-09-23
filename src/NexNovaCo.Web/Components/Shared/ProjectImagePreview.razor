@@ -1,0 +1,23 @@
+<div class="project-image-preview">
+    @if (!_failed && ProjectImageAssets.IsAllowed(ImagePath))
+    {
+        <img @key="ImagePath" src="@ImagePath" alt="@(Name + " image")" width="64" height="64" @onerror="() => _failed = true" />
+    }
+    else
+    {
+        <span role="img" aria-label="Image unavailable">No image</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string ImagePath { get; set; } = "";
+    [Parameter] public string Name { get; set; } = "";
+    private string? _previousPath;
+    private bool _failed;
+    protected override void OnParametersSet()
+    {
+        if (_previousPath == ImagePath) return;
+        _previousPath = ImagePath;
+        _failed = false;
+    }
+}

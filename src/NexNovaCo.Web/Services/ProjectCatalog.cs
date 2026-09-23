@@ -3,10 +3,17 @@ using NexNovaCo.Web.Models;
 
 namespace NexNovaCo.Web.Services;
 
-// One application-lifetime snapshot shared by Home, the listing and Project Detail.
-// Replace this DI implementation for a future content source, not the rendering components.
-public sealed class ProjectCatalog(IWebHostEnvironment environment) : IProjectCatalog
+// Approved defaults used only by one-time initialization and public read-failure fallback.
+public sealed class ProjectCatalog(IWebHostEnvironment environment)
 {
+    public static IReadOnlyList<string> HomeFeaturedSlugs { get; } = Array.AsReadOnly(new[] { "nexconnect", "payflowx", "medilink", "tradesync", "eduvance" });
+    public async Task<IReadOnlyList<ProjectDetail>> GetDetailsAsync(CancellationToken cancellationToken = default)
+        => (await _projects.Value.WaitAsync(cancellationToken)).Details;
+    public async Task<IReadOnlyList<ProjectSummary>> GetHomeFeaturedAsync(CancellationToken cancellationToken = default)
+    {
+        var summaries = await GetAsync(cancellationToken);
+        return HomeFeaturedSlugs.Select(slug => summaries.Single(x => x.Slug == slug)).ToArray();
+    }
     private readonly Lazy<Task<Snapshot>> _projects = new(() => LoadAsync(environment.WebRootPath));
 
     public async Task<IReadOnlyList<ProjectSummary>> GetAsync(CancellationToken cancellationToken = default)

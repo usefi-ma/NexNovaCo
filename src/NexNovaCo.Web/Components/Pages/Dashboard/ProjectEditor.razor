@@ -1,0 +1,186 @@
+@page "/dashboard/content/projects/new"
+@page "/dashboard/content/projects/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IProjectContentService ProjectsService
+@inject ILogger<ProjectEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>@(_editingId is null ? "Add" : "Edit") Project | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Projects</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add project" : "Edit project")</MudText>
+<MudText Class="dashboard-muted mb-7">Saved changes appear on Projects and on Home when selected as featured. Keep copy concise for the existing cards.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Project saved. Home uses it only when selected as featured.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="shared-project">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Basic information">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Basic information</MudText>
+                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" HelperText="Up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Slug" For="@(() => _model.Slug)" Label="Slug" HelperText="Lowercase URL identifier. Changing it changes the public detail URL; old URLs will not redirect." Variant="Variant.Outlined" MaxLength="80" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Tagline" For="@(() => _model.Tagline)" Label="Tagline" HelperText="Up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Summary" HelperText="Up to 300 characters." Variant="Variant.Outlined" MaxLength="300" Lines="3" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Project details">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Project details</MudText>
+                <MudTextField @bind-Value="_model.FullDescription" For="@(() => _model.FullDescription)" Label="Full description" HelperText="Up to 10000 characters." Variant="Variant.Outlined" MaxLength="10000" Lines="6" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Client" For="@(() => _model.Client)" Label="Client" HelperText="Up to 160 characters." Variant="Variant.Outlined" MaxLength="160" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Category" For="@(() => _model.Category)" Label="Category" HelperText="Up to 160 characters." Variant="Variant.Outlined" MaxLength="160" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Date" For="@(() => _model.Date)" Label="Editorial date" HelperText="Display text, such as September 2025." Variant="Variant.Outlined" MaxLength="80" Lines="1" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Technologies" For="@(() => _model.Technologies)" Label="Technologies" HelperText="Existing free-text metadata, such as React, Node.js, AI APIs." Variant="Variant.Outlined" MaxLength="500" Lines="2" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Project media">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Media</MudText>
+                <MudText Class="dashboard-muted mb-4">Choose approved bundled images. No uploads or arbitrary file paths.</MudText>
+                <MudSelect T="string" @bind-Value="_model.ImagePath" For="@(() => _model.ImagePath)" Label="Cover image" Variant="Variant.Outlined" Disabled="_saving" Class="mb-4">
+                    @foreach (var path in ProjectImageAssets.Paths)
+                    {
+                        <MudSelectItem T="string" Value="@path">@path</MudSelectItem>
+                    }
+                </MudSelect>
+                <ProjectImagePreview ImagePath="@_model.ImagePath" Name="@_model.Name" />
+                <MudText Typo="Typo.h6" HtmlTag="h3" Class="my-5">Gallery</MudText>
+                @foreach (var row in _model.Gallery)
+                {
+                    <MudPaper @key="row" Outlined="true" Elevation="0" Class="pa-4 mb-4">
+                <MudSelect T="string" @bind-Value="row.Source"  Label="Gallery image" Variant="Variant.Outlined" Disabled="_saving" Class="mb-4">
+                    @foreach (var path in ProjectImageAssets.Paths)
+                    {
+                        <MudSelectItem T="string" Value="@path">@path</MudSelectItem>
+                    }
+                </MudSelect>
+                        <MudTextField @bind-Value="row.Alt" Label="Image alt text" MaxLength="200" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" Class="mb-4" />
+                        <ProjectImagePreview ImagePath="@row.Source" Name="@row.Alt" />
+                        <MudStack Row="true" Wrap="Wrap.Wrap" Class="mt-3">
+                            <MudButton OnClick="@(() => MoveRow(_model.Gallery, row, -1))" Disabled="@(_saving || _model.Gallery.IndexOf(row) == 0)" aria-label="@($"Move up gallery image {_model.Gallery.IndexOf(row) + 1}")">Up</MudButton>
+                            <MudButton OnClick="@(() => MoveRow(_model.Gallery, row, 1))" Disabled="@(_saving || _model.Gallery.IndexOf(row) == _model.Gallery.Count - 1)" aria-label="@($"Move down gallery image {_model.Gallery.IndexOf(row) + 1}")">Down</MudButton>
+                            <MudButton OnClick="@(() => RemoveRow(_model.Gallery, row))" Disabled="_saving" Color="Color.Error" aria-label="@($"Remove gallery image {_model.Gallery.IndexOf(row) + 1}")">Remove</MudButton>
+                        </MudStack>
+                    </MudPaper>
+                }
+                <MudButton OnClick="AddGallery" Disabled="_saving" Variant="Variant.Outlined">Add gallery image</MudButton>
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Project features">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Features</MudText>
+                @foreach (var row in _model.Features)
+                {
+                    <MudPaper @key="row" Outlined="true" Elevation="0" Class="pa-4 mb-4">
+                        <MudTextField @bind-Value="row.Text" Label="Feature" MaxLength="300" Lines="2" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" />
+                        <MudStack Row="true" Wrap="Wrap.Wrap" Class="mt-3">
+                            <MudButton OnClick="@(() => MoveRow(_model.Features, row, -1))" Disabled="@(_saving || _model.Features.IndexOf(row) == 0)" aria-label="@($"Move up feature {_model.Features.IndexOf(row) + 1}")">Up</MudButton>
+                            <MudButton OnClick="@(() => MoveRow(_model.Features, row, 1))" Disabled="@(_saving || _model.Features.IndexOf(row) == _model.Features.Count - 1)" aria-label="@($"Move down feature {_model.Features.IndexOf(row) + 1}")">Down</MudButton>
+                            <MudButton OnClick="@(() => RemoveRow(_model.Features, row))" Disabled="_saving" Color="Color.Error" aria-label="@($"Remove feature {_model.Features.IndexOf(row) + 1}")">Remove</MudButton>
+                        </MudStack>
+                    </MudPaper>
+                }
+                <MudButton OnClick="AddFeature" Disabled="_saving" Variant="Variant.Outlined">Add feature</MudButton>
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">This changes shared content, not Home's section introduction.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save project")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else
+{
+    <MudButton Href="/dashboard/content/projects" Variant="Variant.Outlined">Back to list</MudButton>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private ProjectEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+    private string? _navigateAfterSave;
+    private bool _showCreated;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id;
+        _model = null;
+        _error = null;
+        _saved = _showCreated;
+        _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await ProjectsService.GetForEditAsync(id) : new ProjectEditModel();
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to load project editor.");
+            _error = exception is KeyNotFoundException ? "This project no longer exists. Return to the list."
+                : "The project could not be loaded. Check your session and try again.";
+        }
+    }
+    private void AddGallery() { if (!_saving) { _model!.Gallery.Add(new()); _saved = false; } }
+    private void AddFeature() { if (!_saving) { _model!.Features.Add(new()); _saved = false; } }
+    private void RemoveRow<T>(List<T> rows, T row) { if (!_saving) { rows.Remove(row); _saved = false; } }
+    private void MoveRow<T>(List<T> rows, T row, int direction)
+    {
+        if (_saving) return;
+        var index = rows.IndexOf(row); var target = index + direction;
+        if (index < 0 || target < 0 || target >= rows.Count) return;
+        (rows[index], rows[target]) = (rows[target], rows[index]); _saved = false;
+    }
+    private void ClearSaved() => _saved = false;
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/projects");
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true;
+        _saved = false;
+        _error = null;
+        try
+        {
+            if (_editingId is int id) await ProjectsService.UpdateAsync(id, _model);
+            else _editingId = await ProjectsService.CreateAsync(_model);
+            _model.Slug = ProjectSlugs.Normalize(_model.Slug);
+            _snapshot.Capture(CurrentValues);
+            _saved = true;
+            // Leave /new after creation so refresh cannot accidentally create a duplicate.
+            if (Id is null)
+            {
+                _showCreated = true;
+                _navigateAfterSave = $"/dashboard/content/projects/{_editingId}";
+            }
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to save project.");
+            _error = exception is ValidationException validation ? validation.Message
+                : exception is KeyNotFoundException or DbUpdateConcurrencyException
+                ? "This project changed or no longer exists. Your input is retained; return to the list to reload."
+                : "The project could not be saved. Your input is retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null;
+        // The clean snapshot has now reached NavigationLock before leaving the /new route.
+        Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+}

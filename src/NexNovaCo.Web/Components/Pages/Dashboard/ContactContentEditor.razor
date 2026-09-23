@@ -1,0 +1,6 @@
+@page "/dashboard/content/contact"
+@inject NavigationManager Navigation
+<PageTitle>Contact | NexNovaCo Dashboard</PageTitle>
+@code {
+    protected override void OnInitialized() => Navigation.NavigateTo("/dashboard/content/contact/hero", replace: true);
+}

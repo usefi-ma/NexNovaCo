@@ -64,6 +64,12 @@
                     <MudNavLink Href="/dashboard/content/team/hero" Match="NavLinkMatch.All">Hero</MudNavLink>
                     <MudNavLink Href="/dashboard/content/team/overview" Match="NavLinkMatch.All">Team Section</MudNavLink>
                 </MudNavGroup>
+                <MudNavGroup Title="Contact" Icon="@Icons.Material.Outlined.ContactMail" @bind-Expanded="_contactExpanded">
+                    <MudNavLink Href="/dashboard/content/contact/hero" Match="NavLinkMatch.All">Hero</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/contact/info" Match="NavLinkMatch.All">Contact Info</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/contact/form" Match="NavLinkMatch.All">Form</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/contact/map" Match="NavLinkMatch.All">Map</MudNavLink>
+                </MudNavGroup>
                 <MudText Typo="Typo.overline" Class="dashboard-nav-label">Shared Content</MudText>
                 <MudNavLink Href="/dashboard/content/testimonials" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.FormatQuote">Testimonials</MudNavLink>
                 <MudNavLink Href="/dashboard/content/partners" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Handshake">Partners</MudNavLink>
@@ -89,6 +95,7 @@
     private bool _servicesExpanded;
     private bool _projectsExpanded;
     private bool _teamExpanded;
+    private bool _contactExpanded;
     private MudIconButton? _toggleButton;
     private string _pageTitle = "Dashboard";
     protected override void OnInitialized()
@@ -118,7 +125,9 @@
         if (isProjects) _projectsExpanded = true;
         var isTeam = path.StartsWith("dashboard/content/team", StringComparison.OrdinalIgnoreCase);
         if (isTeam) _teamExpanded = true;
-        _pageTitle = isTeam ? "Team / " + TeamSectionName(path) : isProjects ? "Projects / " + ProjectsSectionName(path) : isServices ? "Services / " + ServicesSectionName(path) : isAbout ? "About / " + AboutSectionName(path)
+        var isContact = path.StartsWith("dashboard/content/contact", StringComparison.OrdinalIgnoreCase);
+        if (isContact) _contactExpanded = true;
+        _pageTitle = isContact ? "Contact / " + ContactSectionName(path) : isTeam ? "Team / " + TeamSectionName(path) : isProjects ? "Projects / " + ProjectsSectionName(path) : isServices ? "Services / " + ServicesSectionName(path) : isAbout ? "About / " + AboutSectionName(path)
             : path.StartsWith("dashboard/content/testimonials", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Testimonials"
             : path.StartsWith("dashboard/content/partners", StringComparison.OrdinalIgnoreCase) ? "Shared Content / Partners"
             : path.StartsWith("dashboard/content/shared-services/home-featured", StringComparison.OrdinalIgnoreCase) ? "Services / Home Featured"
@@ -136,6 +145,10 @@
             : path.StartsWith("dashboard/content/home/services", StringComparison.OrdinalIgnoreCase) ? "Home / Services"
             : path.StartsWith("dashboard/content/home/welcome", StringComparison.OrdinalIgnoreCase) ? "Home / Welcome" : "Home / Hero";
     }
+    private static string ContactSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() switch
+    {
+        "info" => "Contact Info", "form" => "Form", "map" => "Map", _ => "Hero"
+    };
     private static string TeamSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() == "overview" ? "Team Section" : "Hero";
     private static string ProjectsSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() switch
     {

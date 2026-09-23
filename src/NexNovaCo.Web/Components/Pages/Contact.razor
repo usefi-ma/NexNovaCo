@@ -1,5 +1,6 @@
 @page "/contact"
 @inject IContactContentService ContentService
+@inject NavigationManager Navigation
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
@@ -13,7 +14,7 @@
 
 @if (_content is not null)
 {
-    <div class="contact-page" @ref="_root">
+    <div class="contact-page" @ref="_root" style="@($"--contact-hero-image: url('{Navigation.ToAbsoluteUri(_content.HeroImagePath)}')")">
         <InnerPageHero Content="_content.Hero" />
         <section class="contact_info" id="Contact" aria-label="Contact information and form">
             <div class="container-fluid h-100">

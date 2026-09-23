@@ -1,0 +1,86 @@
+@page "/dashboard/content/contact/form"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IContactPageCmsService ContactPageService
+@inject NavigationManager Navigation
+@inject ILogger<ContactFormEditor> Logger
+
+<PageTitle>Contact Form | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Contact / Form</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Contact Form</MudText>
+<MudText Class="dashboard-muted mb-7">Edit presentation only. Required fields, validation rules, the fixed demo notice and honest demo success remain code-controlled.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" role="alert" Class="mb-4">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" role="status" Class="mb-4">Contact Form saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="contact-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Form content">
+                <MudTextField @bind-Value="_model.Heading" For="@(() => _model.Heading)" Label="Heading" HelperText="Required; up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.FirstNameLabel" For="@(() => _model.FirstNameLabel)" Label="First Name Label" HelperText="Required; up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.FirstNamePlaceholder" For="@(() => _model.FirstNamePlaceholder)" Label="First Name Placeholder" HelperText="Required; up to 160 characters." Variant="Variant.Outlined" MaxLength="160" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.LastNameLabel" For="@(() => _model.LastNameLabel)" Label="Last Name Label" HelperText="Required; up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.LastNamePlaceholder" For="@(() => _model.LastNamePlaceholder)" Label="Last Name Placeholder" HelperText="Required; up to 160 characters." Variant="Variant.Outlined" MaxLength="160" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.EmailLabel" For="@(() => _model.EmailLabel)" Label="Email Label" HelperText="Required; up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.EmailPlaceholder" For="@(() => _model.EmailPlaceholder)" Label="Email Placeholder" HelperText="Required; up to 160 characters." Variant="Variant.Outlined" MaxLength="160" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.SubjectLabel" For="@(() => _model.SubjectLabel)" Label="Subject Label" HelperText="Required; up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.SubjectPlaceholder" For="@(() => _model.SubjectPlaceholder)" Label="Subject Placeholder" HelperText="Required; up to 160 characters." Variant="Variant.Outlined" MaxLength="160" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.MessageLabel" For="@(() => _model.MessageLabel)" Label="Message Label" HelperText="Required; up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.MessagePlaceholder" For="@(() => _model.MessagePlaceholder)" Label="Message Placeholder" HelperText="Required; up to 160 characters." Variant="Variant.Outlined" MaxLength="160" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.SubmitLabel" For="@(() => _model.SubmitLabel)" Label="Submit Label" HelperText="Required; up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.InvalidMessage" For="@(() => _model.InvalidMessage)" Label="Invalid Message" HelperText="Required; up to 300 characters." Variant="Variant.Outlined" MaxLength="300" Lines="3" Sizing="InputSizing.Auto" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Changes go live on Contact when saved. Layout and styling stay the same.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenContact" Variant="Variant.Outlined" Disabled="_saving">View Contact Page</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+
+
+@code {
+    private ContactFormEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving, _saved;
+    private string? _error;
+    protected override async Task OnInitializedAsync()
+    {
+        try { _model = await ContactPageService.GetFormForEditAsync(); _snapshot.Capture(CurrentValues); }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to load Contact Form.");
+            _error = "Content could not be loaded. Check your session and refresh; defaults are not shown as saved content.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void OpenContact() => Navigation.NavigateTo("/contact", forceLoad: true);
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        try
+        {
+            await ContactPageService.SaveFormAsync(_model);
+            _snapshot.Capture(CurrentValues); _saved = true;
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to save Contact Form.");
+            _error = "Content could not be saved. Your changes are retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    private static bool Expected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException or IOException or InvalidOperationException;
+}

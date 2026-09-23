@@ -1,4 +1,5 @@
 /* Preserve source H3 typography while giving the page logical H2 sections. */
+.contact-page .inner_page_header_pic .hexagon_with_back { background-image: var(--contact-hero-image); }
 .contact-page .contact_info h2, .contact-page .map h2 { margin-bottom: 30px; font-weight: 900; font-size: 2.5rem; color: var(--primary-text-color); }
 .contact-page .left_mision h2 { font-size: 38px; margin-bottom: 20px; color: #fff; }
 .contact-page .map h2 { text-align: center; }

@@ -1,3 +1,4 @@
+@inject IContactPageCmsService ContactSettings
 <footer class="footer">
     <div class="container mb-5">
         <div class="row">
@@ -7,7 +8,7 @@
                     <h3>NexNovaCo</h3>
                 </div>
                 <p>NexNovaCo specializes in delivering innovative solutions and exceptional services tailored to your needs. Empowering businesses with creativity and expertise.</p>
-                <SocialLinks />
+                <SocialLinks Email="@_contact.Email" />
             </div>
             <nav class="col_footer col-12 col-lg-2 col-xl-3" aria-label="Footer">
                 <PrimaryNavigation />
@@ -30,3 +31,8 @@
     </div>
     <BackToTop />
 </footer>
+
+@code {
+    private SiteContactContent _contact = new(ContactPageDefaults.Content.Info.Phone, ContactPageDefaults.Content.Info.Email, ContactPageDefaults.Content.Info.Address);
+    protected override async Task OnInitializedAsync() => _contact = await ContactSettings.ReadSiteContactAsync();
+}

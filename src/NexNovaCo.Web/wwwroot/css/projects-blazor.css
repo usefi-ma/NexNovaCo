@@ -17,3 +17,7 @@
     .projects-page .project_item, .projects-page .project_hexagon,
     .projects-page .custome_btn { transition: none; }
 }
+
+.projects-page .inner_page_header_pic .hexagon_with_back {
+    background-image: var(--projects-hero-image, url("../image/home/inner-banner.jpg"));
+}

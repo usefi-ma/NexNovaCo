@@ -1,6 +1,6 @@
 namespace NexNovaCo.Web.Models;
 
-// Page presentation, not testimonial entity data. Projects remains static; Home has its own CMS setting.
+// Page presentation, not testimonial entity data. Home and Projects initialize their own independent CMS settings.
 public static class TestimonialPresentationDefaults
 {
     public static SectionHeading Brand { get; } = new("NexNovaCo",

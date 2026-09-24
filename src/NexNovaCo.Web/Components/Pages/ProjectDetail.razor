@@ -3,16 +3,13 @@
 @inject NavigationManager Navigation
 @implements IDisposable
 
-<PageTitle>@(_project?.Summary.Name ?? "Project") | NexNovaCo</PageTitle>
-<HeadContent>
-    @if (_project is not null)
-    {
-        <meta name="description" content="@_project.Summary.Description" />
-    }
+<PublicPageHead Path="@("/projects/" + _project?.Summary.Slug)" Title="@(_project?.Summary.Name ?? "Project")"
+                Description="@_project?.Summary.Description" ImagePath="@_project?.Summary.ImagePath"
+                ParentPath="/projects" ParentLabel="Projects" IsContentAvailable="@(_project is not null)">
     <link rel="stylesheet" href="@Assets["css/inner-project.css"]" />
     <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/project-detail-blazor.css"]" />
-</HeadContent>
+</PublicPageHead>
 
 @if (_project is not null)
 {

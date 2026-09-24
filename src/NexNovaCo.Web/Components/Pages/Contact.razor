@@ -4,13 +4,11 @@
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<PageTitle>Contact | NexNovaCo</PageTitle>
-<HeadContent>
-    <meta name="description" content="View NexNovaCo's contact information and location, and try the demo contact form. Demo submissions do not send messages." />
+<PublicPageHead Path="/contact" Title="Contact" Description="View {site}'s contact information and location. The demo contact form does not send messages.">
     <link rel="stylesheet" href="@Assets["css/contact.css"]" />
     <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/contact-blazor.css"]" />
-</HeadContent>
+</PublicPageHead>
 
 @if (_content is not null)
 {

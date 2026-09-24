@@ -3,15 +3,12 @@
 @inject NavigationManager Navigation
 @implements IDisposable
 
-<PageTitle>@(_member?.Summary.Name ?? "Team member") | NexNovaCo</PageTitle>
-<HeadContent>
-    @if (_member is not null)
-    {
-        <meta name="description" content="@($"Meet {_member.Summary.Name}, {_member.Summary.Role} at NexNovaCo. Explore their biography, skills, and profile.")" />
-    }
+<PublicPageHead Path="@("/team/" + _member?.Summary.Slug)" Title="@(_member?.Summary.Name ?? "Team member")"
+                Description="@(_member is null ? null : $"Meet {_member.Summary.Name}, {_member.Summary.Role}. {_member.Summary.Introduction}")" ImagePath="@_member?.Summary.ImagePath"
+                ParentPath="/team" ParentLabel="Team" IsContentAvailable="@(_member is not null)">
     <link rel="stylesheet" href="@Assets["css/member.css"]" />
     <link rel="stylesheet" href="@Assets["css/member-blazor.css"]" />
-</HeadContent>
+</PublicPageHead>
 
 @if (_member is not null)
 {

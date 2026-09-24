@@ -1,0 +1,74 @@
+@using System.Text.Json
+@inject PublicSiteUrls Urls
+@inject IGlobalSettingsService Settings
+@inject IWebHostEnvironment Environment
+@inject MediaFilePaths MediaPaths
+
+<PageTitle>@FullTitle</PageTitle>
+<HeadContent>
+    <meta name="description" content="@Summary" />
+    @if (!Urls.IsIndexable || !IsContentAvailable)
+    {
+        <meta name="robots" content="noindex, nofollow" />
+    }
+    @if (Canonical is not null && IsContentAvailable)
+    {
+        <link rel="canonical" href="@Canonical" />
+        <meta property="og:title" content="@FullTitle" />
+        <meta property="og:description" content="@Summary" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="@Canonical" />
+        <meta property="og:image" content="@ShareImage" />
+        <meta property="og:image:alt" content="@(ImagePath is null ? _identity.SiteName : Title)" />
+        <meta property="og:site_name" content="@_identity.SiteName" />
+        @* No approved wide social artwork yet; do not promise a large card. *@
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="@FullTitle" />
+        <meta name="twitter:description" content="@Summary" />
+        <meta name="twitter:image" content="@ShareImage" />
+        <script type="application/ld+json">@((MarkupString)StructuredData())</script>
+    }
+    @ChildContent
+</HeadContent>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter, EditorRequired] public string Path { get; set; } = "/";
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? ImagePath { get; set; }
+    [Parameter] public string? ParentPath { get; set; }
+    [Parameter] public string? ParentLabel { get; set; }
+    [Parameter] public bool IsContentAvailable { get; set; } = true;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private SiteIdentityEditModel _identity = SiteIdentityEditModel.Approved();
+    private string FullTitle => string.IsNullOrWhiteSpace(Title) ? _identity.SiteName : $"{Title} | {_identity.SiteName}";
+    private string Summary => string.IsNullOrWhiteSpace(Description) ? $"Explore {_identity.SiteName}." : Description.Replace("{site}", _identity.SiteName);
+    private string? Canonical => Urls.Absolute(Path);
+    private string? ShareImage => Urls.Absolute(SafeImagePath());
+    private string SafeImagePath()
+    {
+        var path = ImagePath?.Replace("assets/image/", "image/");
+        if (path is not null && !path.Contains("..") && !path.Contains('\\') &&
+            ((MediaPolicy.IsGenerated(path) && MediaPaths.Exists(path)) ||
+             (path.StartsWith("image/", StringComparison.Ordinal) && Environment.WebRootFileProvider.GetFileInfo(path).Exists)))
+            return path;
+        return _identity.ImagePath;
+    }
+    protected override async Task OnParametersSetAsync() => _identity = await Settings.ReadSiteIdentityAsync();
+
+    private string StructuredData()
+    {
+        var graph = new List<object>
+        {
+            new Dictionary<string, object?> { ["@type"] = "Organization", ["@id"] = Urls.Absolute("/#organization"), ["name"] = _identity.SiteName, ["url"] = Urls.Absolute("/"), ["logo"] = Urls.Absolute(_identity.ImagePath) },
+            new Dictionary<string, object?> { ["@type"] = "WebSite", ["@id"] = Urls.Absolute("/#website"), ["name"] = _identity.SiteName, ["url"] = Urls.Absolute("/") }
+        };
+        if (ParentPath is not null && ParentLabel is not null)
+        {
+            object Crumb(int position, string name, string? url) => new Dictionary<string, object?> { ["@type"] = "ListItem", ["position"] = position, ["name"] = name, ["item"] = url };
+            graph.Add(new Dictionary<string, object?> { ["@type"] = "BreadcrumbList", ["itemListElement"] = new[] { Crumb(1, "Home", Urls.Absolute("/")), Crumb(2, ParentLabel, Urls.Absolute(ParentPath)), Crumb(3, Title ?? "", Canonical) } });
+        }
+        // Default JSON encoder escapes HTML characters, including CMS-supplied </script>.
+        return JsonSerializer.Serialize(new Dictionary<string, object> { ["@context"] = "https://schema.org", ["@graph"] = graph });
+    }
+}

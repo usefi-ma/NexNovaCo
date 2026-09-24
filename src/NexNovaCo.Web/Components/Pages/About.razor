@@ -4,14 +4,12 @@
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
 
-<PageTitle>About | NexNovaCo</PageTitle>
-<HeadContent>
-    <meta name="description" content="Learn about NexNovaCo's story, mission, vision, and approach to software and AI solutions." />
+<PublicPageHead Path="/about" Title="About" Description="@_content?.Hero.Description">
     <link rel="stylesheet" href="@Assets["css/about.css"]" />
     <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/carousel-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/about-blazor.css"]" />
-</HeadContent>
+</PublicPageHead>
 
 @if (_content is not null)
 {

@@ -16,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
+builder.Services.AddSingleton<PublicSiteUrls>();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 builder.Services.AddAuthentication(options =>
@@ -100,6 +101,7 @@ builder.Services.AddSingleton<MediaFilePaths>();
 builder.Services.AddScoped<IMediaStorageService, LocalMediaStorageService>();
 
 var app = builder.Build();
+var publicUrls = app.Services.GetRequiredService<PublicSiteUrls>();
 await IdentityDatabaseInitializer.InitializeAsync(app.Services, app.Configuration, app.Environment);
 
 // Configure the HTTP request pipeline.
@@ -112,6 +114,19 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var path = context.Request.Path;
+        if (!publicUrls.IsIndexable || path.StartsWithSegments("/admin") || path.StartsWithSegments("/dashboard") ||
+            path.StartsWithSegments("/Error") || path.StartsWithSegments("/not-found") || context.Response.StatusCode >= 400)
+            context.Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+        return Task.CompletedTask;
+    });
+    await next();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
@@ -121,6 +136,7 @@ app.UseAntiforgery();
 app.UseWhen(context => !context.Request.Path.StartsWithSegments("/assets/uploads"),
     branch => branch.UseStaticFiles(new StaticFileOptions { RequestPath = "/assets" }));
 app.MapStaticAssets();
+app.MapPublicDiscovery();
 // Runtime uploads are not build-manifest assets. Only canonical raster paths can be read.
 // There is no HTTP upload endpoint; writes run in authenticated interactive Admin forms.
 app.MapMethods("/uploads/{folder}/{file}", ["GET", "HEAD"], (string folder, string file, HttpContext context, MediaFilePaths paths) =>

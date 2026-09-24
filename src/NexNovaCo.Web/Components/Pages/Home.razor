@@ -5,16 +5,14 @@
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<PageTitle>NexNovaCo | Smart Software, Powerful AI</PageTitle>
-<HeadContent>
-    <meta name="description" content="Explore NexNovaCo's software development and AI services, project portfolio, and team." />
+<PublicPageHead Path="/" Description="@_content?.Hero.Description">
     @* Original Home rules are route-local and unchanged. Only lifecycle adaptations follow. *@
     <link rel="stylesheet" href="@Assets["css/index.css"]" />
     <link rel="stylesheet" href="@Assets["css/carousel-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/project-card-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/testimonials-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/home-blazor.css"]" />
-</HeadContent>
+</PublicPageHead>
 
 @if (_content is not null)
 {

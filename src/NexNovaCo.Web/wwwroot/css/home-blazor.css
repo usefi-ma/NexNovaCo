@@ -15,6 +15,10 @@ html:has(.home-page)::-webkit-scrollbar { width: revert; height: revert; }
 .home-page [data-aos] { transition-duration: 1000ms; }
 .home-page [data-aos][data-aos-duration="600"] { transition-duration: 600ms; }
 
+/* The Services zoom-out heading/copy starts at scale(1.2). Keep that offscreen
+   reveal inside its own section without making the page horizontally scrollable. */
+.home-page .service { overflow-x: clip; }
+
 @media (prefers-reduced-motion: reduce) {
     .home-page [data-aos] { opacity: 1; transform: none; transition: none; }
     .home-page .service_box, .home-page .team_member_box,

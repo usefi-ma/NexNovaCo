@@ -15,7 +15,7 @@ function Get-Response([string]$Path) {
     Invoke-WebRequest -Uri ([Uri]::new($baseUri, $Path)) -UseBasicParsing -SkipHttpErrorCheck
 }
 
-$excludedScripts = @('script.js', 'inner-project.js', 'member.js', 'contact.js', 'bootstrap.min.js', 'aos.js')
+$excludedScripts = @('script.js', 'inner-project.js', 'member.js', 'contact.js', 'bootstrap.min.js', 'aos.js', 'jquery-3.1.0.js')
 $forbiddenFiles = @('appsettings.Development.json', 'NexNovaCo.Web.pdb', 'packages.lock.json', 'launchSettings.json')
 $files = Get-ChildItem -LiteralPath $root -Recurse -File
 foreach ($file in $files) {
@@ -42,7 +42,7 @@ foreach ($script in $excludedScripts) {
 }
 
 $routes = [ordered]@{
-    '' = 'NexNovaCo | Smart Software, Powerful AI'
+    '' = 'NexNovaCo'
     services = 'Services | NexNovaCo'
     about = 'About | NexNovaCo'
     projects = 'Projects | NexNovaCo'
@@ -86,7 +86,7 @@ foreach ($route in $routes.GetEnumerator()) {
 foreach ($asset in $assetUrls) {
     Assert-True ((Get-Response $asset).StatusCode -eq 200) "Broken rendered asset: $asset"
 }
-foreach ($script in @('public-shell.js', 'home.js', 'services.js', 'about.js', 'projects.js', 'project-detail.js', 'team.js', 'contact-page.js', 'carousels.js', 'reveal.js', 'jquery-3.1.0.js', 'owl.carousel.min.js', 'countUp.umd.js')) {
+foreach ($script in @('public-shell.js', 'home.js', 'services.js', 'about.js', 'projects.js', 'project-detail.js', 'team.js', 'contact-page.js', 'carousels.js', 'reveal.js', 'jquery-3.7.1.min.js', 'owl.carousel.min.js', 'countUp.umd.js')) {
     Assert-True ((Get-Response "js/$script").StatusCode -eq 200) "Missing active enhancement: $script"
 }
 foreach ($script in $excludedScripts) {

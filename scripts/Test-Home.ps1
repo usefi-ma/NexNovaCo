@@ -15,7 +15,7 @@ function Get-Page([string]$Path) {
 
 $html = Get-Page ''
 Assert-True ([regex]::Matches($html, '<h1(?:\s|>)').Count -eq 1) 'Home must have one H1'
-Assert-True ($html.Contains('<title>NexNovaCo | Smart Software, Powerful AI</title>')) 'Incorrect Home title'
+Assert-True ($html.Contains('<title>NexNovaCo</title>')) 'Incorrect approved-brand Home title'
 Assert-True (-not $html.Contains('migration-placeholder')) 'Home is still a placeholder'
 $lastIndex = -1
 foreach ($section in @('head', 'about', 'service', 'project', 'team', 'counter', 'partnership', 'testimonial')) {
@@ -72,8 +72,11 @@ foreach ($path in @('projects/not-a-project', 'team/not-a-member')) {
 
 $images = [regex]::Matches($html, '<img\b[^>]*>')
 foreach ($image in $images) {
-    Assert-True ([regex]::IsMatch($image.Value, '\balt="[^"]+"')) "Missing meaningful image alt: $image"
     $path = [regex]::Match($image.Value, '\bsrc="([^"]+)"').Groups[1].Value
+    Assert-True ([regex]::IsMatch($image.Value, '\balt(?:=|\s|>)')) "Missing image alt attribute: $image"
+    # Brand marks repeat adjacent named branding; service icons repeat their card heading.
+    $decorative = $path -eq 'image/logo.png' -or $path -match '^image/service/icons/'
+    if (-not $decorative) { Assert-True ([regex]::IsMatch($image.Value, '\balt="[^"]+"')) "Missing meaningful image alt: $image" }
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, $path)) -UseBasicParsing
 }
 foreach ($path in @('js/home.js', 'js/carousels.js', 'js/countUp.umd.js', 'js/countUp.LICENSE.md', 'css/home-blazor.css', 'css/carousel-blazor.css', 'css/project-card-blazor.css', 'css/testimonials-blazor.css')) {

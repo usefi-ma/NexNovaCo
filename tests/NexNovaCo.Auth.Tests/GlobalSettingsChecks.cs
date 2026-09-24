@@ -128,7 +128,7 @@ internal static class GlobalSettingsChecks
             Check(!Dirty(editor) && (bool)GetField(editor, "_saved")!, "Save handler clears dirty state only after persistence.");
         }
         var html = WebUtility.HtmlDecode(await client.GetStringAsync("/"));
-        Check(html.Contains("Edited SiteName home") && html.Contains("<h3>Edited SiteName</h3>"), "Canonical name in Header and Footer.");
+        Check(html.Contains("Edited SiteName home") && html.Contains("<h2 class=\"h3\">Edited SiteName</h2>"), "Canonical name in Header and Footer.");
         Check(html.Contains("Edited Description") && html.Contains("Edited Copyright") &&
             html.Contains("Edited NewsletterHeading") && html.Contains("Edited NewsletterPlaceholder") && html.Contains("Edited NewsletterSubmitLabel"), "Footer fields render.");
         Check(html.Contains("Newsletter signup is not available yet.") && html.Contains("aria-disabled=\"true\""), "Newsletter remains honest and unavailable.");
@@ -263,7 +263,7 @@ internal static class GlobalSettingsChecks
         var image = await client.GetAsync("/" + path);
         Check(image.IsSuccessStatusCode && image.Content.Headers.ContentType!.MediaType == "image/png", "Validated uploaded PNG served.");
         var html = await client.GetStringAsync("/");
-        Check(html.Split(path).Length == 3, "Same uploaded logo in Header and Footer.");
+        Check(System.Text.RegularExpressions.Regex.Matches(html, "<img[^>]*src=\"" + System.Text.RegularExpressions.Regex.Escape(path) + "\"").Count == 2, "Same uploaded logo in Header and Footer.");
         Check(File.Exists(Path.Combine(root, "image/logo.png")), "Original logo untouched.");
         model.ImagePath = "uploads/site/" + new string('a', 32) + ".png";
         await RejectAsync<ValidationException>(() => service.SaveSiteIdentityAsync(model), "Nonexistent media rejected.");

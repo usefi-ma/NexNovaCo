@@ -2,13 +2,13 @@
     <div class="container-fluid container-xxl">
         <div class="row">
             <div class="col-12 col-md-10 col-lg-10 col-xl-10 col-xxl-12 m-auto">
-                <div class="project_title"><SectionHeader Content="Heading" UseThirdLevelHeading="true" /></div>
+                <div class="project_title"><SectionHeader Content="Heading" /></div>
             </div>
             <ThemeCarousel Kind="projects" Label="Featured projects" @key="Items">
                 @for (var i = 0; i < Items.Count; i++)
                 {
                     <div class="item project_item" data-aos="fade-up" data-aos-delay="@(i * 100)">
-                        <ProjectCard Content="Items[i]" />
+                        <ProjectCard Content="Items[i]" Nested="true" />
                     </div>
                 }
             </ThemeCarousel>

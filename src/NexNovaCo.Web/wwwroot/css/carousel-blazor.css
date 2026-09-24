@@ -12,6 +12,9 @@
     box-shadow: 5px 5px 30px 0 rgba(204, 119, 34, 0.1);
 }
 .public-site .owl-theme .owl-nav .carousel-pause:hover { background: var(--orange); color: #fff; }
+/* Dark carousel stages need a lighter orange than the light-background partner row. */
+.public-site :is(.owl-carousel_project, .owl-carousel_testimonial) .owl-nav .carousel-pause { color: #ffba69; }
+.public-site :is(.owl-carousel_project, .owl-carousel_testimonial) .owl-nav button::after { filter: brightness(1.5); }
 .public-site .owl-nav button:focus-visible,
 .public-site .owl-dots button:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
 

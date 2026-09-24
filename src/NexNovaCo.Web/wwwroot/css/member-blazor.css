@@ -9,7 +9,8 @@ html:has(.member-detail-page)::-webkit-scrollbar { width: revert; height: revert
 .public-site:has(.member-detail-page) .brand_container span,
 .public-site:has(.member-detail-page) .header_top .menu a { color: #fff; }
 .public-site:has(.member-detail-page) .header_top .menu a.active,
-.public-site:has(.member-detail-page) .header_top .menu a:hover { color: var(--orange); }
+.public-site:has(.member-detail-page) .header_top .menu a:hover { color: #ffba69; }
+.member-detail-page .breadcrumb-item.active { color: #ffba69; }
 .public-site:has(.member-detail-page) .menu-btn svg { fill: #fff; }
 @media (min-width: 1401px) {
     .member-detail-page .member_header > .container-fluid > .row { padding-top: 80px; }

@@ -1,7 +1,8 @@
 <div class="project_img"><img src="@Content.ImagePath" alt="@(Content.Name + " Project")" loading="lazy" /></div>
 <div class="project_desc">
     <div class="project_hexagon">
-        <h2>@Content.Name</h2>
+        @if (Nested) { <h3 class="h2 project-card-heading">@Content.Name</h3> }
+        else { <h2>@Content.Name</h2> }
         <p class="project-tagline">@Content.Tagline</p>
         <p>@Content.Description</p>
         <a class="custome_btn" href="@Content.DetailHref" aria-label="@("Read more about " + Content.Name)">Read More</a>
@@ -10,4 +11,5 @@
 
 @code {
     [Parameter, EditorRequired] public ProjectSummary Content { get; set; } = default!;
+    [Parameter] public bool Nested { get; set; }
 }

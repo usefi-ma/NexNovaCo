@@ -6,8 +6,8 @@
         <div class="row">
             <div class="col-12 col-lg-5 col-xl-4">
                 <div class="footer_logo_container">
-                    <img src="@Identity.ImagePath" alt="@($"{Identity.SiteName} logo")" />
-                    <h3>@Identity.SiteName</h3>
+                    <img src="@Identity.ImagePath" alt="" width="@(Identity.ImagePath == "image/logo.png" ? 418 : (int?)null)" height="@(Identity.ImagePath == "image/logo.png" ? 310 : (int?)null)" loading="lazy" decoding="async" />
+                    <h2 class="h3">@Identity.SiteName</h2>
                 </div>
                 <p>@_settings.Description</p>
                 <GlobalSocialLinks Items="_social" Name="@Identity.SiteName" Email="@_contact.Email" />
@@ -19,7 +19,7 @@
             {
             <div class="col_footer col-12 col-lg-5 col-xl-5">
                 <div class="footer_form_container">
-                    <h4>@_settings.NewsletterHeading</h4>
+                    <h2 class="h4">@_settings.NewsletterHeading</h2>
                     <p id="newsletter-notice">Newsletter signup is not available yet.</p>
                     @* Static demo shell only: no submission, storage, or email service. *@
                     <div class="form d-flex">

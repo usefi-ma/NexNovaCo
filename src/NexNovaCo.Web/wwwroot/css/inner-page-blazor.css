@@ -11,7 +11,7 @@ html:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, 
 .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .brand_container span,
 .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top .menu a { color: #fff; }
 .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top .menu a.active,
-.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top .menu a:hover { color: var(--orange); }
+.public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top .menu a:hover { color: #ffba69; }
 .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .menu-btn svg { fill: #fff; }
 .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page)) .header_top.fixed { width: 80%; }
 @media (min-width: 1401px) {

@@ -7,7 +7,7 @@
                     <div class="row justify-content-center">
                         <div class="col-md-10">
                             <h2 data-aos="fade-up" data-aos-delay="0">@Content.Title</h2>
-                            <h5 data-aos="fade-up" data-aos-delay="100">@Content.Introduction</h5>
+                            <p class="welcome-introduction" data-aos="fade-up" data-aos-delay="100">@Content.Introduction</p>
                             @for (var i = 0; i < Content.Paragraphs.Count; i++)
                             {
                                 <p data-aos="fade-up" data-aos-delay="@((i + 2) * 100)">@Content.Paragraphs[i]</p>

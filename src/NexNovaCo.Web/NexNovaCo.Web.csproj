@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <!-- Preserve migration references locally; no Blazor component loads these scripts. -->
+    <Content Update="wwwroot/js/jquery-3.1.0.js" CopyToPublishDirectory="Never" />
     <Content Update="wwwroot/js/script.js;wwwroot/js/inner-project.js;wwwroot/js/member.js;wwwroot/js/contact.js;wwwroot/js/bootstrap.min.js;wwwroot/js/aos.js"
              CopyToPublishDirectory="Never" />
     <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />

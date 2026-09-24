@@ -3,6 +3,8 @@
 body.public-site {
     background-color: #f4f9fc;
 }
+.public-site .brand_container img,
+.public-site .footer_logo_container img { height: auto; }
 
 .public-site .main_menu {
     position: absolute;
@@ -32,7 +34,21 @@ body.public-site {
 .public-site .fixed .menu-btn svg,
 .public-site .is-open .menu-btn svg { fill: #fff; }
 .public-site a:focus-visible,
-.public-site button:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; }
+.public-site button:focus-visible { outline: 3px solid #1d4064; outline-offset: 3px; box-shadow: 0 0 0 6px #fff; }
+
+/* Make keyboard-focused reveal content immediately visible and clear the sticky bar. */
+.public-site [data-aos]:focus-within { opacity: 1; transform: none; pointer-events: auto; }
+.public-site :is(a, button, input, textarea, h1, #main-content) { scroll-margin-top: 110px; }
+.public-site #blazor-error-ui .dismiss { border: 0; background: transparent; }
+
+/* Targeted text/control contrast: keep the approved orange backgrounds and geometry. */
+.public-site .custome_btn { color: #102030; }
+.public-site .header_top:not(.fixed) .menu a.active,
+.public-site .header_top:not(.fixed) .menu a:hover { color: #995410; }
+.public-site .fixed .menu a.active,
+.public-site .fixed .menu a:hover,
+.public-site .footer .col_footer ul li a.active,
+.public-site .footer .col_footer ul li a:hover { color: #ffba69; }
 
 .public-site #main-content { min-height: 65vh; padding-top: 90px; }
 .public-site #main-content:focus,
@@ -52,7 +68,7 @@ body.public-site {
     .public-site .header_top .menu.is-open ul { left: 0; visibility: visible; }
     .public-site .header_top .menu.is-open ul li a { margin-left: 0; color: #fff; }
     .public-site .header_top .menu.is-open ul li a.active,
-    .public-site .header_top .menu.is-open ul li a:hover { color: var(--orange); }
+    .public-site .header_top .menu.is-open ul li a:hover { color: #ffba69; }
 }
 
 @media (prefers-reduced-motion: reduce) {

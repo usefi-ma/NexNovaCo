@@ -1,7 +1,7 @@
 /* Attribution is content rather than an H5; retain the approved visual treatment. */
 .public-site .testimonial .testimonial_desc .client-name {
     font: 500 1.25rem/1.2 "Lato", sans-serif;
-    color: var(--orange); margin-bottom: .5rem;
+    color: #ffba69; margin-bottom: .5rem;
 }
 /* The fixed-height source stage puts controls underneath the footer. Keep them reachable. */
 @media (min-width: 769px) {

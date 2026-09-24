@@ -64,7 +64,7 @@ scripts/Test-MemberDetail.ps1
 scripts/Test-TeamInterop.mjs
 scripts/Test-Contact.ps1
 scripts/Test-ContactInterop.mjs
-tests/NexNovaCo.Contact.Tests/ # Dependency-free model/demo-service validation checks
+tests/NexNovaCo.Contact.Tests/ # Contact validation, delivery and security checks (fake SMTP only)
 scripts/fixtures/CarouselFixture.mjs
 scripts/Serve-StaticReference.mjs
 docs/phase-1-verification.md
@@ -119,7 +119,7 @@ node --test scripts/Test-*Interop.mjs
 dotnet run --project tests/NexNovaCo.Contact.Tests
 ```
 
-The nine available read-only HTTP suites cover routes, asset integrity/serving, approved content, shared canonical cards, detail records, Contact field/map semantics and images. Twenty available Node tests cover interop lifecycle/reduced-motion/resize logic, including cross-route carousel navigation and Contact reveal cleanup. The dependency-free Contact console harness runs 21 checks against the production model/service source: required fields, whitespace, email, optional subject, exact demo result, cancellation and reset. Text asset comparisons tolerate only Windows checkout line-ending differences; binary comparisons remain exact. These checks do not replace interactive browser testing.
+The nine available read-only HTTP suites cover routes, asset integrity/serving, approved content, shared canonical cards, detail records, Contact field/map semantics and images. The Node tests cover interop lifecycle/reduced-motion/resize logic, including cross-route carousel navigation and Contact reveal cleanup. The Contact console harness runs 105 checks against the production model, service, SMTP adapter and component state using fake senders and a socket-free SMTP proxy. Text asset comparisons tolerate only Windows checkout line-ending differences; binary comparisons remain exact. These checks do not replace interactive browser testing.
 
 Phase 8 specifically ran Foundation and Contact HTTP suites, the two Contact Node tests and the 21 C# checks; previous pages received only lightweight HTTP/browser smoke checks, not another full multi-breakpoint comparison. For approved comparisons, run `node scripts/Serve-StaticReference.mjs` and open `http://127.0.0.1:5140/contact.html` (or the other original root HTML pages). This loopback-only helper serves root HTML and approved assets, not repository metadata.
 
@@ -171,6 +171,6 @@ Original fixed card heights remain for visual parity and fit the approved copy a
 
 `IContactContentService` supplies the approved hero, contact information, labels/placeholders and map configuration as typed records. The source phone/email/address remain demo content, not verified business details. The existing Calgary Tower embed is a typed `Uri`, not arbitrary iframe HTML; its presentation, lazy loading and URL are preserved, with an accessible title added.
 
-`ContactForm` uses `EditForm`, `ContactFormModel` and data annotations. First Name, Last Name, Email and Message reject blank/whitespace values; Subject remains optional. The source email expression is retained, with trimmed email input. Validation messages are associated with fields; a focused live status region replaces the source SweetAlert modal. The textarea starts empty. Successful submission clears all five fields while retaining the rendered form/reveal nodes.
+`ContactForm` uses `EditForm`, `ContactFormModel` and server-side validation. First Name, Last Name, Email and Message reject blank/whitespace values; Subject remains optional. Length limits and single-mailbox/header-injection checks apply. Validation messages remain associated with fields; a focused live status region announces sending, success or generic failure. Failure retains values; successful SMTP acceptance clears all five visible fields and the inaccessible honeypot while retaining the rendered form/reveal nodes.
 
-`IContactFormService` is the replacement point for a separately approved future delivery service. The stateless demo implementation validates the model and returns **“Demo form submitted successfully. No message was sent.”** It performs no HTTP/email calls, persistence or logging of submitted values. Form values exist in the normal Interactive Server circuit; this is not a client-only form or a real delivery system. Submit is disabled before interactivity and while awaiting a result. No legacy form listeners, SweetAlert dependency or new backend were introduced. `contact-blazor.css` is scoped to Contact; it preserves source typography for semantic H2 headings and adds validation/status/focus/reveal adaptations only.
+Phase 19 replaces the demo service with `ContactFormService` → `IContactEmailSender` → MailKit SMTP, with circuit/process rate limits, bounded concurrency, duplicate protection and required TLS. Delivery is **disabled by default** and returns a generic failure until operational settings are supplied. Recipient, provider-approved From and credentials come from `ContactEmail` configuration, never the CMS or visitor input. Visitor email is Reply-To. No submissions are stored in SQLite, no inbox/queue was added, and Newsletter remains disabled. See [production Contact email setup, tests and manual delivery checklist](docs/production-contact-email.md). Real delivery is pending deliberate mailbox/provider configuration and verification.

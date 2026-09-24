@@ -757,7 +757,7 @@ input[type="checkbox"] {
     padding: 15px 10px 15px 10px;
     background: linear-gradient(to left, var(--orange), #FFB347);
     font-size: 1rem;
-    margin-top: 10px;
+    margin-top: 0px;
     display: inline-block;
     box-shadow: 5px 5px 30px 0 rgba(244, 140, 6, 0.4);
     border: none;

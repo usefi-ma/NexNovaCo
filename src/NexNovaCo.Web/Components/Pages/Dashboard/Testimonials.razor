@@ -23,11 +23,11 @@
     <div class="testimonials-list">
     <MudTable T="TestimonialListItem" Items="_items" Hover="true" Elevation="0" Outlined="true" Breakpoint="Breakpoint.Md" Class="testimonials-table" Loading="_busy">
         <HeaderContent>
-            <MudTh>Order</MudTh><MudTh>Author / role / company</MudTh><MudTh>Quote preview</MudTh><MudTh>Actions</MudTh>
+            <MudTh>Order</MudTh><MudTh>Author</MudTh><MudTh>Quote preview</MudTh><MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Order">@context.DisplayOrder</MudTd>
-            <MudTd DataLabel="Author / role / company"><span class="testimonial-cell-text">@context.Attribution</span></MudTd>
+            <MudTd DataLabel="Author"><span class="testimonial-cell-text">@context.Attribution</span></MudTd>
             <MudTd DataLabel="Quote preview"><span class="testimonial-cell-text">@Preview(context.Quote)</span></MudTd>
             <MudTd DataLabel="Actions">
                 <div class="testimonial-actions">

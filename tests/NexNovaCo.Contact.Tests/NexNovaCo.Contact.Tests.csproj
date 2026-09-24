@@ -5,10 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <!-- Exercise production model/service sources without adding test-package dependencies. -->
   <ItemGroup>
-    <Compile Include="../../src/NexNovaCo.Web/Models/ContactFormModel.cs" Link="ContactFormModel.cs" />
-    <Compile Include="../../src/NexNovaCo.Web/Services/IContactFormService.cs" Link="IContactFormService.cs" />
-    <Compile Include="../../src/NexNovaCo.Web/Services/DemoContactFormService.cs" Link="DemoContactFormService.cs" />
+    <ProjectReference Include="../../src/NexNovaCo.Web/NexNovaCo.Web.csproj" />
   </ItemGroup>
 </Project>

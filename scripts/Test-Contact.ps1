@@ -24,11 +24,15 @@ foreach ($field in $fields.GetEnumerator()) {
     Assert-True ($form.Contains("id=""$($field.Key)-error""")) 'Field error region missing'
     if ($field.Value) { Assert-True ($input.Contains("autocomplete=""$($field.Value)""")) 'Autocomplete mismatch' }
     Assert-True ($input.Contains('required') -eq ($field.Key -ne 'subject')) 'Only subject should be optional'
+    Assert-True (-not $input.Contains('disabled')) 'Fields must be enabled when the form is not sending'
+    Assert-True ($input.Contains('maxlength=')) 'Visible fields need matching input length limits'
 }
 Assert-True ([regex]::IsMatch($form, '<input\b[^>]*type="email"')) 'Email input type must remain email'
 Assert-True ([regex]::IsMatch($form, '<textarea\b[^>]*rows="5"[^>]*></textarea>')) 'Message must start truly empty and retain five rows'
 Assert-True ([regex]::IsMatch($form, '<button\b[^>]*type="submit"[^>]*id="SubmitButton"')) 'Real submit button missing'
 Assert-True ($html.Contains('aria-live="polite"') -and $html.Contains('aria-atomic="true"')) 'Submission feedback must be accessible'
+Assert-True ($form.Contains('id="contact-website"') -and $form.Contains('tabindex="-1"') -and $form.Contains('aria-hidden="true"')) 'Honeypot must stay outside keyboard/screen-reader navigation'
+Assert-True ($form.Contains('contact-privacy-notice') -and $form.Contains('not saved in this website')) 'Contact privacy notice must be associated with the form'
 $frame = [regex]::Match($html, '<iframe\b[^>]*>').Value
 $sourceMap = [regex]::Match($reference, '<iframe\b[^>]*src="([^"]+)"').Groups[1].Value
 Assert-True ($frame.Contains("src=""$sourceMap""")) 'Map must preserve the exact approved Google embed URL'

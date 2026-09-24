@@ -103,8 +103,8 @@ foreach ($invalid in @('projects/not-a-real-project', 'team/not-a-real-member', 
 }
 Assert-True (-not (Get-Response '?verify=foundation').Content.Contains('Foundation diagnostics')) 'Diagnostics query must not enable Development UI in Production'
 $contactHtml = (Get-Response 'contact').Content
-Assert-True ($contactHtml.Contains('Demo only: this form does not send or store messages.')) 'Contact must disclose demo behavior before input'
-Assert-True ($contactHtml.Contains('aria-describedby="contact-demo-notice"')) 'Contact demo notice must be associated with the form'
+Assert-True ($contactHtml.Contains('not saved in this website')) 'Contact must disclose email/database privacy behavior before input'
+Assert-True ($contactHtml.Contains('aria-describedby="contact-privacy-notice"')) 'Contact privacy notice must be associated with the form'
 Assert-True ($contactHtml.Contains('title="Map showing Calgary Tower in downtown Calgary"')) 'Map title missing'
 Assert-True ($contactHtml.Contains('https://www.google.com/maps/embed?')) 'Map embed missing'
 $errorHtml = (Get-Response 'Error').Content
@@ -119,4 +119,4 @@ foreach ($name in @('favicon-32x32.png', 'favicon-16x16.png')) {
     Assert-True ($homeHtml.Contains("sizes=`"${width}x${height}`"")) "Favicon declaration must match PNG dimensions: $name"
 }
 
-Write-Output "PASS: clean publish, $($routes.Count) routes with unique titles/descriptions, $($assetUrls.Count) rendered assets, active JS, excluded legacy/private paths, safe 404s, Production diagnostics guard, and honest demo forms."
+Write-Output "PASS: clean publish, $($routes.Count) routes with unique titles/descriptions, $($assetUrls.Count) rendered assets, active JS, excluded legacy/private paths, safe 404s, Production diagnostics guard, and Contact privacy notice."

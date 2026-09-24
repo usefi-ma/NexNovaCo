@@ -53,6 +53,11 @@ internal static class AuthChecks
 
     public static async Task Main(string[] args)
     {
+        if (args.SequenceEqual(new[] { "--contact-browser" }))
+        {
+            await ContactBrowserHost.RunAsync();
+            return;
+        }
         if (args.SequenceEqual(new[] { "--public-quality" }))
         {
             try
@@ -292,6 +297,9 @@ internal sealed class AuthFactory(string password, string environment = "Develop
         builder.UseSetting("AdminUser:Email", Email);
         builder.UseSetting("AdminUser:Password", Password);
         builder.UseSetting("Identity:InitializeDatabase", "true");
+        builder.UseSetting("ContactEmail:Enabled", "false");
+        // No automated fixture can invoke the real SMTP sender, even if local secrets exist.
+        builder.ConfigureServices(services => services.AddSingleton<NexNovaCo.Web.Services.IContactEmailSender>(new TestContactEmailSender()));
         if (publicBaseUrl is not null) builder.UseSetting("PublicSite:BaseUrl", publicBaseUrl);
         // Test cookies/antiforgery keys belong to the isolated fixture, never the developer key ring.
         builder.ConfigureServices(services => services.AddDataProtection().PersistKeysToFileSystem(

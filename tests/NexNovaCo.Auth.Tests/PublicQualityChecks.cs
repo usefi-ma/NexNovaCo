@@ -70,7 +70,7 @@ internal static class PublicQualityChecks
         var contact = await client.GetStringAsync("/contact");
         foreach (var field in new[] { "firstName", "lastName", "email", "subject", "message" })
             Check(contact.Contains($"for=\"{field}\"") && contact.Contains($"aria-describedby=\"{field}-error\""), "Associated Contact label/error: " + field);
-        Check(contact.Contains("Subject is optional.") && contact.Contains("does not send or store messages"), "Visible required/demo instructions.");
+        Check(contact.Contains("Subject is optional.") && contact.Contains("not saved in this website"), "Visible required/privacy instructions.");
         Check(contact.Contains("Newsletter signup is not available yet."), "Honest newsletter.");
         var services = await client.GetStringAsync("/services");
         Check(services.Contains("aria-expanded=\"false\"") && services.Contains("aria-controls=\"faq-answer-"), "FAQ semantics.");

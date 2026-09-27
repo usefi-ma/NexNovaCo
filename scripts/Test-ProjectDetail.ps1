@@ -68,8 +68,10 @@ foreach ($project in $canonical) {
     }
     Assert-True (-not [regex]::IsMatch($html, '<script\b[^>]+src="[^"]*(?:inner-project|bootstrap|script\.|aos\.)')) 'Legacy DOM binding/Bootstrap JS must remain dormant'
     Assert-True (-not [regex]::IsMatch($html, '<a\b[^>]+href="[^"]*\.html')) 'Legacy HTML navigation must not remain'
-    foreach ($image in [regex]::Matches($html, '<img\b[^>]*>')) {
-        Assert-True ($image.Value -match '\balt="[^"]+"') 'Every rendered image requires alt text'
+    # Global brand logos are decorative beside named links/headings; check detail content here.
+    $detailImages = [regex]::Replace($html, '(?s)<header\b.*?</header>|<footer\b.*?</footer>', '')
+    foreach ($image in [regex]::Matches($detailImages, '<img\b[^>]*>')) {
+        Assert-True ($image.Value -match '\balt="[^"]+"') 'Every detail content image requires alt text'
     }
 }
 

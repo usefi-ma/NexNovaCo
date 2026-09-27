@@ -53,6 +53,21 @@ internal static class AuthChecks
 
     public static async Task Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "--detail-browser")
+        {
+            await DetailTemplateBrowserHost.RunAsync(args[1]);
+            return;
+        }
+        if (args.SequenceEqual(new[] { "--detail-templates" }))
+        {
+            try
+            {
+                await DetailTemplateChecks.RunAsync();
+                Console.WriteLine($"PASS: {_checks} focused detail-template checks.");
+            }
+            catch (Exception exception) { Console.Error.WriteLine(exception); Environment.ExitCode = 1; }
+            return;
+        }
         if (args.SequenceEqual(new[] { "--contact-browser" }))
         {
             await ContactBrowserHost.RunAsync();

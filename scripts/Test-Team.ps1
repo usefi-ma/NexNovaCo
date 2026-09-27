@@ -45,7 +45,9 @@ for ($i = 0; $i -lt $canonical.Count; $i++) {
 Assert-True (-not [regex]::IsMatch($html, '<a\b[^>]+href="(?:#|[^"]*\.html[^"]*)"')) 'No fake/legacy Team links'
 Assert-True (-not $html.Contains('migration-placeholder') -and -not $html.Contains('data-carousel-kind=')) 'Team is a grid, not a placeholder or carousel'
 Assert-True ($html.Contains('aria-label="Primary"') -and $html.Contains('aria-label="Footer"')) 'Shared shell missing'
-foreach ($img in [regex]::Matches($html, '<img\b[^>]*>')) {
+# Global brand logos are decorative beside named links/headings; retain strict content-image checks.
+$teamImages = [regex]::Replace($html, '(?s)<header\b.*?</header>|<footer\b.*?</footer>', '')
+foreach ($img in [regex]::Matches($teamImages, '<img\b[^>]*>')) {
     Assert-True ($img.Value -match 'alt="[^"]+"') 'Image requires meaningful alt'
     $null = Invoke-WebRequest -Uri ([Uri]::new($baseUri, [regex]::Match($img.Value, 'src="([^"]+)"').Groups[1].Value))
 }

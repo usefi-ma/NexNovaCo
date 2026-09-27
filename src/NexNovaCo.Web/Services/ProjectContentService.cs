@@ -12,7 +12,7 @@ namespace NexNovaCo.Web.Services;
 
 public sealed class ProjectContentService(IDbContextFactory<ApplicationDbContext> factory,
     AuthenticationStateProvider authentication, IOptions<IdentityOptions> identityOptions,
-    ILogger<ProjectContentService> logger, ProjectCatalog defaults) : IProjectContentService
+    ILogger<ProjectContentService> logger, ProjectCatalog defaults, IMediaStorageService? media = null) : IProjectContentService
 {
     public async Task<IReadOnlyList<ProjectSummary>> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -22,7 +22,7 @@ public sealed class ProjectContentService(IDbContextFactory<ApplicationDbContext
             var rows = await Ordered(database).AsNoTracking().ToListAsync(cancellationToken);
             foreach (var row in rows) Validate(row.ToEditModel());
             // An intentionally empty collection is not a read failure and must not resurrect deleted records.
-            return rows.Select(row => row.ToContent()).ToArray();
+            return rows.Select(row => ResolveCover(row.ToContent())).ToArray();
         }
         catch (Exception exception) when (exception is DbException or ValidationException)
         {
@@ -54,6 +54,7 @@ public sealed class ProjectContentService(IDbContextFactory<ApplicationDbContext
         await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validate(model);
+        RequireMedia(model);
         await RequireUniqueSlugAsync(database, model.Slug, 0, cancellationToken);
         var rows = await Ordered(database).ToListAsync(cancellationToken);
         Normalize(rows);
@@ -70,6 +71,7 @@ public sealed class ProjectContentService(IDbContextFactory<ApplicationDbContext
         await using var database = await factory.CreateDbContextAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validate(model);
+        RequireMedia(model);
         await RequireUniqueSlugAsync(database, model.Slug, id, cancellationToken);
         var row = await database.Projects.Include(x => x.Gallery).Include(x => x.Features).AsSingleQuery().SingleOrDefaultAsync(row => row.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException("Project no longer exists.");
@@ -118,7 +120,7 @@ public sealed class ProjectContentService(IDbContextFactory<ApplicationDbContext
                 .Include(x => x.Gallery).Include(x => x.Features).AsSingleQuery()
                 .OrderBy(x => x.HomeFeatured!.DisplayOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
             foreach (var row in rows) Validate(row.ToEditModel());
-            return rows.Select(x => x.ToContent()).ToArray();
+            return rows.Select(x => ResolveCover(x.ToContent())).ToArray();
         }
         catch (Exception exception) when (exception is DbException or ValidationException)
         {
@@ -158,13 +160,29 @@ public sealed class ProjectContentService(IDbContextFactory<ApplicationDbContext
                 .SingleOrDefaultAsync(x => x.Slug == slug, cancellationToken);
             if (row is null) return null;
             Validate(row.ToEditModel());
-            return row.ToDetail();
+            var detail = row.ToDetail();
+            return detail with
+            {
+                Summary = ResolveCover(detail.Summary),
+                // Missing uploads are not substitute photographs of a different project.
+                Gallery = detail.Gallery.Where(image => MediaAvailability.Resolve(media, image.Source, MediaKind.Project) == image.Source).ToArray()
+            };
         }
         catch (Exception exception) when (exception is DbException or ValidationException)
         {
             logger.LogError(exception, "Project detail could not be read safely; rendering approved fallback without writes.");
             return await defaults.GetDetailAsync(slug, cancellationToken);
         }
+    }
+
+    private ProjectSummary ResolveCover(ProjectSummary summary) => summary with
+    {
+        ImagePath = MediaAvailability.Resolve(media, summary.ImagePath, MediaKind.Project)
+    };
+    private void RequireMedia(ProjectEditModel model)
+    {
+        MediaAvailability.Require(media, model.ImagePath, MediaKind.Project);
+        foreach (var image in model.Gallery) MediaAvailability.Require(media, image.Source, MediaKind.Project);
     }
 
     private static async Task RequireUniqueSlugAsync(ApplicationDbContext database, string slug, int exceptId, CancellationToken cancellationToken)

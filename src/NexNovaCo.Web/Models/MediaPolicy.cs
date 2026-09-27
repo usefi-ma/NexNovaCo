@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace NexNovaCo.Web.Models;
 
-public enum MediaKind { Hero, Welcome, Member, Partner, AboutHero, AboutVision, ServicesHero, ServicesBenefits, ProjectsHero, TeamHero, TeamSection, ContactHero, SiteLogo }
+public enum MediaKind { Hero, Welcome, Member, Partner, AboutHero, AboutVision, ServicesHero, ServicesBenefits, ProjectsHero, TeamHero, TeamSection, ContactHero, SiteLogo, Project }
 
 public static partial class MediaPolicy
 {
@@ -24,7 +24,7 @@ public static partial class MediaPolicy
         MediaKind.Hero or MediaKind.Welcome => "home",
         MediaKind.AboutHero or MediaKind.AboutVision => "about",
         MediaKind.ServicesHero or MediaKind.ServicesBenefits => "services",
-        MediaKind.ProjectsHero => "projects",
+        MediaKind.ProjectsHero or MediaKind.Project => "projects",
         MediaKind.TeamHero or MediaKind.TeamSection => "team-page",
         MediaKind.ContactHero => "contact",
         MediaKind.SiteLogo => "site",
@@ -41,6 +41,7 @@ public static partial class MediaPolicy
         MediaKind.ServicesHero => [ServicesHeroDefault],
         MediaKind.ServicesBenefits => [ServicesBenefitsDefault],
         MediaKind.ProjectsHero => [ProjectsHeroDefault],
+        MediaKind.Project => ProjectImageAssets.Paths,
         MediaKind.ContactHero => [ContactHeroDefault],
         MediaKind.SiteLogo => ["image/logo.png"],
         MediaKind.TeamHero => [TeamHeroDefault],

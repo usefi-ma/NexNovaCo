@@ -40,26 +40,14 @@
             <MudDivider />
             <section class="dashboard-editor-section" aria-label="Project media">
                 <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Media</MudText>
-                <MudText Class="dashboard-muted mb-4">Choose approved bundled images. No uploads or arbitrary file paths.</MudText>
-                <MudSelect T="string" @bind-Value="_model.ImagePath" For="@(() => _model.ImagePath)" Label="Cover image" Variant="Variant.Outlined" Disabled="_saving" Class="mb-4">
-                    @foreach (var path in ProjectImageAssets.Paths)
-                    {
-                        <MudSelectItem T="string" Value="@path">@path</MudSelectItem>
-                    }
-                </MudSelect>
-                <ProjectImagePreview ImagePath="@_model.ImagePath" Name="@_model.Name" />
+                <MudText Class="dashboard-muted mb-4">Upload images or choose approved bundled images. Selections are saved with the project, including when creating a new project.</MudText>
+                <CmsImageField @key="_model" @ref="_coverField" @bind-Value="_model.ImagePath" Kind="MediaKind.Project" Label="Cover image" Hint="Used on Home, the Projects listing and social previews. Separate from the gallery below." Disabled="_saving" Changed="ClearSaved" />
                 <MudText Typo="Typo.h6" HtmlTag="h3" Class="my-5">Gallery</MudText>
                 @foreach (var row in _model.Gallery)
                 {
                     <MudPaper @key="row" Outlined="true" Elevation="0" Class="pa-4 mb-4">
-                <MudSelect T="string" @bind-Value="row.Source"  Label="Gallery image" Variant="Variant.Outlined" Disabled="_saving" Class="mb-4">
-                    @foreach (var path in ProjectImageAssets.Paths)
-                    {
-                        <MudSelectItem T="string" Value="@path">@path</MudSelectItem>
-                    }
-                </MudSelect>
+                        <CmsImageField @ref="_galleryFields[row]" @bind-Value="row.Source" Kind="MediaKind.Project" Label="@($"Gallery image {_model.Gallery.IndexOf(row) + 1}")" Hint="Shown in this order on Project Detail. Removing a row does not delete its file." Disabled="_saving" Changed="ClearSaved" />
                         <MudTextField @bind-Value="row.Alt" Label="Image alt text" MaxLength="200" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" Class="mb-4" />
-                        <ProjectImagePreview ImagePath="@row.Source" Name="@row.Alt" />
                         <MudStack Row="true" Wrap="Wrap.Wrap" Class="mt-3">
                             <MudButton OnClick="@(() => MoveRow(_model.Gallery, row, -1))" Disabled="@(_saving || _model.Gallery.IndexOf(row) == 0)" aria-label="@($"Move up gallery image {_model.Gallery.IndexOf(row) + 1}")">Up</MudButton>
                             <MudButton OnClick="@(() => MoveRow(_model.Gallery, row, 1))" Disabled="@(_saving || _model.Gallery.IndexOf(row) == _model.Gallery.Count - 1)" aria-label="@($"Move down gallery image {_model.Gallery.IndexOf(row) + 1}")">Down</MudButton>
@@ -107,7 +95,10 @@ else
     private ProjectEditModel? _model;
     private readonly EditorSnapshot _snapshot = new();
     private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
-    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private CmsImageField? _coverField;
+    private readonly Dictionary<ProjectGalleryEditRow, CmsImageField> _galleryFields = new();
+    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues) ||
+        _coverField?.HasPendingSelection == true || _galleryFields.Values.Any(imageField => imageField.HasPendingSelection));
     private bool _saving;
     private bool _saved;
     private string? _error;
@@ -118,12 +109,14 @@ else
     {
         _editingId = Id;
         _model = null;
+        _coverField = null;
+        _galleryFields.Clear();
         _error = null;
         _saved = _showCreated;
         _showCreated = false;
         try
         {
-            _model = Id is int id ? await ProjectsService.GetForEditAsync(id) : new ProjectEditModel();
+            _model = Id is int id ? await ProjectsService.GetForEditAsync(id) : new ProjectEditModel { ImagePath = ProjectImageAssets.Paths[0] };
             _snapshot.Capture(CurrentValues);
         }
         catch (Exception exception) when (IsExpected(exception))
@@ -133,9 +126,15 @@ else
                 : "The project could not be loaded. Check your session and try again.";
         }
     }
-    private void AddGallery() { if (!_saving) { _model!.Gallery.Add(new()); _saved = false; } }
+    private void AddGallery() { if (!_saving) { _model!.Gallery.Add(new() { Source = ProjectImageAssets.Paths[0] }); _saved = false; } }
     private void AddFeature() { if (!_saving) { _model!.Features.Add(new()); _saved = false; } }
-    private void RemoveRow<T>(List<T> rows, T row) { if (!_saving) { rows.Remove(row); _saved = false; } }
+    private void RemoveRow<T>(List<T> rows, T row)
+    {
+        if (_saving) return;
+        rows.Remove(row);
+        if (row is ProjectGalleryEditRow image) _galleryFields.Remove(image);
+        _saved = false;
+    }
     private void MoveRow<T>(List<T> rows, T row, int direction)
     {
         if (_saving) return;
@@ -151,12 +150,19 @@ else
         _saving = true;
         _saved = false;
         _error = null;
+        var previousCover = _model.ImagePath;
+        var previousGallery = _model.Gallery.Select(row => row.Source).ToArray();
         try
         {
+            if (_coverField is not null) _model.ImagePath = await _coverField.CommitAsync();
+            foreach (var row in _model.Gallery)
+                if (_galleryFields.TryGetValue(row, out var field)) row.Source = await field.CommitAsync();
             if (_editingId is int id) await ProjectsService.UpdateAsync(id, _model);
             else _editingId = await ProjectsService.CreateAsync(_model);
             _model.Slug = ProjectSlugs.Normalize(_model.Slug);
             _snapshot.Capture(CurrentValues);
+            _coverField?.AcceptSaved();
+            foreach (var field in _galleryFields.Values) field.AcceptSaved();
             _saved = true;
             // Leave /new after creation so refresh cannot accidentally create a duplicate.
             if (Id is null)
@@ -167,6 +173,8 @@ else
         }
         catch (Exception exception) when (IsExpected(exception))
         {
+            _model.ImagePath = previousCover;
+            for (var i = 0; i < previousGallery.Length; i++) _model.Gallery[i].Source = previousGallery[i];
             Logger.LogError(exception, "Unable to save project.");
             _error = exception is ValidationException validation ? validation.Message
                 : exception is KeyNotFoundException or DbUpdateConcurrencyException
@@ -182,5 +190,5 @@ else
         // The clean snapshot has now reached NavigationLock before leaving the /new route.
         Navigation.NavigateTo(target, replace: true);
     }
-    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException;
+    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException or IOException;
 }

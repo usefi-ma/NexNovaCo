@@ -29,7 +29,7 @@ public sealed class ProjectEditModel : IValidatableObject
         }
         foreach (var row in Gallery)
             if (row is null || !ProjectImageAssets.IsAllowed(row.Source) || string.IsNullOrWhiteSpace(row.Alt) || row.Alt.Length > 200)
-                yield return new("Each gallery row needs an approved image and alt text (up to 200 characters).", [nameof(Gallery)]);
+                yield return new("Each gallery row needs a bundled image or validated upload and alt text (up to 200 characters).", [nameof(Gallery)]);
         foreach (var row in Features)
             if (row is null || string.IsNullOrWhiteSpace(row.Text) || row.Text.Length > 300)
                 yield return new("Each feature needs text up to 300 characters.", [nameof(Features)]);
@@ -66,10 +66,10 @@ public static class ProjectImageAssets
         "image/project/tradesync.jpg", "image/project/eduvance.jpg", "image/project/autotracker.jpg",
         "image/project/finvault.jpg", "image/project/nextConnectProject.jpg", "image/project/nextConnectInnerProject.jpg"
     });
-    public static bool IsAllowed(string? path) => Paths.Contains(path, StringComparer.Ordinal);
+    public static bool IsAllowed(string? path) => MediaPolicy.IsAllowed(path, MediaKind.Project);
 }
 public sealed class ProjectImagePathAttribute : ValidationAttribute
 {
-    public ProjectImagePathAttribute() => ErrorMessage = "Choose an approved bundled project image.";
+    public ProjectImagePathAttribute() => ErrorMessage = "Choose a bundled project image or validated upload.";
     public override bool IsValid(object? value) => value is string path && ProjectImageAssets.IsAllowed(path);
 }

@@ -23,7 +23,9 @@ function createCarousel(element, motion, onRefresh) {
         responsive: { 0: { items: 1 }, 600: { items: 2 }, 1000: { items: 3 } } });
     if (kind === 'partners') Object.assign(options, { margin: 20,
         responsive: { 0: { items: 1 }, 400: { items: 2 }, 700: { items: 3 }, 900: { items: 4 }, 1000: { items: 4 }, 1200: { items: 6 } } });
-    if (kind === 'testimonials') options.items = 1;
+    // Testimonials retain their stage/swipe behavior, without looping or a control row.
+    const isTestimonial = kind === 'testimonials';
+    if (isTestimonial) Object.assign(options, { items: 1, nav: false, dots: false, loop: false });
 
     let userPaused = false;
     let hovering = false;
@@ -50,30 +52,34 @@ function createCarousel(element, motion, onRefresh) {
     carousel.on('initialized.owl.carousel.home refreshed.owl.carousel.home translated.owl.carousel.home', labelControls);
     carousel.owlCarousel(options);
 
-    const pause = document.createElement('button');
-    pause.type = 'button';
-    pause.className = 'carousel-pause';
-    element.querySelector('.owl-nav').append(pause);
+    const pause = isTestimonial ? null : document.createElement('button');
+    if (pause) {
+        pause.type = 'button';
+        pause.className = 'carousel-pause';
+        element.querySelector('.owl-nav').append(pause);
+    }
     const updatePlayback = () => {
         const instance = carousel.data('owl.carousel');
         if (!instance) return;
         // Owl hides controls when every item fits. Do not animate an unpausable full row.
         const allVisible = instance.items().length <= instance.settings.items;
-        const blocked = allVisible || motion.matches || userPaused || hovering || focused || document.hidden;
+        const blocked = isTestimonial || allVisible || motion.matches || userPaused || hovering || focused || document.hidden;
         instance.settings.autoplay = !blocked;
         instance.settings.smartSpeed = motion.matches ? 0 : 250;
         carousel.trigger(blocked ? 'stop.owl.autoplay' : 'play.owl.autoplay', [timeout]);
-        pause.textContent = userPaused || motion.matches ? '▶' : 'Ⅱ';
-        pause.disabled = motion.matches;
-        pause.setAttribute('aria-label', motion.matches ? `Autoplay disabled for ${kind} (reduced motion)` : `${userPaused ? 'Play' : 'Pause'} ${kind}`);
-        pause.setAttribute('aria-pressed', String(userPaused || motion.matches));
+        if (pause) {
+            pause.textContent = userPaused || motion.matches ? '▶' : 'Ⅱ';
+            pause.disabled = motion.matches;
+            pause.setAttribute('aria-label', motion.matches ? `Autoplay disabled for ${kind} (reduced motion)` : `${userPaused ? 'Play' : 'Pause'} ${kind}`);
+            pause.setAttribute('aria-pressed', String(userPaused || motion.matches));
+        }
         element.dataset.autoplay = blocked ? 'paused' : 'playing';
         element.querySelector('.owl-stage-outer')?.setAttribute('aria-live', blocked ? 'polite' : 'off');
     };
     carousel.on('refreshed.owl.carousel.home', updatePlayback);
     carousel.on('refreshed.owl.carousel.home', onRefresh);
     const listen = (target, event, handler) => target.addEventListener(event, handler, { signal: events.signal });
-    listen(pause, 'click', () => { userPaused = !userPaused; updatePlayback(); });
+    if (pause) listen(pause, 'click', () => { userPaused = !userPaused; updatePlayback(); });
     listen(element, 'mouseenter', () => { hovering = true; updatePlayback(); });
     listen(element, 'mouseleave', () => { hovering = false; updatePlayback(); });
     listen(element, 'focusin', () => { focused = true; updatePlayback(); });
@@ -95,7 +101,7 @@ function createCarousel(element, motion, onRefresh) {
         carousel.trigger('stop.owl.autoplay');
         carousel.off('.home');
         if (carousel.data('owl.carousel')) carousel.trigger('destroy.owl.carousel');
-        pause.remove();
+        pause?.remove();
         delete element.dataset.carouselInitialized;
     };
 }

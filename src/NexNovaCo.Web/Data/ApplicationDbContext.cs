@@ -6,6 +6,8 @@ namespace NexNovaCo.Web.Data;
 public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
+    public DbSet<ProjectDetailTemplateSettings> ProjectDetailTemplateSettings => Set<ProjectDetailTemplateSettings>();
+    public DbSet<MemberDetailTemplateSettings> MemberDetailTemplateSettings => Set<MemberDetailTemplateSettings>();
     public DbSet<SiteIdentitySettings> SiteIdentitySettings => Set<SiteIdentitySettings>();
     public DbSet<FooterSettings> FooterSettings => Set<FooterSettings>();
     public DbSet<NavigationItem> NavigationItems => Set<NavigationItem>();
@@ -76,6 +78,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        DetailTemplateModelConfiguration.Configure(builder);
         AboutModelConfiguration.Configure(builder);
         ServicesPageModelConfiguration.Configure(builder);
         ProjectsPageModelConfiguration.Configure(builder);

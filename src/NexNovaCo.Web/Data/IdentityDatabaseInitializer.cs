@@ -33,6 +33,7 @@ public static class IdentityDatabaseInitializer
         await ServicesPageInitializer.InitializeAsync(database, cancellationToken);
         await ProjectsPageInitializer.InitializeAsync(database, cancellationToken);
         await TeamPageInitializer.InitializeAsync(database, cancellationToken);
+        await DetailTemplateInitializer.InitializeAsync(database, cancellationToken);
         await ContactPageInitializer.InitializeAsync(database, cancellationToken);
         await GlobalSiteInitializer.InitializeAsync(database, cancellationToken);
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

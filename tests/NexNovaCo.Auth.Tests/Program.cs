@@ -53,9 +53,22 @@ internal static class AuthChecks
 
     public static async Task Main(string[] args)
     {
-        if (args.Length == 2 && args[0] == "--detail-browser")
+        if (args.SequenceEqual(new[] { "--project-media" }))
         {
-            await DetailTemplateBrowserHost.RunAsync(args[1]);
+            try
+            {
+                await ProjectMediaChecks.RunAsync();
+                await MediaChecks.RunAsync();
+                await SharedProjectChecks.RunAsync();
+                await ProjectInitializationChecks.RunAsync();
+                Console.WriteLine($"PASS: {_checks} Project media/security/CRUD/initialization checks.");
+            }
+            catch (Exception exception) { Console.Error.WriteLine(exception); Environment.ExitCode = 1; }
+            return;
+        }
+        if (args.Length is 2 or 3 && args[0] == "--detail-browser")
+        {
+            await DetailTemplateBrowserHost.RunAsync(args[1], args.Length == 3 ? args[2] : null);
             return;
         }
         if (args.SequenceEqual(new[] { "--detail-templates" }))

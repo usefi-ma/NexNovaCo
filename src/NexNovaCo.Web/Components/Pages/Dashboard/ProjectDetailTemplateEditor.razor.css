@@ -1,0 +1,23 @@
+.project-template-tab-content {
+    padding: 28px;
+}
+
+::deep .project-template-tabs .mud-tabs-tabbar {
+    background: #fafcfe;
+    border-bottom: 1px solid #e2e8ef;
+}
+
+::deep .project-template-tabs .mud-tab {
+    min-height: 56px;
+    white-space: nowrap;
+}
+
+::deep .project-template-tabs .mud-tab.mud-tab-active {
+    font-weight: 600;
+}
+
+@media (max-width: 599.98px) {
+    .project-template-tab-content {
+        padding: 24px 20px;
+    }
+}

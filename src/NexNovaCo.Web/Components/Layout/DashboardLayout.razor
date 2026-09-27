@@ -59,10 +59,12 @@
                     <MudNavLink Href="/dashboard/content/projects/hero" Match="NavLinkMatch.All">Hero</MudNavLink>
                     <MudNavLink Href="/dashboard/content/projects/overview" Match="NavLinkMatch.All">Projects Section</MudNavLink>
                     <MudNavLink Href="/dashboard/content/projects/testimonials" Match="NavLinkMatch.All">Testimonials Section</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/projects/detail-template" Match="NavLinkMatch.All">Project Detail Template</MudNavLink>
                 </MudNavGroup>
                 <MudNavGroup Title="Team" Icon="@Icons.Material.Outlined.Groups" @bind-Expanded="_teamExpanded">
                     <MudNavLink Href="/dashboard/content/team/hero" Match="NavLinkMatch.All">Hero</MudNavLink>
                     <MudNavLink Href="/dashboard/content/team/overview" Match="NavLinkMatch.All">Team Section</MudNavLink>
+                    <MudNavLink Href="/dashboard/content/team/detail-template" Match="NavLinkMatch.All">Member Detail Template</MudNavLink>
                 </MudNavGroup>
                 <MudNavGroup Title="Contact" Icon="@Icons.Material.Outlined.ContactMail" @bind-Expanded="_contactExpanded">
                     <MudNavLink Href="/dashboard/content/contact/hero" Match="NavLinkMatch.All">Hero</MudNavLink>
@@ -166,10 +168,13 @@
     {
         "info" => "Contact Info", "form" => "Form", "map" => "Map", _ => "Hero"
     };
-    private static string TeamSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() == "overview" ? "Team Section" : "Hero";
+    private static string TeamSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() switch
+    {
+        "overview" => "Team Section", "detail-template" => "Member Detail Template", _ => "Hero"
+    };
     private static string ProjectsSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() switch
     {
-        "overview" => "Projects Section", "testimonials" => "Testimonials Section", _ => "Hero"
+        "overview" => "Projects Section", "testimonials" => "Testimonials Section", "detail-template" => "Project Detail Template", _ => "Hero"
     };
     private static string ServicesSectionName(string path) => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(3)?.ToLowerInvariant() switch
     {

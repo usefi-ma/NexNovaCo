@@ -7,7 +7,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="member_header_back" aria-hidden="true"></div>
-                <Breadcrumbs ParentHref="team" ParentLabel="Team" CurrentLabel="@Content.Summary.Name" RevealDelay="0" />
+                <Breadcrumbs ParentHref="team" HomeLabel="@Template.BreadcrumbHomeLabel" ParentLabel="@Template.BreadcrumbSectionLabel" CurrentLabel="@Content.Summary.Name" RevealDelay="0" />
             </div>
         </div>
     </div>
@@ -28,7 +28,7 @@
             </div>
             <div class="row skills">
                 <div class="col-12 col-md-12">
-                    <h2 id="member-skills-heading" data-aos="fade-up" data-aos-delay="400">Skills</h2>
+                    <h2 id="member-skills-heading" data-aos="fade-up" data-aos-delay="400">@Template.SkillsHeading</h2>
                     <hr data-aos="fade-up" data-aos-delay="500" />
                 </div>
             </div>
@@ -52,6 +52,7 @@
 
 @code {
     [Parameter, EditorRequired] public Models.MemberDetail Content { get; set; } = default!;
+    [Parameter, EditorRequired] public MemberDetailTemplateEditModel Template { get; set; } = default!;
     private int ColumnSize => (Content.Skills.Count + 1) / 2;
     private ElementReference _root;
     private IJSObjectReference? _module;

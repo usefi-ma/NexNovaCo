@@ -1,0 +1,112 @@
+@page "/dashboard/content/projects/detail-template"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IDetailTemplateContentService Templates
+@inject IProjectCatalog Catalog
+@inject NavigationManager Navigation
+@inject ILogger<ProjectDetailTemplateEditor> Logger
+
+<PageTitle>Project Detail Template | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Projects / Project Detail Template</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">Project Detail Template</MudText>
+<MudText Class="dashboard-muted mb-7">Manage labels shared by all project detail pages. Individual project content belongs to Shared Content → Projects.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" role="alert" Class="mb-4">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" role="status" Class="mb-4">Project Detail Template saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="projects-detail-template">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Hero / CTA">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Hero / CTA</MudText>
+                <MudTextField @bind-Value="_model.HeroCtaText" For="@(() => _model.HeroCtaText)" Label="Hero CTA text" HelperText="Required plain text. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.ReturnCtaText" For="@(() => _model.ReturnCtaText)" Label="Return CTA text" HelperText="Required plain text. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Breadcrumb">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Breadcrumb</MudText>
+                <MudTextField @bind-Value="_model.BreadcrumbHomeLabel" For="@(() => _model.BreadcrumbHomeLabel)" Label="Home breadcrumb label" HelperText="Required plain text. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.BreadcrumbSectionLabel" For="@(() => _model.BreadcrumbSectionLabel)" Label="Section breadcrumb label" HelperText="Required plain text. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Section headings">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Section headings</MudText>
+                <MudTextField @bind-Value="_model.ProjectDetailsHeading" For="@(() => _model.ProjectDetailsHeading)" Label="Project Details heading" HelperText="Required plain text. Up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.FeaturesHeading" For="@(() => _model.FeaturesHeading)" Label="Features heading" HelperText="Required plain text. Up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Project metadata labels">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Project metadata labels</MudText>
+                <MudTextField @bind-Value="_model.ClientLabel" For="@(() => _model.ClientLabel)" Label="Client label" HelperText="Required plain text. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.CategoryLabel" For="@(() => _model.CategoryLabel)" Label="Category label" HelperText="Required plain text. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.DateLabel" For="@(() => _model.DateLabel)" Label="Date label" HelperText="Required plain text. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.TechnologiesLabel" For="@(() => _model.TechnologiesLabel)" Label="Technologies label" HelperText="Required plain text. Up to 60 characters." Variant="Variant.Outlined" MaxLength="60" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">Saved labels apply to every project detail page. Routes, layout and entity content stay unchanged.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="OpenSampleAsync" Variant="Variant.Outlined" Disabled="_saving">View Sample Project</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save changes")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+<MudPaper Class="dashboard-editor pa-6 mt-6" Elevation="0" Outlined="true">
+    <MudText Class="mb-4">Project names, descriptions, images, metadata values and features are managed in Shared Content → Projects, not here.</MudText>
+    <MudButton Href="/dashboard/content/shared-projects" Variant="Variant.Outlined" Color="Color.Primary">Manage Projects</MudButton>
+</MudPaper>
+
+@code {
+    private ProjectDetailTemplateEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private bool IsDirty => _model is not null && _snapshot.HasChanges(CurrentValues);
+    private bool _saving, _saved;
+    private string? _error;
+    protected override async Task OnInitializedAsync()
+    {
+        try { _model = await Templates.GetProjectForEditAsync(); _snapshot.Capture(CurrentValues); }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to load Project Detail Template.");
+            _error = "Content could not be loaded. Check your session and refresh; defaults are not shown as saved content.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private async Task OpenSampleAsync()
+    {
+        try
+        {
+            var sample = (await Catalog.GetAsync()).FirstOrDefault();
+            Navigation.NavigateTo(sample is null ? "/projects" : "/" + sample.DetailHref.TrimStart('/'), forceLoad: true);
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to select a sample project.");
+            Navigation.NavigateTo("/projects", forceLoad: true);
+        }
+    }
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        try
+        {
+            await Templates.SaveProjectAsync(_model);
+            _snapshot.Capture(CurrentValues); _saved = true;
+        }
+        catch (Exception exception) when (Expected(exception))
+        {
+            Logger.LogError(exception, "Unable to save Project Detail Template.");
+            _error = "Content could not be saved. Your changes are retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    private static bool Expected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException or IOException;
+}

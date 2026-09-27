@@ -1,23 +1,25 @@
 @page "/team/{Slug}"
 @inject IMemberCatalog MemberCatalog
+@inject IDetailTemplateContentService Templates
 @inject NavigationManager Navigation
 @implements IDisposable
 
 <PublicPageHead Path="@("/team/" + _member?.Summary.Slug)" Title="@(_member?.Summary.Name ?? "Team member")"
                 Description="@(_member is null ? null : $"Meet {_member.Summary.Name}, {_member.Summary.Role}. {_member.Summary.Introduction}")" ImagePath="@_member?.Summary.ImagePath"
-                ParentPath="/team" ParentLabel="Team" IsContentAvailable="@(_member is not null)">
+                ParentPath="/team" ParentLabel="@_template.BreadcrumbSectionLabel" BreadcrumbHomeLabel="@_template.BreadcrumbHomeLabel" IsContentAvailable="@(_member is not null)">
     <link rel="stylesheet" href="@Assets["css/member.css"]" />
     <link rel="stylesheet" href="@Assets["css/member-blazor.css"]" />
 </PublicPageHead>
 
 @if (_member is not null)
 {
-    <MemberProfileContent Content="_member" @key="_member.Summary.Slug" />
+    <MemberProfileContent Content="_member" Template="_template" @key="_member.Summary.Slug" />
 }
 
 @code {
     [Parameter] public string Slug { get; set; } = "";
     private Models.MemberDetail? _member;
+    private MemberDetailTemplateEditModel _template = MemberDetailTemplateEditModel.Approved();
     private readonly CancellationTokenSource _lifetime = new();
     private int _request;
 
@@ -28,8 +30,10 @@
         try
         {
             var member = await MemberCatalog.GetDetailAsync(Slug, _lifetime.Token);
+            var template = await Templates.ReadMemberAsync(_lifetime.Token);
             if (request != _request || _lifetime.IsCancellationRequested) return;
             _member = member;
+            _template = template;
             if (member is null) Navigation.NotFound();
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }

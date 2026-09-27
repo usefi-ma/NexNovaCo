@@ -38,6 +38,7 @@
     [Parameter] public string? ImagePath { get; set; }
     [Parameter] public string? ParentPath { get; set; }
     [Parameter] public string? ParentLabel { get; set; }
+    [Parameter] public string BreadcrumbHomeLabel { get; set; } = "Home";
     [Parameter] public bool IsContentAvailable { get; set; } = true;
     [Parameter] public RenderFragment? ChildContent { get; set; }
     private SiteIdentityEditModel _identity = SiteIdentityEditModel.Approved();
@@ -66,7 +67,7 @@
         if (ParentPath is not null && ParentLabel is not null)
         {
             object Crumb(int position, string name, string? url) => new Dictionary<string, object?> { ["@type"] = "ListItem", ["position"] = position, ["name"] = name, ["item"] = url };
-            graph.Add(new Dictionary<string, object?> { ["@type"] = "BreadcrumbList", ["itemListElement"] = new[] { Crumb(1, "Home", Urls.Absolute("/")), Crumb(2, ParentLabel, Urls.Absolute(ParentPath)), Crumb(3, Title ?? "", Canonical) } });
+            graph.Add(new Dictionary<string, object?> { ["@type"] = "BreadcrumbList", ["itemListElement"] = new[] { Crumb(1, BreadcrumbHomeLabel, Urls.Absolute("/")), Crumb(2, ParentLabel, Urls.Absolute(ParentPath)), Crumb(3, Title ?? "", Canonical) } });
         }
         // Default JSON encoder escapes HTML characters, including CMS-supplied </script>.
         return JsonSerializer.Serialize(new Dictionary<string, object> { ["@context"] = "https://schema.org", ["@graph"] = graph });

@@ -42,9 +42,9 @@ body.public-site {
 .public-site #blazor-error-ui .dismiss { border: 0; background: transparent; }
 
 /* Targeted text/control contrast: keep the approved orange backgrounds and geometry. */
-.public-site .custome_btn { color: #102030; }
+.public-site .custome_btn { color: #fff; }
 .public-site .header_top:not(.fixed) .menu a.active,
-.public-site .header_top:not(.fixed) .menu a:hover { color: #995410; }
+.public-site .header_top:not(.fixed) .menu a:hover { color: var(--orange);}
 .public-site .fixed .menu a.active,
 .public-site .fixed .menu a:hover,
 .public-site .footer .col_footer ul li a.active,

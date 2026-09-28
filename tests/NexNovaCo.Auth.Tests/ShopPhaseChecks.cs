@@ -55,9 +55,9 @@ internal static class ShopPhaseChecks
         Check(html.Contains("Digital Tools for a Smarter You") && html.Contains("shop-product-grid"), "Shop renders approved hero and product grid.");
         Check(Count(html, "shop-product-card\"") == ShopDefaults.Products.Count, "Shop renders all seeded Product cards once.");
         Check(html.Contains("shop-product-card__body") && html.Contains("shop-product-card__accent") && html.Contains("View Product"), "Product cards use dedicated angular presentation contract.");
-        Check(html.Contains("disabled") && !html.Contains("href=\"/shop/productivity-pro\""), "Phase 22 CTA is honest and never links to an unimplemented detail route.");
+        Check(!html.Contains("shop-product-card__cta\" disabled") && html.Contains("href=\"/shop/productivity-pro\""), "Product Card CTA links to the implemented detail route.");
         Check(html.Contains("https://shop.example.invalid/shop") && html.Contains("shop-hero.png") && html.Contains("css/shop"), "Shop SEO, social image and page stylesheet render.");
-        Check((await client.GetStringAsync("/sitemap.xml")).Contains("https://shop.example.invalid/shop") && !(await client.GetStringAsync("/sitemap.xml")).Contains("/shop/productivity-pro"), "Sitemap includes Shop but no Phase 23 Product routes.");
+        Check((await client.GetStringAsync("/sitemap.xml")).Contains("https://shop.example.invalid/shop/productivity-pro"), "Sitemap includes current Product detail routes.");
         Check(PublicSiteUrls.StaticPaths.Contains("/shop"), "Shop is a static discovery path.");
         foreach (var route in new[] { "/dashboard/content/shop/hero", "/dashboard/content/shop/products", "/dashboard/content/shared-products" })
         {
@@ -81,7 +81,7 @@ internal static class ShopPhaseChecks
         var model = new ProductEditModel
         {
             Name = "Launch Planner", Slug = " Launch-Planner ", Tagline = "Plan the next move",
-            ShortDescription = "A focused launch planning workspace.", Price = 18.50m,
+            ShortDescription = "A focused launch planning workspace.", FullDescription = "A complete launch planning workspace.", Price = 18.50m,
             OriginalPrice = 24m, Badge = ProductBadge.New, ImagePath = ProductImageAssets.Paths[0]
         };
         var id = await products.CreateAsync(model);
@@ -136,7 +136,7 @@ internal static class ShopPhaseChecks
         Check(MediaPolicy.MaxBytes(MediaKind.Product) == 3 * 1024 * 1024 && MediaPolicy.MaxBytes(MediaKind.ShopHero) == 5 * 1024 * 1024, "Shop media limits are scoped correctly.");
         var image = await client.GetAsync("/" + path);
         Check(image.StatusCode == HttpStatusCode.OK && image.Content.Headers.ContentType!.MediaType == "image/jpeg" && image.Headers.GetValues("X-Content-Type-Options").Single() == "nosniff", "Product upload is served as a safe raster.");
-        var model = new ProductEditModel { Name = "Uploaded Product", Slug = "uploaded-product", Tagline = "Stored safely", ShortDescription = "Uses a validated uploaded cover.", Price = 9m, ImagePath = path };
+        var model = new ProductEditModel { Name = "Uploaded Product", Slug = "uploaded-product", Tagline = "Stored safely", ShortDescription = "Uses a validated uploaded cover.", FullDescription = "A complete description for the uploaded product.", Price = 9m, ImagePath = path };
         var id = await products.CreateAsync(model);
         Check((await products.GetAsync()).Single(x => x.Slug == model.Slug).ImagePath == path, "Product upload persists and reaches public content.");
         await products.DeleteAsync(id);
@@ -171,7 +171,7 @@ internal static class ShopPhaseChecks
             await using var restartedScope = restarted.Services.CreateAsyncScope();
             Check(!await restartedScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Products.AnyAsync(), "Restart does not reseed deleted Products.");
         }
-        var only = new ProductEditModel { Name = "Only New Product", Slug = "only-new-product", Tagline = "Added after empty", ShortDescription = "An Admin-created item after intentional empty state.", Price = 12m, ImagePath = ProductImageAssets.Paths[0] };
+        var only = new ProductEditModel { Name = "Only New Product", Slug = "only-new-product", Tagline = "Added after empty", ShortDescription = "An Admin-created item after intentional empty state.", FullDescription = "Admin-created detail content after intentional empty state.", Price = 12m, ImagePath = ProductImageAssets.Paths[0] };
         await products.CreateAsync(only);
         await using var afterAdd = new AuthFactory(app.Password, databasePath: app.DatabasePath, publicBaseUrl: "https://shop.example.invalid");
         await using var addScope = afterAdd.Services.CreateAsyncScope();
@@ -202,19 +202,21 @@ internal static class ShopPhaseChecks
         await using var db = new ApplicationDbContext(options);
         var migrations = db.Database.GetMigrations().ToArray();
         var index = Array.FindIndex(migrations, x => x.EndsWith("_AddShopFoundation", StringComparison.Ordinal));
-        Check(index == migrations.Length - 1 && index > 0, "Shop uses one latest additive migration.");
+        Check(index > 0 && index < migrations.Length - 1 && migrations[^1].EndsWith("_AddProductDetails", StringComparison.Ordinal), "Shop foundation remains followed by the additive Product Detail migration.");
         var migrator = db.GetService<IMigrator>();
         await migrator.MigrateAsync(migrations[index - 1]);
         db.Testimonials.Add(new TestimonialEntity { DisplayOrder = 91, Attribution = "Prior data", Quote = "Preserve this exact row.", UpdatedAtUtc = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc) });
         await db.SaveChangesAsync();
         await migrator.MigrateAsync(migrations[index]);
-        await ShopInitializer.InitializeAsync(db);
-        Check(await db.Testimonials.AnyAsync(x => x.Attribution == "Prior data" && x.DisplayOrder == 91), "Shop migration preserves prior CMS rows.");
-        Check(await db.Products.CountAsync() == 6 && await db.ProductInitializationStates.CountAsync() == 1, "Shop initializes Products exactly once after upgrade.");
         var assembly = db.GetService<IMigrationsAssembly>();
         var migration = assembly.CreateMigration(assembly.Migrations[migrations[index]], db.Database.ProviderName!);
         Check(migration.UpOperations.Count == 6 && migration.UpOperations.Count(x => x is CreateTableOperation) == 4 && migration.UpOperations.Count(x => x is CreateIndexOperation) == 2,
-            "Shop migration contains only four additive tables and two indexes.");
+            "Shop foundation migration remains limited to four additive tables and two indexes.");
+        await migrator.MigrateAsync(migrations[^1]);
+        await ShopInitializer.InitializeAsync(db);
+        Check(await db.Testimonials.AnyAsync(x => x.Attribution == "Prior data" && x.DisplayOrder == 91), "Shop migration preserves prior CMS rows.");
+        Check(await db.Products.CountAsync() == 6 && await db.ProductInitializationStates.CountAsync() == 1, "Shop initializes Products exactly once after upgrade.");
+        Check(await db.ProductDetailInitializationStates.CountAsync() == 1, "Upgrade initializes Product detail content once.");
     }
 
     private static int Count(string text, string value) => text.Split(value, StringSplitOptions.None).Length - 1;

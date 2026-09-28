@@ -8,6 +8,10 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 {
     public DbSet<ProductEntity> Products => Set<ProductEntity>();
     public DbSet<ProductInitializationState> ProductInitializationStates => Set<ProductInitializationState>();
+    public DbSet<ProductDetailInitializationState> ProductDetailInitializationStates => Set<ProductDetailInitializationState>();
+    public DbSet<ProductGalleryImage> ProductGalleryImages => Set<ProductGalleryImage>();
+    public DbSet<ProductFeature> ProductFeatures => Set<ProductFeature>();
+    public DbSet<ProductRelatedProduct> ProductRelatedProducts => Set<ProductRelatedProduct>();
     public DbSet<ShopHeroSettings> ShopHeroSettings => Set<ShopHeroSettings>();
     public DbSet<ShopProductsSectionSettings> ShopProductsSectionSettings => Set<ShopProductsSectionSettings>();
     public DbSet<ProjectDetailTemplateSettings> ProjectDetailTemplateSettings => Set<ProjectDetailTemplateSettings>();

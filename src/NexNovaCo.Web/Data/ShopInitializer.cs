@@ -42,6 +42,50 @@ public static class ShopInitializer
             database.ProductInitializationStates.Add(new ProductInitializationState());
         }
 
+        // Product ids are needed by the ordered self-relations below.
+        await database.SaveChangesAsync(cancellationToken);
+
+        if (!await database.ProductDetailInitializationStates.AnyAsync(cancellationToken))
+        {
+            var products = await database.Products
+                .Include(x => x.Gallery)
+                .Include(x => x.Features)
+                .Include(x => x.RelatedProducts)
+                .AsSingleQuery()
+                .ToListAsync(cancellationToken);
+            var bySlug = products.ToDictionary(x => x.Slug, StringComparer.Ordinal);
+            foreach (var product in products)
+            {
+                var hasApprovedDetail = ProductDetailDefaults.BySlug.TryGetValue(product.Slug, out var detail);
+                if (string.IsNullOrWhiteSpace(product.FullDescription))
+                    product.FullDescription = hasApprovedDetail ? detail!.FullDescription : product.ShortDescription;
+                if (!hasApprovedDetail) continue;
+                var approved = detail!;
+                if (product.Gallery.Count == 0)
+                    product.Gallery.AddRange(approved.Gallery.Select((image, index) => new ProductGalleryImage
+                    {
+                        Source = image.Source,
+                        Alt = image.Alt,
+                        DisplayOrder = index + 1
+                    }));
+                if (product.Features.Count == 0)
+                    product.Features.AddRange(approved.Features.Select((text, index) => new ProductFeature
+                    {
+                        Text = text,
+                        DisplayOrder = index + 1
+                    }));
+                if (product.RelatedProducts.Count == 0)
+                    product.RelatedProducts.AddRange(approved.RelatedSlugs
+                        .Where(bySlug.ContainsKey)
+                        .Select((slug, index) => new ProductRelatedProduct
+                        {
+                            RelatedProductId = bySlug[slug].Id,
+                            DisplayOrder = index + 1
+                        }));
+            }
+            database.ProductDetailInitializationStates.Add(new ProductDetailInitializationState());
+        }
+
         await database.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }

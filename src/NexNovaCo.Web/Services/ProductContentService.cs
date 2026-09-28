@@ -33,6 +33,38 @@ public sealed class ProductContentService(
         }
     }
 
+    public async Task<ProductDetail?> GetDetailAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        var normalized = ProductSlugs.Normalize(slug);
+        if (!ProductSlugs.IsValid(normalized)) return null;
+        try
+        {
+            await using var database = await factory.CreateDbContextAsync(cancellationToken);
+            var row = await database.Products.AsNoTracking()
+                .Include(x => x.Gallery)
+                .Include(x => x.Features)
+                .Include(x => x.RelatedProducts).ThenInclude(x => x.RelatedProduct)
+                .AsSingleQuery()
+                .SingleOrDefaultAsync(x => x.Slug == normalized, cancellationToken);
+            if (row is null) return null;
+            Validate(row.ToEditModel());
+            return new ProductDetail(
+                ResolveImage(row.ToContent()),
+                row.FullDescription,
+                row.Gallery.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Id)
+                    .Select(x => new ProductImage(media.ResolvePublicPath(x.Source, MediaKind.Product), x.Alt)).ToArray(),
+                row.Features.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Id).Select(x => x.Text).ToArray(),
+                row.RelatedProducts.OrderBy(x => x.DisplayOrder).ThenBy(x => x.RelatedProductId).Take(3)
+                    .Select(x => ResolveImage(x.RelatedProduct.ToContent())).ToArray());
+        }
+        catch (Exception exception) when (exception is DbException or ValidationException)
+        {
+            // A detail lookup must never resurrect a deleted Product from defaults.
+            logger.LogError(exception, "Product detail {ProductSlug} could not be read safely.", normalized);
+            return null;
+        }
+    }
+
     public async Task<IReadOnlyList<ProductListItem>> ListAsync(CancellationToken cancellationToken = default)
     {
         await using var database = await factory.CreateDbContextAsync(cancellationToken);
@@ -41,11 +73,21 @@ public sealed class ProductContentService(
             row.Id, row.DisplayOrder, row.Name, row.Slug, row.Price, row.Badge, row.ImagePath, row.UpdatedAtUtc)).ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ProductSelectionItem>> ListChoicesAsync(int? exceptId = null, CancellationToken cancellationToken = default)
+    {
+        await using var database = await factory.CreateDbContextAsync(cancellationToken);
+        await RequireAdminAsync(database, cancellationToken);
+        return await Ordered(database).AsNoTracking().Where(x => x.Id != exceptId)
+            .Select(x => new ProductSelectionItem(x.Id, x.Name, x.Slug)).ToListAsync(cancellationToken);
+    }
+
     public async Task<ProductEditModel> GetForEditAsync(int id, CancellationToken cancellationToken = default)
     {
         await using var database = await factory.CreateDbContextAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
-        return (await database.Products.AsNoTracking().SingleOrDefaultAsync(row => row.Id == id, cancellationToken)
+        return (await database.Products.AsNoTracking()
+            .Include(x => x.Gallery).Include(x => x.Features).Include(x => x.RelatedProducts)
+            .AsSingleQuery().SingleOrDefaultAsync(row => row.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException("Product no longer exists.")).ToEditModel();
     }
 
@@ -55,7 +97,8 @@ public sealed class ProductContentService(
         await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validate(model);
-        media.RequireAvailable(model.ImagePath, MediaKind.Product);
+        RequireMedia(model);
+        await RequireRelatedProductsAsync(database, model, 0, cancellationToken);
         await RequireUniqueSlugAsync(database, model.Slug, 0, cancellationToken);
         var rows = await Ordered(database).ToListAsync(cancellationToken);
         Normalize(rows);
@@ -72,9 +115,12 @@ public sealed class ProductContentService(
         await using var database = await factory.CreateDbContextAsync(cancellationToken);
         await RequireAdminAsync(database, cancellationToken);
         Validate(model);
-        media.RequireAvailable(model.ImagePath, MediaKind.Product);
+        RequireMedia(model);
+        await RequireRelatedProductsAsync(database, model, id, cancellationToken);
         await RequireUniqueSlugAsync(database, model.Slug, id, cancellationToken);
-        var row = await database.Products.SingleOrDefaultAsync(row => row.Id == id, cancellationToken)
+        var row = await database.Products
+            .Include(x => x.Gallery).Include(x => x.Features).Include(x => x.RelatedProducts)
+            .AsSingleQuery().SingleOrDefaultAsync(row => row.Id == id, cancellationToken)
             ?? throw new KeyNotFoundException("Product no longer exists.");
         row.SetContent(model);
         await database.SaveChangesAsync(cancellationToken);
@@ -126,6 +172,23 @@ public sealed class ProductContentService(
         var normalized = ProductSlugs.Normalize(slug);
         if (await database.Products.AnyAsync(row => row.Id != exceptId && row.Slug == normalized, cancellationToken))
             throw new ValidationException("That product slug is already in use. Choose another slug.");
+    }
+
+    private static async Task RequireRelatedProductsAsync(ApplicationDbContext database, ProductEditModel model, int productId,
+        CancellationToken cancellationToken)
+    {
+        if (productId > 0 && model.RelatedProductIds.Contains(productId))
+            throw new ValidationException("A product cannot be related to itself.");
+        var ids = model.RelatedProductIds.Distinct().ToArray();
+        if (ids.Length == 0) return;
+        var existing = await database.Products.AsNoTracking().CountAsync(x => ids.Contains(x.Id), cancellationToken);
+        if (existing != ids.Length) throw new ValidationException("One or more related products no longer exist. Reload and try again.");
+    }
+
+    private void RequireMedia(ProductEditModel model)
+    {
+        media.RequireAvailable(model.ImagePath, MediaKind.Product);
+        foreach (var image in model.Gallery) media.RequireAvailable(image.Source, MediaKind.Product);
     }
 
     private static void Normalize(IReadOnlyList<ProductEntity> rows)

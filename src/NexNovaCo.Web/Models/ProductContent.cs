@@ -14,6 +14,15 @@ public sealed record ProductSummary(
     ProductBadge Badge,
     string ImagePath);
 
+// Detail media is deliberately separate from the cover used by cards and social previews.
+public sealed record ProductImage(string Source, string Alt);
+public sealed record ProductDetail(
+    ProductSummary Summary,
+    string FullDescription,
+    IReadOnlyList<ProductImage> Gallery,
+    IReadOnlyList<string> Features,
+    IReadOnlyList<ProductSummary> RelatedProducts);
+
 public sealed record ShopHeroContent(string Eyebrow, string Title, string Description, string CtaLabel, string ImagePath);
 public sealed record ShopProductsSectionContent(string Eyebrow, string Title, string? Introduction);
 public sealed record ShopContent(ShopHeroContent Hero, ShopProductsSectionContent ProductsSection, IReadOnlyList<ProductSummary> Products);

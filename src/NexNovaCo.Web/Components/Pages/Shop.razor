@@ -1,23 +1,16 @@
 @page "/shop"
 @inject IShopContentService ContentService
+@inject NavigationManager Navigation
 
 <PublicPageHead Path="/shop" Title="Shop" Description="@_content?.Hero.Description" ImagePath="@_content?.Hero.ImagePath">
     <link rel="stylesheet" href="@Assets["css/shop.css"]" />
+    <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
 </PublicPageHead>
 
 @if (_content is not null)
 {
-    <div class="shop-page">
-        <section class="shop-hero" aria-labelledby="shop-title">
-            <img class="shop-hero__image" src="@_content.Hero.ImagePath" alt="Digital tools workspace with laptop, tablet and planning accessories" width="1672" height="941" fetchpriority="high" decoding="async" />
-            <div class="shop-hero__shade" aria-hidden="true"></div>
-            <div class="shop-container shop-hero__content">
-                <p class="shop-eyebrow">@_content.Hero.Eyebrow</p>
-                <h1 id="shop-title">@_content.Hero.Title</h1>
-                <p class="shop-hero__description">@_content.Hero.Description</p>
-                <a class="shop-button" href="/shop#products">@_content.Hero.CtaLabel <span aria-hidden="true">→</span></a>
-            </div>
-        </section>
+    <div class="shop-page" style="@($"--shop-hero-image: url('{Navigation.ToAbsoluteUri(_content.Hero.ImagePath)}')")">
+        <InnerPageHero Content="@HeroContent" />
 
         <section class="shop-products" id="products" aria-labelledby="shop-products-title">
             <div class="shop-container">
@@ -59,5 +52,12 @@
 
 @code {
     private ShopContent? _content;
+    private InnerPageHeroContent HeroContent => new(
+        _content!.Hero.Title,
+        _content.Hero.Title,
+        _content.Hero.Description,
+        _content.Hero.CtaLabel,
+        "/shop#products");
+
     protected override async Task OnInitializedAsync() => _content = await ContentService.ReadPublicAsync();
 }

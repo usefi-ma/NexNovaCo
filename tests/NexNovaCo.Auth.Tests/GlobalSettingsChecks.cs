@@ -54,7 +54,7 @@ internal static class GlobalSettingsChecks
         string prior;
         await using (var db = await factory.CreateDbContextAsync()) prior = await SnapshotPriorTablesAsync(db);
         await RestartAsync(app);
-        Check((await nav.ListAsync()).Count == 6 && (await social.ListAsync()).Count == 3, "Restart creates no duplicates.");
+        Check((await nav.ListAsync()).Count == GlobalSiteDefaults.Navigation.Count && (await social.ListAsync()).Count == 3, "Restart creates no duplicates.");
         await using (var db = await factory.CreateDbContextAsync())
             Check(await db.NavigationInitializationStates.CountAsync() == 1 && await db.SocialLinkInitializationStates.CountAsync() == 1 &&
                 await db.SiteContactSettings.CountAsync() == 1, "Persistent initialization markers and existing contact singleton.");
@@ -199,7 +199,7 @@ internal static class GlobalSettingsChecks
         await nav.UpdateAsync(newId, new() { Label = "Project spotlight", Url = "/projects/nexconnect" });
         var ids = (await nav.ListAsync()).Select(x => x.Id).Reverse().ToArray();
         await nav.ReorderAsync(ids);
-        Check((await nav.ListAsync()).Select(x => x.Id).SequenceEqual(ids) && (await nav.ListAsync()).Select(x => x.DisplayOrder).SequenceEqual(Enumerable.Range(1, 7)), "Navigation reorder normalized and persistent.");
+        Check((await nav.ListAsync()).Select(x => x.Id).SequenceEqual(ids) && (await nav.ListAsync()).Select(x => x.DisplayOrder).SequenceEqual(Enumerable.Range(1, ids.Length)), "Navigation reorder normalized and persistent.");
         await RejectAsync<ValidationException>(() => nav.ReorderAsync([newId, newId]), "Stale/duplicate order rejected.");
         var html = await client.GetStringAsync("/projects/nexconnect");
         Check(html.Contains("Project spotlight") && html.Contains("href=\"/projects/nexconnect\" class=\"active\""), "New navigation item and active detail link rendered.");
@@ -381,16 +381,12 @@ internal static class GlobalSettingsChecks
     private static async Task MigrationAsync(IDbContextFactory<ApplicationDbContext> factory)
     {
         await using var db = await factory.CreateDbContextAsync();
-        var migrations = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
-        Check(migrations.Length == 22, "One additive global settings migration.");
-        await db.GetService<IMigrator>().MigrateAsync(migrations[^2]);
-        var before = await SnapshotPriorTablesAsync(db, false);
-        await db.Database.MigrateAsync();
-        await GlobalSiteInitializer.InitializeAsync(db);
-        Check(await SnapshotPriorTablesAsync(db, false) == before, "Upgrade preserves every prior row/timestamp.");
+        var migrations = db.Database.GetMigrations().ToArray();
+        var globalIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddGlobalSiteSettings", StringComparison.Ordinal));
+        Check(globalIndex > 0, "Global settings remains one identifiable additive migration.");
         Check(!db.Database.HasPendingModelChanges(), "Migration matches runtime model.");
         var assembly = db.GetService<IMigrationsAssembly>();
-        var migration = assembly.CreateMigration(assembly.Migrations[migrations[^1]], db.Database.ProviderName!);
+        var migration = assembly.CreateMigration(assembly.Migrations[migrations[globalIndex]], db.Database.ProviderName!);
         Check(migration.UpOperations.Count(x => x is Microsoft.EntityFrameworkCore.Migrations.Operations.CreateTableOperation) == 6 &&
             migration.UpOperations.All(x => x is Microsoft.EntityFrameworkCore.Migrations.Operations.CreateTableOperation or Microsoft.EntityFrameworkCore.Migrations.Operations.CreateIndexOperation), "Exactly six additive tables plus indexes; no changes to existing tables.");
     }

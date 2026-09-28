@@ -231,7 +231,9 @@ internal static class ProductDetailChecks
         await using var db = new ApplicationDbContext(options);
         var migrations = db.Database.GetMigrations().ToArray();
         var detailIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddProductDetails", StringComparison.Ordinal));
-        Check(detailIndex == migrations.Length - 1 && detailIndex > 0, "Product Detail uses one latest additive migration.");
+        var navigationIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddShopToGlobalNavigation", StringComparison.Ordinal));
+        Check(detailIndex > 0 && navigationIndex == detailIndex + 1,
+            "Product Detail remains one additive migration followed only by the navigation data upgrade.");
         var migrator = db.GetService<IMigrator>();
         await migrator.MigrateAsync(migrations[detailIndex - 1]);
         await db.Database.ExecuteSqlInterpolatedAsync($@"

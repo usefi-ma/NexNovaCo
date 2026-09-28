@@ -54,6 +54,11 @@ internal static class ShopPhaseChecks
         Check(response.StatusCode == HttpStatusCode.OK, "Shop is public.");
         var html = await response.Content.ReadAsStringAsync();
         Check(html.Contains("Digital Tools for a Smarter You") && html.Contains("shop-product-grid"), "Shop renders approved hero and product grid.");
+        Check(html.Contains("class=\"inner_page_header\"") && html.Contains("class=\"custome_btn\"") &&
+            html.Contains("href=\"/shop#products\"") && !html.Contains("class=\"shop-hero\""),
+            "Shop Hero reuses the canonical inner-page component and CTA contract.");
+        Check(html.Contains("--shop-hero-image:") && html.Contains("shop-hero.png") && html.Contains("css/inner-page-blazor"),
+            "Shop Hero keeps its CMS image while loading the shared inner-page adaptations.");
         Check(Count(html, "shop-product-card\"") == ShopDefaults.Products.Count, "Shop renders all seeded Product cards once.");
         Check(html.Contains("shop-product-card__body") && html.Contains("shop-product-card__accent") && html.Contains("View Product"), "Product cards use dedicated angular presentation contract.");
         Check(!html.Contains("shop-product-card__cta\" disabled") && html.Contains("href=\"/shop/productivity-pro\""), "Product Card CTA links to the implemented detail route.");
@@ -69,6 +74,9 @@ internal static class ShopPhaseChecks
         Check(await db.Products.CountAsync() == 6 && await db.ProductInitializationStates.CountAsync() == 1, "Fresh database seeds six Products and one persistent marker.");
         Check(await db.ShopHeroSettings.CountAsync() == 1 && await db.ShopProductsSectionSettings.CountAsync() == 1, "Fresh database initializes both Shop settings singletons.");
         Check(!db.Database.HasPendingModelChanges(), "Shop runtime model matches migration snapshot.");
+        Check(await db.NavigationItems.CountAsync() == GlobalSiteDefaults.Navigation.Count &&
+            await db.NavigationItems.CountAsync(x => x.Url == "shop") == 1,
+            "Fresh canonical navigation includes one Shop item in the approved collection.");
         await using var restarted = new AuthFactory(app.Password, databasePath: app.DatabasePath, publicBaseUrl: "https://shop.example.invalid");
         using var restartedClient = restarted.NewClient();
         Check(Count(await restartedClient.GetStringAsync("/shop"), "shop-product-card\"") == 6, "Restart does not duplicate Products.");
@@ -204,6 +212,18 @@ internal static class ShopPhaseChecks
 
     private static async Task NavigationInitializationAsync(AuthFactory app, IDbContextFactory<ApplicationDbContext> factory)
     {
+        foreach (var route in new[] { "/", "/about", "/services", "/projects", "/projects/nexconnect", "/team", "/team/emilyjohnson", "/contact", "/shop", "/shop/only-new-product" })
+        {
+            using var client = app.NewClient();
+            var html = await client.GetStringAsync(route);
+            var header = html[html.IndexOf("<header", StringComparison.Ordinal)..html.IndexOf("</header>", StringComparison.Ordinal)];
+            Check(Count(header, ">Shop</a>") == 1, "Canonical Header exposes exactly one Shop link on " + route);
+            Check(header.Contains("aria-controls=\"primary-navigation\"") && header.Contains("aria-expanded=\"false\""),
+                "Desktop/mobile navigation keeps one shared accessible source on " + route);
+            if (route.StartsWith("/shop", StringComparison.Ordinal))
+                Check(header.Contains("href=\"shop\" class=\"active\"") || header.Contains("href=\"/shop\" class=\"active\""),
+                    "Shop navigation is active on " + route);
+        }
         await using (var db = await factory.CreateDbContextAsync())
         {
             Check(await db.NavigationItems.AnyAsync(x => x.Url == "shop"), "Fresh navigation defaults include Shop.");
@@ -214,7 +234,8 @@ internal static class ShopPhaseChecks
         await using var restarted = new AuthFactory(app.Password, databasePath: app.DatabasePath, publicBaseUrl: "https://shop.example.invalid");
         await using var scope = restarted.Services.CreateAsyncScope();
         var db2 = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        Check(!await db2.NavigationItems.AnyAsync(x => x.Url == "shop") && await db2.NavigationInitializationStates.CountAsync() == 1, "Existing initialized navigation is never overwritten to add Shop.");
+        Check(!await db2.NavigationItems.AnyAsync(x => x.Url == "shop") && await db2.NavigationInitializationStates.CountAsync() == 1,
+            "After the one-time upgrade, an intentional Shop deletion remains deleted on restart.");
     }
 
     private static async Task MigrationAsync()
@@ -225,7 +246,10 @@ internal static class ShopPhaseChecks
         await using var db = new ApplicationDbContext(options);
         var migrations = db.Database.GetMigrations().ToArray();
         var index = Array.FindIndex(migrations, x => x.EndsWith("_AddShopFoundation", StringComparison.Ordinal));
-        Check(index > 0 && index < migrations.Length - 1 && migrations[^1].EndsWith("_AddProductDetails", StringComparison.Ordinal), "Shop foundation remains followed by the additive Product Detail migration.");
+        var detailIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddProductDetails", StringComparison.Ordinal));
+        var navigationIndex = Array.FindIndex(migrations, x => x.EndsWith("_AddShopToGlobalNavigation", StringComparison.Ordinal));
+        Check(index > 0 && detailIndex == index + 1 && navigationIndex == detailIndex + 1 && navigationIndex == migrations.Length - 1,
+            "Shop foundation and Product Detail are followed by the targeted navigation data upgrade.");
         var migrator = db.GetService<IMigrator>();
         await migrator.MigrateAsync(migrations[index - 1]);
         db.Testimonials.Add(new TestimonialEntity { DisplayOrder = 91, Attribution = "Prior data", Quote = "Preserve this exact row.", UpdatedAtUtc = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc) });
@@ -235,11 +259,51 @@ internal static class ShopPhaseChecks
         var migration = assembly.CreateMigration(assembly.Migrations[migrations[index]], db.Database.ProviderName!);
         Check(migration.UpOperations.Count == 6 && migration.UpOperations.Count(x => x is CreateTableOperation) == 4 && migration.UpOperations.Count(x => x is CreateIndexOperation) == 2,
             "Shop foundation migration remains limited to four additive tables and two indexes.");
-        await migrator.MigrateAsync(migrations[^1]);
+        await migrator.MigrateAsync(migrations[detailIndex]);
         await ShopInitializer.InitializeAsync(db);
         Check(await db.Testimonials.AnyAsync(x => x.Attribution == "Prior data" && x.DisplayOrder == 91), "Shop migration preserves prior CMS rows.");
         Check(await db.Products.CountAsync() == 6 && await db.ProductInitializationStates.CountAsync() == 1, "Shop initializes Products exactly once after upgrade.");
         Check(await db.ProductDetailInitializationStates.CountAsync() == 1, "Upgrade initializes Product detail content once.");
+
+        var initialized = new NavigationInitializationState { InitializedAtUtc = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc) };
+        db.NavigationInitializationStates.Add(initialized);
+        db.NavigationItems.AddRange(
+            new NavigationItem { DisplayOrder = 1, Label = "Start", Url = "/", UpdatedAtUtc = initialized.InitializedAtUtc },
+            new NavigationItem { DisplayOrder = 4, Label = "Insights", Url = "projects", UpdatedAtUtc = initialized.InitializedAtUtc },
+            new NavigationItem { DisplayOrder = 6, Label = "Reach us", Url = "/contact", UpdatedAtUtc = initialized.InitializedAtUtc });
+        await db.SaveChangesAsync();
+
+        await migrator.MigrateAsync(migrations[navigationIndex]);
+        var navigation = await db.NavigationItems.AsNoTracking().OrderBy(x => x.DisplayOrder).ThenBy(x => x.Id).ToListAsync();
+        Check(navigation.Count == 4 && navigation.Count(x => x.Url.Trim('/').Equals("shop", StringComparison.OrdinalIgnoreCase)) == 1,
+            "Existing initialized navigation receives exactly one missing Shop item.");
+        Check(navigation.Where(x => x.Url != "shop").Select(x => (x.Label, x.Url)).SequenceEqual(new[]
+            { ("Start", "/"), ("Insights", "projects"), ("Reach us", "/contact") }),
+            "Navigation upgrade preserves all Admin-customized labels, URLs, and relative order.");
+        Check(navigation.Single(x => x.Url == "shop").DisplayOrder < navigation.Single(x => x.Url == "/contact").DisplayOrder,
+            "Targeted upgrade places Shop immediately before the existing Contact item.");
+        await migrator.MigrateAsync(migrations[navigationIndex]);
+        Check(await db.NavigationItems.CountAsync(x => x.Url == "shop") == 1, "Reapplying the current migration target cannot duplicate Shop.");
+
+        var navigationMigration = assembly.CreateMigration(assembly.Migrations[migrations[navigationIndex]], db.Database.ProviderName!);
+        Check(navigationMigration.UpOperations.Count == 1 && navigationMigration.UpOperations[0] is SqlOperation,
+            "Navigation upgrade is one targeted data operation with no schema or Product changes.");
+
+        var existingPath = Path.Combine(Path.GetDirectoryName(path)!, "existing-shop.db");
+        var existingOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite("Data Source=" + existingPath).Options;
+        await using var existingDb = new ApplicationDbContext(existingOptions);
+        var existingMigrator = existingDb.GetService<IMigrator>();
+        await existingMigrator.MigrateAsync(migrations[detailIndex]);
+        existingDb.NavigationInitializationStates.Add(new() { InitializedAtUtc = initialized.InitializedAtUtc });
+        existingDb.NavigationItems.AddRange(
+            new NavigationItem { DisplayOrder = 5, Label = "Store", Url = "/shop", UpdatedAtUtc = initialized.InitializedAtUtc },
+            new NavigationItem { DisplayOrder = 6, Label = "Contact us", Url = "contact", UpdatedAtUtc = initialized.InitializedAtUtc });
+        await existingDb.SaveChangesAsync();
+        await existingMigrator.MigrateAsync(migrations[navigationIndex]);
+        var existingRows = await existingDb.NavigationItems.AsNoTracking().OrderBy(x => x.DisplayOrder).ToListAsync();
+        Check(existingRows.Select(x => (x.DisplayOrder, x.Label, x.Url)).SequenceEqual(new[]
+            { (5, "Store", "/shop"), (6, "Contact us", "contact") }),
+            "A pre-existing canonical Shop route is neither duplicated nor reordered by the upgrade.");
     }
 
     private static int Count(string text, string value) => text.Split(value, StringSplitOptions.None).Length - 1;

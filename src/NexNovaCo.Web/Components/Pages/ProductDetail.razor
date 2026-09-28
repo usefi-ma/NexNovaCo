@@ -7,14 +7,15 @@
                 Title="@(_product?.Summary.Name ?? "Product")"
                 Description="@_product?.Summary.ShortDescription"
                 ImagePath="@_product?.Summary.ImagePath"
-                ParentPath="/shop" ParentLabel="Shop" IsContentAvailable="@(_product is not null)">
+                ParentPath="/shop" ParentLabel="Shop" IsContentAvailable="@(_product is not null)"
+                OpenGraphType="product" IncludeProductStructuredData="true">
     <link rel="stylesheet" href="@Assets["css/shop.css"]" />
     <link rel="stylesheet" href="@Assets["css/product-detail.css"]" />
 </PublicPageHead>
 
 @if (_product is not null)
 {
-    <main class="shop-page product-detail-page" @key="_product.Summary.Slug">
+    <div class="shop-page product-detail-page" @key="_product.Summary.Slug">
         <div class="shop-container">
             <Breadcrumbs ParentHref="/shop" ParentLabel="Shop" CurrentLabel="@_product.Summary.Name" />
             <section class="product-detail__overview" aria-labelledby="product-title">
@@ -79,7 +80,7 @@
                 </section>
             }
         </div>
-    </main>
+    </div>
 }
 
 @code {

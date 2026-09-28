@@ -1,6 +1,6 @@
 <article class="shop-product-card">
     <div class="shop-product-card__image-wrap">
-        <img src="@Content.ImagePath" alt="@(Content.Name + " digital product preview")" loading="lazy" width="640" height="410" />
+        <img src="@Content.ImagePath" alt="@(Content.Name + " digital product preview")" loading="lazy" decoding="async" width="640" height="410" />
         @if (ProductPresentation.Badge(Content.Badge) is { } badge)
         {
             <span class="shop-product-card__badge shop-product-card__badge--@Content.Badge.ToString().ToLowerInvariant()">@badge</span>

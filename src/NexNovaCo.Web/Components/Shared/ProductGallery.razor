@@ -2,7 +2,7 @@
      tabindex="@(_images.Count > 1 ? "0" : null)" @onkeydown="OnKeyDown"
      @onpointerdown="OnPointerDown" @onpointerup="OnPointerUp" @onpointercancel="ClearPointer">
     <div class="product-gallery__frame">
-        <img src="@_images[_active].Source" alt="@_images[_active].Alt" width="900" height="650" draggable="false" @ondragstart:preventDefault="true" />
+        <img src="@_images[_active].Source" alt="@_images[_active].Alt" width="900" height="650" fetchpriority="high" decoding="async" draggable="false" @ondragstart:preventDefault="true" />
         @if (_images.Count > 1)
         {
             <button class="product-gallery__control product-gallery__control--previous" type="button" @onclick="Previous" aria-label="Previous product image">
@@ -17,7 +17,7 @@
     </div>
     @if (_images.Count > 1)
     {
-        <div class="product-gallery__thumbnails" aria-label="Choose product image">
+        <div class="product-gallery__thumbnails" role="group" aria-label="Choose product image">
             @for (var index = 0; index < _images.Count; index++)
             {
                 var image = _images[index];
@@ -25,7 +25,7 @@
                 <button type="button" class="@("product-gallery__thumbnail " + (target == _active ? "is-active" : ""))"
                         aria-label="@($"Show image {target + 1}: {image.Alt}")" aria-current="@(target == _active ? "true" : null)"
                         @onclick="@(() => Select(target))">
-                    <img src="@image.Source" alt="" width="160" height="110" loading="lazy" />
+                    <img src="@image.Source" alt="" width="160" height="110" loading="lazy" decoding="async" />
                 </button>
             }
         </div>

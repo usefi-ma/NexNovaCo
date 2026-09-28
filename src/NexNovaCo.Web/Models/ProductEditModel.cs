@@ -28,6 +28,8 @@ public sealed class ProductEditModel : IValidatableObject
             yield return new("Price supports up to two decimal places.", [nameof(Price)]);
         if (OriginalPrice is decimal original && Decimal.Round(original, 2) != original)
             yield return new("Original price supports up to two decimal places.", [nameof(OriginalPrice)]);
+        if (OriginalPrice is decimal comparison && comparison <= Price)
+            yield return new("Original price must be greater than the current price.", [nameof(OriginalPrice)]);
         if (Gallery is null || Features is null || RelatedProductIds is null)
         {
             yield return new("Gallery, Features and Related Products must be valid collections.");

@@ -19,7 +19,7 @@
 .product-detail__prices strong { color: #eb6f14; font-size: 2.25rem; line-height: 1; }
 .product-detail__prices del { color: #718394; font-size: 1.05rem; }
 .product-detail__summary { max-width: 34rem; margin: 0 0 28px; color: #526a7d; font-size: 1.05rem; line-height: 1.75; }
-.product-detail__availability { margin: 14px 0 0; color: #6e7f8d; font-size: .86rem; }
+.product-detail__availability { margin: 14px 0 0; color: #526879; font-size: .86rem; }
 
 .product-gallery { min-width: 0; touch-action: pan-y pinch-zoom; }
 .product-gallery:focus-visible { outline: 3px solid #167da8; outline-offset: 5px; }

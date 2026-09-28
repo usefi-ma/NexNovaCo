@@ -64,9 +64,9 @@ internal static class ShopPhaseChecks
             html.Contains("class=\"project_hexagon shop-product-card__body\"") &&
             html.Contains("class=\"custome_btn shop-product-card__cta\"") && html.Contains("css/project") && html.Contains("View Product"),
             "Product cards reuse the approved ProjectCard shell, geometry and CTA contract.");
-        Check(html.Contains("class=\"shop-products__intro\"") && html.Contains("Our Products") &&
+        Check(html.Contains("class=\"shop-products__intro\"") && !html.Contains("Our Products") &&
             html.Contains("Digital Tools for a Smarter You") && html.Contains("Practical resources created to help ideas move from plan to progress."),
-            "Products intro preserves every CMS field in the shared section-heading structure.");
+            "Products intro omits the eyebrow while preserving the title and introduction.");
         Check(!html.Contains("shop-product-card__cta\" disabled") && html.Contains("href=\"/shop/productivity-pro\""), "Product Card CTA links to the implemented detail route.");
         Check(html.Contains("https://shop.example.invalid/shop") && html.Contains("shop-hero.png") && html.Contains("css/shop"), "Shop SEO, social image and page stylesheet render.");
         Check((await client.GetStringAsync("/sitemap.xml")).Contains("https://shop.example.invalid/shop/productivity-pro"), "Sitemap includes current Product detail routes.");

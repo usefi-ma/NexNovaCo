@@ -9,6 +9,8 @@
                 ImagePath="@_product?.Summary.ImagePath"
                 ParentPath="/shop" ParentLabel="Shop" IsContentAvailable="@(_product is not null)"
                 OpenGraphType="product" IncludeProductStructuredData="true">
+    <link rel="stylesheet" href="@Assets["css/project.css"]" />
+    <link rel="stylesheet" href="@Assets["css/project-card-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/shop.css"]" />
     <link rel="stylesheet" href="@Assets["css/product-detail.css"]" />
 </PublicPageHead>
@@ -36,7 +38,7 @@
                         }
                     </div>
                     <p class="product-detail__summary">@_product.Summary.ShortDescription</p>
-                    <a class="shop-button" href="/shop">Back to Shop <span aria-hidden="true">→</span></a>
+                    <a class="custome_btn shop-button" href="/shop">Back to Shop <span aria-hidden="true">→</span></a>
                     <p class="product-detail__availability">Catalog preview only. Online purchasing is not available.</p>
                 </div>
             </section>

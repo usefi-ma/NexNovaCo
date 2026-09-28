@@ -23,7 +23,7 @@ html:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, 
 @media (min-width: 1401px) and (max-width: 1565px) {
     .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page, .shop-page)) .brand_container span { font-size: 1.5rem; }
     .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page, .shop-page)) .header_top .menu a { padding-inline: 7px; font-size: 15px; letter-spacing: 0; }
-    .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page, .shop-page)) .header_top .menu ul li { margin-left: 2px; }
+    .public-site:has(:is(.services-page, .about-page, .projects-page, .project-detail-page, .team-page, .contact-page, .shop-page)) .header_top .menu ul li { margin-left: 7px; }
 }
 
 /* One logical H1; the second title in the source was a mobile-only visual duplicate. */

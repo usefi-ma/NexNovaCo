@@ -54,13 +54,19 @@ internal static class ShopPhaseChecks
         Check(response.StatusCode == HttpStatusCode.OK, "Shop is public.");
         var html = await response.Content.ReadAsStringAsync();
         Check(html.Contains("Digital Tools for a Smarter You") && html.Contains("shop-product-grid"), "Shop renders approved hero and product grid.");
-        Check(html.Contains("class=\"inner_page_header\"") && html.Contains("class=\"custome_btn\"") &&
+        Check(html.Contains("class=\"inner_page_header\"") && html.Contains("class=\"hexagon hexagon_content\"") && html.Contains("class=\"custome_btn\"") &&
             html.Contains("href=\"/shop#products\"") && !html.Contains("class=\"shop-hero\""),
-            "Shop Hero reuses the canonical inner-page component and CTA contract.");
+            "Shop Hero reuses the canonical inner-page component, central polygon and CTA contract.");
         Check(html.Contains("--shop-hero-image:") && html.Contains("shop-hero.png") && html.Contains("css/inner-page-blazor"),
             "Shop Hero keeps its CMS image while loading the shared inner-page adaptations.");
         Check(Count(html, "shop-product-card\"") == ShopDefaults.Products.Count, "Shop renders all seeded Product cards once.");
-        Check(html.Contains("shop-product-card__body") && html.Contains("shop-product-card__accent") && html.Contains("View Product"), "Product cards use dedicated angular presentation contract.");
+        Check(html.Contains("class=\"item project_item shop-product-card\"") &&
+            html.Contains("class=\"project_hexagon shop-product-card__body\"") &&
+            html.Contains("class=\"custome_btn shop-product-card__cta\"") && html.Contains("css/project") && html.Contains("View Product"),
+            "Product cards reuse the approved ProjectCard shell, geometry and CTA contract.");
+        Check(html.Contains("class=\"shop-products__intro\"") && html.Contains("Our Products") &&
+            html.Contains("Digital Tools for a Smarter You") && html.Contains("Practical resources created to help ideas move from plan to progress."),
+            "Products intro preserves every CMS field in the shared section-heading structure.");
         Check(!html.Contains("shop-product-card__cta\" disabled") && html.Contains("href=\"/shop/productivity-pro\""), "Product Card CTA links to the implemented detail route.");
         Check(html.Contains("https://shop.example.invalid/shop") && html.Contains("shop-hero.png") && html.Contains("css/shop"), "Shop SEO, social image and page stylesheet render.");
         Check((await client.GetStringAsync("/sitemap.xml")).Contains("https://shop.example.invalid/shop/productivity-pro"), "Sitemap includes current Product detail routes.");

@@ -3,6 +3,8 @@
 @inject NavigationManager Navigation
 
 <PublicPageHead Path="/shop" Title="Shop" Description="@_content?.Hero.Description" ImagePath="@_content?.Hero.ImagePath">
+    <link rel="stylesheet" href="@Assets["css/project.css"]" />
+    <link rel="stylesheet" href="@Assets["css/project-card-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/shop.css"]" />
     <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
 </PublicPageHead>
@@ -13,15 +15,11 @@
         <InnerPageHero Content="@HeroContent" />
 
         <section class="shop-products" id="products" aria-labelledby="shop-products-title">
-            <div class="shop-container">
+            <div class="container">
                 <header class="shop-products__header">
-                    <div>
+                    <div class="shop-products__intro" id="shop-products-title">
                         <p class="shop-eyebrow">@_content.ProductsSection.Eyebrow</p>
-                        <h2 id="shop-products-title">@_content.ProductsSection.Title</h2>
-                        @if (!string.IsNullOrWhiteSpace(_content.ProductsSection.Introduction))
-                        {
-                            <p class="shop-products__intro">@_content.ProductsSection.Introduction</p>
-                        }
+                        <SectionHeader Content="ProductsHeading" />
                     </div>
                     @if (_content.Products.Count > 0)
                     {
@@ -58,6 +56,9 @@
         _content.Hero.Description,
         _content.Hero.CtaLabel,
         "/shop#products");
+    private SectionHeading ProductsHeading => new(
+        _content!.ProductsSection.Title,
+        _content.ProductsSection.Introduction ?? string.Empty);
 
     protected override async Task OnInitializedAsync() => _content = await ContentService.ReadPublicAsync();
 }

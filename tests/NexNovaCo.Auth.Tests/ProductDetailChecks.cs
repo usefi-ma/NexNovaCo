@@ -43,6 +43,7 @@ internal static class ProductDetailChecks
 
         await DetailCrudAsync(app, client, factory, media, products);
         await RelationValidationAsync(products);
+        await LongContentAndPriceAsync(client, products);
         await AuthorizationAsync(factory, options, paths);
     }
 
@@ -65,6 +66,11 @@ internal static class ProductDetailChecks
         Check(html.Contains("product-gallery__control--previous") && html.Contains("aria-roledescription=\"carousel\"") && html.Contains("aria-live=\"polite\""), "Multi-image gallery exposes accessible controls and status.");
         Check(html.Contains("Related products") && Count(html, "shop-product-card\"") == 3, "Product Detail renders exactly three explicitly related ProductCards.");
         Check(html.Contains($"<link rel=\"canonical\" href=\"{Origin}/shop/productivity-pro\"") && html.Contains("property=\"og:title\"") && html.Contains("name=\"twitter:title\""), "Product Detail uses shared canonical, Open Graph and Twitter metadata.");
+        Check(html.Contains("property=\"og:type\" content=\"product\"") && html.Contains("\"@type\":\"Product\"") &&
+              html.Contains("\"@type\":\"Brand\"") && !html.Contains("\"offers\""),
+            "Product Detail emits truthful catalog-only Product JSON-LD without Offer semantics.");
+        Check(html.Contains("fetchpriority=\"high\"") && html.Contains("role=\"group\" aria-label=\"Choose product image\"") && html.Contains("loading=\"lazy\""),
+            "Product Detail prioritizes its main visual while thumbnails remain lazy and semantically grouped.");
         Check(Count(html, "<h1") == 1 && html.Contains("Current price:") && html.Contains("Original price:"), "Product Detail has one H1 and accessible current/original price meaning.");
         Check(!html.Contains("Add to Cart", StringComparison.OrdinalIgnoreCase) && !html.Contains("Buy Now", StringComparison.OrdinalIgnoreCase) && html.Contains("Catalog preview only"), "Product Detail never implies unavailable purchasing behavior.");
         Check((await client.GetAsync("/shop/not-a-real-product")).StatusCode == HttpStatusCode.NotFound, "Invalid Product slug returns safe not-found behavior.");
@@ -120,6 +126,12 @@ internal static class ProductDetailChecks
                 "Gallery, features and related order survive refresh and application restart.");
         }
 
+        model.Gallery = [model.Gallery[0], model.Gallery[1]];
+        await products.UpdateAsync(target.Id, model);
+        var twoHtml = await client.GetStringAsync("/shop/" + target.Slug);
+        Check(Count(twoHtml, "aria-label=\"Show image") == 2 && twoHtml.Contains("product-gallery__control--previous"),
+            "Two-image gallery renders exact thumbnails and navigation controls.");
+
         model.Gallery = [model.Gallery[0]];
         await products.UpdateAsync(target.Id, model);
         var oneHtml = await client.GetStringAsync("/shop/" + target.Slug);
@@ -164,6 +176,41 @@ internal static class ProductDetailChecks
         await RejectAsync<ValidationException>(() => products.UpdateAsync(product.Id, model), "Duplicate related Product rejected.");
         model.RelatedProductIds = [other.Id, int.MaxValue];
         await RejectAsync<ValidationException>(() => products.UpdateAsync(product.Id, model), "Missing related Product rejected.");
+        model.RelatedProductIds = (await products.ListChoicesAsync(product.Id)).Take(4).Select(x => x.Id).ToList();
+        await RejectAsync<ValidationException>(() => products.UpdateAsync(product.Id, model), "More than three related Products rejected.");
+    }
+
+    private static async Task LongContentAndPriceAsync(HttpClient client, ProductContentService products)
+    {
+        var choices = await products.ListChoicesAsync();
+        var model = new ProductEditModel
+        {
+            Name = new string('N', 80), Slug = "long-content-product", Tagline = new string('T', 120),
+            ShortDescription = new string('S', 240),
+            FullDescription = "First long-content paragraph.\n\n" + new string('D', 1800),
+            Price = 0m, OriginalPrice = null, Badge = ProductBadge.None, ImagePath = ProductImageAssets.Paths[0],
+            Gallery = ProductImageAssets.Paths.Take(5).Select((path, index) => new ProductGalleryEditRow { Source = path, Alt = $"Stress gallery image {index + 1}" }).ToList(),
+            Features = [new() { Text = new string('F', 300) }],
+            RelatedProductIds = choices.Take(1).Select(x => x.Id).ToList()
+        };
+        var id = await products.CreateAsync(model);
+        var html = await client.GetStringAsync("/shop/" + model.Slug);
+        Check(html.Contains(model.Name) && html.Contains(model.Tagline) && html.Contains(model.ShortDescription) && html.Contains(new string('D', 1800)),
+            "Maximum allowed Product text and multi-paragraph detail render without truncation.");
+        var priceStart = html.IndexOf("class=\"product-detail__prices\"", StringComparison.Ordinal);
+        var priceEnd = html.IndexOf("class=\"product-detail__summary\"", priceStart, StringComparison.Ordinal);
+        var priceBlock = html[priceStart..priceEnd];
+        Check(html.Contains("$0"), "Zero Product price renders safely.");
+        Check(!priceBlock.Contains("<del>"), "Omitted original Product price hides cleanly.");
+        Check(!html.Contains("class=\"product-detail__badge\""), "Omitted Product badge hides cleanly.");
+        Check(Count(html, "aria-label=\"Show image") == 5, "Five-image gallery renders every ordered thumbnail.");
+
+        model.Price = 900000m;
+        model.OriginalPrice = 999999.99m;
+        await products.UpdateAsync(id, model);
+        html = await client.GetStringAsync("/shop/" + model.Slug);
+        Check(html.Contains("$900000") && html.Contains("$999999.99") && html.Contains("Original price:"),
+            "Large valid current/original prices render with explicit accessible meaning.");
     }
 
     private static async Task AuthorizationAsync(IDbContextFactory<ApplicationDbContext> factory, IOptions<IdentityOptions> options, MediaFilePaths paths)

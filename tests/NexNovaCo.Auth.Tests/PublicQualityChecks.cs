@@ -19,13 +19,14 @@ internal static class PublicQualityChecks
         await using var app = new AuthFactory(NewPassword(), "Production", publicBaseUrl: Origin);
         using var client = app.NewClient();
         var factory = app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
-        string projectSlug, memberSlug;
+        string projectSlug, memberSlug, productSlug;
         await using (var db = await factory.CreateDbContextAsync())
         {
             projectSlug = (await db.Projects.FirstAsync()).Slug;
             memberSlug = (await db.Members.FirstAsync()).Slug;
+            productSlug = (await db.Products.FirstAsync()).Slug;
         }
-        var paths = PublicSiteUrls.StaticPaths.Concat(new[] { "/projects/" + projectSlug, "/team/" + memberSlug }).ToArray();
+        var paths = PublicSiteUrls.StaticPaths.Concat(new[] { "/projects/" + projectSlug, "/team/" + memberSlug, "/shop/" + productSlug }).ToArray();
         var titles = new HashSet<string>();
         foreach (var path in paths)
         {
@@ -45,12 +46,22 @@ internal static class PublicQualityChecks
             Check((await client.GetAsync(shareUri!.AbsolutePath)).IsSuccessStatusCode, "Sharing image resolves.");
             var json = Regex.Match(html, "<script type=\"application/ld(?:\\+|&#x2B;)json\">(.*?)</script>", RegexOptions.Singleline).Groups[1].Value;
             using var data = JsonDocument.Parse(json);
-            Check(data.RootElement.GetProperty("@graph").GetArrayLength() == (path.Count(x => x == '/') == 2 ? 3 : 2), "Accurate schema graph/breadcrumbs.");
+            var graph = data.RootElement.GetProperty("@graph");
+            var expectedNodes = path.StartsWith("/shop/", StringComparison.Ordinal) ? 4 : path.Count(x => x == '/') == 2 ? 3 : 2;
+            Check(graph.GetArrayLength() == expectedNodes, "Accurate schema graph/breadcrumbs.");
+            if (path.StartsWith("/shop/", StringComparison.Ordinal))
+            {
+                var product = graph.EnumerateArray().Single(x => x.GetProperty("@type").GetString() == "Product");
+                Check(product.GetProperty("name").GetString()!.Length > 0 && product.GetProperty("url").GetString() == Origin + path &&
+                      product.GetProperty("image").GetString()!.StartsWith(Origin, StringComparison.Ordinal) &&
+                      product.GetProperty("brand").GetProperty("@type").GetString() == "Brand" && !product.TryGetProperty("offers", out _),
+                    "Product schema is truthful, absolute and does not imply purchasing availability.");
+            }
             Check(Regex.Matches(html, "<main[ >]").Count == 1 && Regex.Matches(html, "<h1[ >]").Count == 1, "One main/H1.");
             Check(html.Contains("class=\"skip-link\"") && html.Contains("id=\"main-content\" tabindex=\"-1\""), "Skip destination.");
             Check(!Regex.IsMatch(html, "<script[^>]+src=\"[^\"]*jquery-3\\.1\\.0"), "Old jQuery not loaded.");
         }
-        foreach (var path in new[] { "/projects/not-a-real-project", "/team/not-a-real-member", "/not-found", "/missing-route" })
+        foreach (var path in new[] { "/projects/not-a-real-project", "/team/not-a-real-member", "/shop/not-a-real-product", "/shop/bad%2Fslug", "/not-found", "/missing-route" })
         {
             var response = await client.GetAsync(path);
             Check(response.StatusCode == HttpStatusCode.NotFound, "Real 404: " + path);
@@ -85,21 +96,26 @@ internal static class PublicQualityChecks
             var member = await db.Members.FirstAsync(x => x.Slug == memberSlug);
             member.Name = "Quality Member"; member.Role = "Quality Engineer";
             member.Introduction = "A changed member introduction.";
+            var product = await db.Products.FirstAsync(x => x.Slug == productSlug);
+            product.Name = "Quality Product"; product.ShortDescription = "A changed Product description.";
             await db.SaveChangesAsync();
         }
         var projectHtml = await client.GetStringAsync("/projects/" + projectSlug);
         Check(projectHtml.Contains("Quality Project | Quality &amp; Brand") && projectHtml.Contains("A changed project description."), "Project/brand metadata follows content.");
         var memberHtml = await client.GetStringAsync("/team/" + memberSlug);
         Check(memberHtml.Contains("Quality Member | Quality &amp; Brand") && memberHtml.Contains("Quality Engineer"), "Member metadata follows content.");
+        var productHtml = await client.GetStringAsync("/shop/" + productSlug);
+        Check(productHtml.Contains("Quality Product | Quality &amp; Brand") && productHtml.Contains("A changed Product description.") && productHtml.Contains("\"@type\":\"Product\""), "Product metadata/schema follows canonical content.");
         await using (var db = await factory.CreateDbContextAsync())
         {
             db.Projects.Remove(await db.Projects.SingleAsync(x => x.Slug == projectSlug));
             db.Members.Remove(await db.Members.SingleAsync(x => x.Slug == memberSlug));
+            db.Products.Remove(await db.Products.SingleAsync(x => x.Slug == productSlug));
             db.NavigationItems.RemoveRange(await db.NavigationItems.ToListAsync());
             await db.SaveChangesAsync();
         }
         var after = await Sitemap(client);
-        Check(!after.Contains(Origin + "/projects/" + projectSlug) && !after.Contains(Origin + "/team/" + memberSlug), "Deleted details leave sitemap.");
+        Check(!after.Contains(Origin + "/projects/" + projectSlug) && !after.Contains(Origin + "/team/" + memberSlug) && !after.Contains(Origin + "/shop/" + productSlug), "Deleted details leave sitemap.");
         Check(PublicSiteUrls.StaticPaths.All(x => after.Contains(Origin + x)), "Empty navigation does not change canonical inventory.");
         using var authenticated = app.NewClient();
         Check((await Login(authenticated, AuthFactory.Email, app.Password)).StatusCode == HttpStatusCode.Redirect, "Admin login smoke.");
@@ -115,7 +131,7 @@ internal static class PublicQualityChecks
         }
         await using (var restarted = new AuthFactory(app.Password, "Production", app.DatabasePath, Origin))
         using (var restartClient = restarted.NewClient())
-            Check(!(await Sitemap(restartClient)).Contains(Origin + "/projects/" + projectSlug), "Deletion persists on restart.");
+            Check(!(await Sitemap(restartClient)).Contains(Origin + "/projects/" + projectSlug) && !(await Sitemap(restartClient)).Contains(Origin + "/shop/" + productSlug), "Deletion persists on restart.");
 
         await using (var db = await factory.CreateDbContextAsync())
         {

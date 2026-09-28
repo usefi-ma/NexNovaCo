@@ -42,6 +42,7 @@ internal static class ShopPhaseChecks
 
         await CrudAndSettingsAsync(app, client, factory, products, shop);
         await MediaAsync(client, media, products);
+        await RouteAuthorizationAsync(app, users);
         await AuthorizationAsync(factory, options, paths, products);
         await IntentionalEmptyAsync(app, client, factory, products);
         await NavigationInitializationAsync(app, factory);
@@ -117,6 +118,11 @@ internal static class ShopPhaseChecks
         await RejectAsync<ValidationException>(() => products.CreateAsync(model), "Negative Product price rejected.");
         model.Price = 1.001m;
         await RejectAsync<ValidationException>(() => products.CreateAsync(model), "Product price precision validated.");
+        model.Price = 10m; model.OriginalPrice = 10m;
+        await RejectAsync<ValidationException>(() => products.CreateAsync(model), "Original Product price equal to current price rejected.");
+        model.OriginalPrice = 9m;
+        await RejectAsync<ValidationException>(() => products.CreateAsync(model), "Original Product price below current price rejected.");
+        model.OriginalPrice = null;
         model.Price = 1m; model.Badge = (ProductBadge)999;
         await RejectAsync<ValidationException>(() => products.CreateAsync(model), "Unsupported Product badge rejected.");
         model.Badge = ProductBadge.None; model.ImagePath = "../outside.jpg";
@@ -124,6 +130,23 @@ internal static class ShopPhaseChecks
 
         await using var db = await factory.CreateDbContextAsync();
         Check(await db.ProductInitializationStates.CountAsync() == 1, "CRUD never changes Product initialization marker.");
+    }
+
+    private static async Task RouteAuthorizationAsync(AuthFactory app, UserManager<ApplicationUser> users)
+    {
+        var password = NewPassword();
+        var viewer = new ApplicationUser { Email = "shop-viewer@example.invalid", UserName = "shop-viewer@example.invalid" };
+        Check((await users.CreateAsync(viewer, password)).Succeeded, "Create isolated non-Admin Shop viewer.");
+        using var viewerClient = app.NewClient();
+        await Login(viewerClient, viewer.Email, password);
+        using var adminClient = app.NewClient();
+        await Login(adminClient, AuthFactory.Email, app.Password);
+        foreach (var route in new[] { "/dashboard/content/shared-products", "/dashboard/content/shared-products/new", "/dashboard/content/shared-products/1", "/dashboard/content/shop/hero", "/dashboard/content/shop/products" })
+        {
+            var denied = await viewerClient.GetAsync(route);
+            Check(denied.StatusCode == HttpStatusCode.Redirect && denied.Headers.Location!.ToString().Contains("access-denied"), "Non-Admin Shop route denied: " + route);
+            Check((await adminClient.GetAsync(route)).IsSuccessStatusCode, "Admin Shop route allowed: " + route);
+        }
     }
 
     private static async Task MediaAsync(HttpClient client, LocalMediaStorageService media, ProductContentService products)

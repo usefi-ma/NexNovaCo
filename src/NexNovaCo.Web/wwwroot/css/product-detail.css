@@ -1,7 +1,6 @@
 .product-detail-page {
     min-height: 70vh;
     overflow: clip;
-    background: #fff;
     color: var(--primary-text-color);
 }
 

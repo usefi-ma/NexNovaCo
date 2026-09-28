@@ -1,0 +1,9 @@
+.products-list { overflow-x: auto; }
+.products-table { min-width: 860px; }
+.product-cell-text { overflow-wrap: anywhere; }
+.product-actions { display: flex; align-items: center; gap: 2px; }
+@media (max-width: 960px) {
+    .products-list { overflow: visible; }
+    .products-table { min-width: 0; }
+    .product-actions { justify-content: flex-end; }
+}

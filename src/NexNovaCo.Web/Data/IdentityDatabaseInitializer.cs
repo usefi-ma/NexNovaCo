@@ -36,6 +36,7 @@ public static class IdentityDatabaseInitializer
         await DetailTemplateInitializer.InitializeAsync(database, cancellationToken);
         await ContactPageInitializer.InitializeAsync(database, cancellationToken);
         await GlobalSiteInitializer.InitializeAsync(database, cancellationToken);
+        await ShopInitializer.InitializeAsync(database, cancellationToken);
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         if (!await roles.RoleExistsAsync(AdminRole))
             RequireSuccess(await roles.CreateAsync(new IdentityRole(AdminRole)));

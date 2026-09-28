@@ -101,6 +101,8 @@ builder.Services.AddScoped<IProjectsPageCmsService, ProjectsPageCmsService>();
 builder.Services.AddScoped<ITeamPageCmsService, TeamPageCmsService>();
 builder.Services.AddScoped<IDetailTemplateContentService, DetailTemplateContentService>();
 builder.Services.AddScoped<IProjectsContentService, ProjectsContentService>();
+builder.Services.AddScoped<IProductContentService, ProductContentService>();
+builder.Services.AddScoped<IShopContentService, ShopContentService>();
 
 builder.Services.Configure<MediaStorageOptions>(builder.Configuration.GetSection("MediaStorage"));
 builder.Services.AddSingleton<MediaFilePaths>();

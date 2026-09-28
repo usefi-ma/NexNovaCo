@@ -1,0 +1,123 @@
+@page "/dashboard/content/shared-products/new"
+@page "/dashboard/content/shared-products/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using System.Data.Common
+@using Microsoft.EntityFrameworkCore
+@inject IProductContentService ProductsService
+@inject ILogger<ProductEditor> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>@(_editingId is null ? "Add" : "Edit") Product | NexNovaCo Dashboard</PageTitle>
+<HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
+<MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Products</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add product" : "Edit product")</MudText>
+<MudText Class="dashboard-muted mb-7">Saved content appears on the public Shop. Phase 22 supports one cover image; gallery media remains deferred.</MudText>
+<UnsavedChangesGuard IsDirty="IsDirty" />
+@if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
+@if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Product saved.</MudAlert> }
+@if (_model is not null)
+{
+    <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="shared-product">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <section class="dashboard-editor-section" aria-label="Basic information">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Basic information</MudText>
+                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" HelperText="Required. Up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Slug" For="@(() => _model.Slug)" Label="Slug" HelperText="Unique lowercase route identifier reserved for Phase 23." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.Tagline" For="@(() => _model.Tagline)" Label="Tagline" HelperText="Required. Up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" Class="mb-5" />
+                <MudTextField @bind-Value="_model.ShortDescription" For="@(() => _model.ShortDescription)" Label="Short description" HelperText="Required. Up to 240 characters." Variant="Variant.Outlined" MaxLength="240" Lines="3" Immediate="true" Disabled="_saving" Class="mb-5" />
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Pricing and badge">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Pricing and badge</MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="6"><MudNumericField T="decimal" @bind-Value="_model.Price" For="@(() => _model.Price)" Label="Price" HelperText="USD; non-negative, up to two decimal places." Min="0" Max="999999.99m" Format="0.00" Variant="Variant.Outlined" Immediate="true" Disabled="_saving" Class="mb-5" /></MudItem>
+                    <MudItem xs="12" sm="6"><MudNumericField T="decimal?" @bind-Value="_model.OriginalPrice" For="@(() => _model.OriginalPrice)" Label="Original price" HelperText="Optional comparison price." Min="0" Max="999999.99m" Format="0.00" Variant="Variant.Outlined" Immediate="true" Disabled="_saving" Class="mb-5" /></MudItem>
+                </MudGrid>
+                <MudSelect T="ProductBadge" @bind-Value="_model.Badge" For="@(() => _model.Badge)" Label="Badge" HelperText="Controlled presentation label." Variant="Variant.Outlined" Disabled="_saving" Class="mb-5">
+                    @foreach (var badge in Enum.GetValues<ProductBadge>())
+                    {
+                        <MudSelectItem T="ProductBadge" Value="badge">@(ProductPresentation.Badge(badge) ?? "None")</MudSelectItem>
+                    }
+                </MudSelect>
+            </section>
+            <MudDivider />
+            <section class="dashboard-editor-section" aria-label="Product media">
+                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Media</MudText>
+                <CmsImageField @key="_model" @ref="_imageField" @bind-Value="_model.ImagePath" Kind="MediaKind.Product" Label="Product cover" Hint="JPG, PNG or WebP up to 3 MB. Used on the Shop card." Disabled="_saving" Changed="ClearSaved" />
+            </section>
+            <MudDivider />
+            <div class="dashboard-editor-actions">
+                <MudText Typo="Typo.caption" Class="dashboard-muted">The public card updates immediately after save.</MudText>
+                <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
+                    <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save product")</MudButton>
+                </MudStack>
+            </div>
+        </EditForm>
+    </MudPaper>
+}
+else
+{
+    <MudButton Href="/dashboard/content/shared-products" Variant="Variant.Outlined">Back to list</MudButton>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private int? _editingId;
+    private ProductEditModel? _model;
+    private readonly EditorSnapshot _snapshot = new();
+    private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
+    private CmsImageField? _imageField;
+    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues) || _imageField?.HasPendingSelection == true);
+    private bool _saving, _saved, _showCreated;
+    private string? _error, _navigateAfterSave;
+    protected override async Task OnParametersSetAsync()
+    {
+        _editingId = Id; _model = null; _imageField = null; _error = null; _saved = _showCreated; _showCreated = false;
+        try
+        {
+            _model = Id is int id ? await ProductsService.GetForEditAsync(id) : new ProductEditModel { ImagePath = ProductImageAssets.Paths[0] };
+            _snapshot.Capture(CurrentValues);
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            Logger.LogError(exception, "Unable to load product editor.");
+            _error = exception is KeyNotFoundException ? "This product no longer exists. Return to the list." : "The product could not be loaded. Check your session and try again.";
+        }
+    }
+    private void ClearSaved() => _saved = false;
+    private void Cancel() => Navigation.NavigateTo("/dashboard/content/shared-products");
+    private async Task SaveAsync()
+    {
+        if (_saving || _model is null) return;
+        _saving = true; _saved = false; _error = null;
+        var previousImage = _model.ImagePath;
+        try
+        {
+            if (_imageField is not null) _model.ImagePath = await _imageField.CommitAsync();
+            if (_editingId is int id) await ProductsService.UpdateAsync(id, _model);
+            else _editingId = await ProductsService.CreateAsync(_model);
+            _model.Slug = ProductSlugs.Normalize(_model.Slug);
+            _snapshot.Capture(CurrentValues); _imageField?.AcceptSaved(); _saved = true;
+            if (Id is null) { _showCreated = true; _navigateAfterSave = $"/dashboard/content/shared-products/{_editingId}"; }
+        }
+        catch (Exception exception) when (IsExpected(exception))
+        {
+            _model.ImagePath = previousImage;
+            Logger.LogError(exception, "Unable to save product.");
+            _error = exception is ValidationException validation ? validation.Message
+                : exception is KeyNotFoundException or DbUpdateConcurrencyException ? "This product changed or no longer exists. Your input is retained; return to the list to reload."
+                : "The product could not be saved. Your input is retained. Check your session and try again.";
+        }
+        finally { _saving = false; }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_navigateAfterSave is not { } target) return;
+        _navigateAfterSave = null;
+        Navigation.NavigateTo(target, replace: true);
+    }
+    private static bool IsExpected(Exception exception) => exception is DbException or DbUpdateException or ValidationException or KeyNotFoundException or UnauthorizedAccessException or IOException;
+}

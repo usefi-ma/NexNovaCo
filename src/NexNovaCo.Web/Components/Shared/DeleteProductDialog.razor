@@ -1,0 +1,22 @@
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <DialogContent>
+        <MudText>Delete product “@Name”?</MudText>
+        <MudText Class="dashboard-muted mt-3">It will be removed from the public Shop listing. This cannot be undone.</MudText>
+        @if (IsLast)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-3">This is the last Product. The Shop will show its safe empty state, and restarting will not recreate deleted Products.</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined">Cancel</MudButton>
+        <MudButton OnClick="Delete" Color="Color.Error" Variant="Variant.Filled" DropShadow="false">Delete product</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public bool IsLast { get; set; }
+    private void Cancel() => Dialog.Cancel();
+    private void Delete() => Dialog.Close(DialogResult.Ok(true));
+}

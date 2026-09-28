@@ -6,6 +6,10 @@ namespace NexNovaCo.Web.Data;
 public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
+    public DbSet<ProductEntity> Products => Set<ProductEntity>();
+    public DbSet<ProductInitializationState> ProductInitializationStates => Set<ProductInitializationState>();
+    public DbSet<ShopHeroSettings> ShopHeroSettings => Set<ShopHeroSettings>();
+    public DbSet<ShopProductsSectionSettings> ShopProductsSectionSettings => Set<ShopProductsSectionSettings>();
     public DbSet<ProjectDetailTemplateSettings> ProjectDetailTemplateSettings => Set<ProjectDetailTemplateSettings>();
     public DbSet<MemberDetailTemplateSettings> MemberDetailTemplateSettings => Set<MemberDetailTemplateSettings>();
     public DbSet<SiteIdentitySettings> SiteIdentitySettings => Set<SiteIdentitySettings>();
@@ -85,6 +89,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         TeamPageModelConfiguration.Configure(builder);
         ContactPageModelConfiguration.Configure(builder);
         GlobalSiteModelConfiguration.Configure(builder);
+        ShopModelConfiguration.Configure(builder);
         var member = builder.Entity<MemberEntity>();
         member.ToTable("Members", table => table.HasCheckConstraint("CK_Members_Order", "DisplayOrder > 0"));
         member.HasKey(x => x.Id);

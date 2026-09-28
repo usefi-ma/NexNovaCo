@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace NexNovaCo.Web.Models;
 
-public enum MediaKind { Hero, Welcome, Member, Partner, AboutHero, AboutVision, ServicesHero, ServicesBenefits, ProjectsHero, TeamHero, TeamSection, ContactHero, SiteLogo, Project }
+public enum MediaKind { Hero, Welcome, Member, Partner, AboutHero, AboutVision, ServicesHero, ServicesBenefits, ProjectsHero, TeamHero, TeamSection, ContactHero, SiteLogo, Project, ShopHero, Product }
 
 public static partial class MediaPolicy
 {
@@ -17,8 +17,9 @@ public static partial class MediaPolicy
     public const string AboutVisionDefault = "image/about/vision.png";
     public const string HeroDefault = "image/home/header.jpg";
     public const string WelcomeDefault = "image/home/welcome.jpg";
+    public const string ShopHeroDefault = "image/shop/shop-hero.png";
     public const string MemberFallback = "image/team/our-team.jpg";
-    public static int MaxBytes(MediaKind kind) => kind is MediaKind.Hero or MediaKind.Welcome or MediaKind.AboutHero or MediaKind.AboutVision or MediaKind.ServicesHero or MediaKind.ServicesBenefits or MediaKind.ProjectsHero or MediaKind.TeamHero or MediaKind.TeamSection or MediaKind.ContactHero ? 5 * 1024 * 1024 : 3 * 1024 * 1024;
+    public static int MaxBytes(MediaKind kind) => kind is MediaKind.Hero or MediaKind.Welcome or MediaKind.AboutHero or MediaKind.AboutVision or MediaKind.ServicesHero or MediaKind.ServicesBenefits or MediaKind.ProjectsHero or MediaKind.TeamHero or MediaKind.TeamSection or MediaKind.ContactHero or MediaKind.ShopHero ? 5 * 1024 * 1024 : 3 * 1024 * 1024;
     public static string Folder(MediaKind kind) => kind switch
     {
         MediaKind.Hero or MediaKind.Welcome => "home",
@@ -28,6 +29,8 @@ public static partial class MediaPolicy
         MediaKind.TeamHero or MediaKind.TeamSection => "team-page",
         MediaKind.ContactHero => "contact",
         MediaKind.SiteLogo => "site",
+        MediaKind.ShopHero => "shop",
+        MediaKind.Product => "products",
         MediaKind.Member => "team",
         MediaKind.Partner => "partners",
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
@@ -44,6 +47,8 @@ public static partial class MediaPolicy
         MediaKind.Project => ProjectImageAssets.Paths,
         MediaKind.ContactHero => [ContactHeroDefault],
         MediaKind.SiteLogo => ["image/logo.png"],
+        MediaKind.ShopHero => [ShopHeroDefault],
+        MediaKind.Product => ProductImageAssets.Paths,
         MediaKind.TeamHero => [TeamHeroDefault],
         MediaKind.TeamSection => [TeamSectionDefault],
         MediaKind.Member => MemberImageAssets.Paths,
@@ -55,7 +60,7 @@ public static partial class MediaPolicy
     public static bool IsGenerated(string? path, MediaKind kind) => IsGenerated(path) && path!.StartsWith("uploads/" + Folder(kind) + "/", StringComparison.Ordinal);
     public static bool IsAllowed(string? path, MediaKind kind) => Bundled(kind).Contains(path, StringComparer.Ordinal) || IsGenerated(path, kind);
     public static string ContentType(string path) => Path.GetExtension(path) switch { ".jpg" => "image/jpeg", ".png" => "image/png", ".webp" => "image/webp", _ => throw new ValidationException("Unsupported image format.") };
-    [GeneratedRegex(@"\Auploads/(?:home|team|partners|about|services|projects|team-page|contact|site)/[a-f0-9]{32}\.(?:jpg|png|webp)\z", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\Auploads/(?:home|team|partners|about|services|projects|team-page|contact|site|shop|products)/[a-f0-9]{32}\.(?:jpg|png|webp)\z", RegexOptions.CultureInvariant)]
     private static partial Regex GeneratedPath();
 }
 

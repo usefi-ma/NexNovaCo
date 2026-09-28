@@ -28,6 +28,7 @@ public static partial class PublicDiscoveryEndpoints
                 await using var db = await factory.CreateDbContextAsync(context.RequestAborted);
                 var projects = await db.Projects.AsNoTracking().Select(x => new { x.Slug, x.UpdatedAtUtc }).ToListAsync(context.RequestAborted);
                 var members = await db.Members.AsNoTracking().Select(x => new { x.Slug, x.UpdatedAtUtc }).ToListAsync(context.RequestAborted);
+                var products = await db.Products.AsNoTracking().Select(x => new { x.Slug, x.UpdatedAtUtc }).ToListAsync(context.RequestAborted);
                 XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
                 XElement Entry(string path, DateTime? updated = null) => new(ns + "url",
                     new XElement(ns + "loc", urls.Absolute(path)),
@@ -36,7 +37,8 @@ public static partial class PublicDiscoveryEndpoints
                 var xml = new XDocument(new XElement(ns + "urlset",
                     PublicSiteUrls.StaticPaths.Select(path => Entry(path)),
                     projects.Where(x => SlugPattern().IsMatch(x.Slug)).OrderBy(x => x.Slug).Select(x => Entry("/projects/" + x.Slug, x.UpdatedAtUtc)),
-                    members.Where(x => SlugPattern().IsMatch(x.Slug)).OrderBy(x => x.Slug).Select(x => Entry("/team/" + x.Slug, x.UpdatedAtUtc))));
+                    members.Where(x => SlugPattern().IsMatch(x.Slug)).OrderBy(x => x.Slug).Select(x => Entry("/team/" + x.Slug, x.UpdatedAtUtc)),
+                    products.Where(x => SlugPattern().IsMatch(x.Slug)).OrderBy(x => x.Slug).Select(x => Entry("/shop/" + x.Slug, x.UpdatedAtUtc))));
                 return Results.Text(xml.ToString(), "application/xml");
             }
             catch (DbException exception)

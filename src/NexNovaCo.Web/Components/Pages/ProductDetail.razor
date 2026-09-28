@@ -1,0 +1,113 @@
+@page "/shop/{Slug}"
+@inject IProductContentService Products
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PublicPageHead Path="@($"/shop/{_product?.Summary.Slug ?? ProductSlugs.Normalize(Slug)}")"
+                Title="@(_product?.Summary.Name ?? "Product")"
+                Description="@_product?.Summary.ShortDescription"
+                ImagePath="@_product?.Summary.ImagePath"
+                ParentPath="/shop" ParentLabel="Shop" IsContentAvailable="@(_product is not null)">
+    <link rel="stylesheet" href="@Assets["css/shop.css"]" />
+    <link rel="stylesheet" href="@Assets["css/product-detail.css"]" />
+</PublicPageHead>
+
+@if (_product is not null)
+{
+    <main class="shop-page product-detail-page" @key="_product.Summary.Slug">
+        <div class="shop-container">
+            <Breadcrumbs ParentHref="/shop" ParentLabel="Shop" CurrentLabel="@_product.Summary.Name" />
+            <section class="product-detail__overview" aria-labelledby="product-title">
+                <ProductGallery Images="_product.Gallery" CoverPath="@_product.Summary.ImagePath" ProductName="@_product.Summary.Name" />
+                <div class="product-detail__info">
+                    @if (ProductPresentation.Badge(_product.Summary.Badge) is { } badge)
+                    {
+                        <span class="product-detail__badge">@badge</span>
+                    }
+                    <p class="shop-eyebrow">Digital Product</p>
+                    <h1 id="product-title">@_product.Summary.Name</h1>
+                    <p class="product-detail__tagline">@_product.Summary.Tagline</p>
+                    <div class="product-detail__prices" aria-label="Product pricing">
+                        <strong><span class="visually-hidden">Current price: </span>@ProductPresentation.Price(_product.Summary.Price)</strong>
+                        @if (_product.Summary.OriginalPrice is decimal original)
+                        {
+                            <del><span class="visually-hidden">Original price: </span>@ProductPresentation.Price(original)</del>
+                        }
+                    </div>
+                    <p class="product-detail__summary">@_product.Summary.ShortDescription</p>
+                    <a class="shop-button" href="/shop">Back to Shop <span aria-hidden="true">→</span></a>
+                    <p class="product-detail__availability">Catalog preview only. Online purchasing is not available.</p>
+                </div>
+            </section>
+
+            <section class="product-detail__content" aria-labelledby="about-product-title">
+                <p class="shop-eyebrow">Product Overview</p>
+                <h2 id="about-product-title">About this product</h2>
+                @foreach (var paragraph in Paragraphs(_product.FullDescription))
+                {
+                    <p>@paragraph</p>
+                }
+            </section>
+
+            @if (_product.Features.Count > 0)
+            {
+                <section class="product-detail__features" aria-labelledby="product-features-title">
+                    <p class="shop-eyebrow">What’s Included</p>
+                    <h2 id="product-features-title">Features</h2>
+                    <ul>
+                        @foreach (var feature in _product.Features)
+                        {
+                            <li><span aria-hidden="true">✓</span> @feature</li>
+                        }
+                    </ul>
+                </section>
+            }
+
+            @if (_product.RelatedProducts.Count > 0)
+            {
+                <section class="product-detail__related" aria-labelledby="related-products-title">
+                    <header>
+                        <p class="shop-eyebrow">Keep Exploring</p>
+                        <h2 id="related-products-title">Related products</h2>
+                    </header>
+                    <div class="shop-product-grid">
+                        @foreach (var related in _product.RelatedProducts)
+                        {
+                            <ProductCard Content="related" NestedHeading="true" />
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    </main>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+    private Models.ProductDetail? _product;
+    private readonly CancellationTokenSource _lifetime = new();
+    private int _request;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var request = ++_request;
+        _product = null;
+        try
+        {
+            var product = await Products.GetDetailAsync(Slug, _lifetime.Token);
+            if (request != _request || _lifetime.IsCancellationRequested) return;
+            _product = product;
+            if (product is null) Navigation.NotFound();
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+    }
+
+    private static IEnumerable<string> Paragraphs(string value) =>
+        value.Replace("\r\n", "\n").Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    public void Dispose()
+    {
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+    }
+}

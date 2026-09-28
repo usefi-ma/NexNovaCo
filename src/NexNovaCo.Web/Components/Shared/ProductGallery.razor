@@ -1,0 +1,78 @@
+<div class="product-gallery" role="region" aria-roledescription="carousel" aria-label="@($"{ProductName} gallery")"
+     tabindex="@(_images.Count > 1 ? "0" : null)" @onkeydown="OnKeyDown"
+     @onpointerdown="OnPointerDown" @onpointerup="OnPointerUp" @onpointercancel="ClearPointer">
+    <div class="product-gallery__frame">
+        <img src="@_images[_active].Source" alt="@_images[_active].Alt" width="900" height="650" draggable="false" @ondragstart:preventDefault="true" />
+        @if (_images.Count > 1)
+        {
+            <button class="product-gallery__control product-gallery__control--previous" type="button" @onclick="Previous" aria-label="Previous product image">
+                <span aria-hidden="true">←</span>
+            </button>
+            <button class="product-gallery__control product-gallery__control--next" type="button" @onclick="Next" aria-label="Next product image">
+                <span aria-hidden="true">→</span>
+            </button>
+            <span class="product-gallery__status" aria-hidden="true">@(_active + 1) / @_images.Count</span>
+            <span class="visually-hidden" role="status" aria-live="polite">Image @(_active + 1) of @_images.Count</span>
+        }
+    </div>
+    @if (_images.Count > 1)
+    {
+        <div class="product-gallery__thumbnails" aria-label="Choose product image">
+            @for (var index = 0; index < _images.Count; index++)
+            {
+                var image = _images[index];
+                var target = index;
+                <button type="button" class="@("product-gallery__thumbnail " + (target == _active ? "is-active" : ""))"
+                        aria-label="@($"Show image {target + 1}: {image.Alt}")" aria-current="@(target == _active ? "true" : null)"
+                        @onclick="@(() => Select(target))">
+                    <img src="@image.Source" alt="" width="160" height="110" loading="lazy" />
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<ProductImage> Images { get; set; } = [];
+    [Parameter, EditorRequired] public string CoverPath { get; set; } = "";
+    [Parameter, EditorRequired] public string ProductName { get; set; } = "";
+    private IReadOnlyList<ProductImage> _images = [];
+    private IReadOnlyList<ProductImage>? _previousImages;
+    private string? _previousCover;
+    private int _active;
+    private (long Id, double X, double Y)? _pointer;
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(Images, _previousImages) && CoverPath == _previousCover) return;
+        _previousImages = Images;
+        _previousCover = CoverPath;
+        _images = Images.Count > 0 ? Images : [new ProductImage(CoverPath, $"{ProductName} cover preview")];
+        _active = 0;
+        _pointer = null;
+    }
+
+    private void Select(int index) { if (index >= 0 && index < _images.Count) _active = index; }
+    private void Previous() { if (_images.Count > 1) _active = (_active + _images.Count - 1) % _images.Count; }
+    private void Next() { if (_images.Count > 1) _active = (_active + 1) % _images.Count; }
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "ArrowLeft") Previous();
+        if (args.Key == "ArrowRight") Next();
+    }
+    private void OnPointerDown(PointerEventArgs args)
+    {
+        if (args.IsPrimary && args.PointerType is "touch" or "pen") _pointer = (args.PointerId, args.ClientX, args.ClientY);
+    }
+    private void OnPointerUp(PointerEventArgs args)
+    {
+        var start = _pointer;
+        _pointer = null;
+        if (start is null || start.Value.Id != args.PointerId) return;
+        var dx = args.ClientX - start.Value.X;
+        var dy = args.ClientY - start.Value.Y;
+        if (Math.Abs(dx) <= 40 || Math.Abs(dx) <= Math.Abs(dy)) return;
+        if (dx < 0) Next(); else Previous();
+    }
+    private void ClearPointer() => _pointer = null;
+}

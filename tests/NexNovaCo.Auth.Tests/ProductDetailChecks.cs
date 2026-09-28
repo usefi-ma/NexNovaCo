@@ -62,6 +62,9 @@ internal static class ProductDetailChecks
         var response = await client.GetAsync("/shop/productivity-pro");
         var html = await response.Content.ReadAsStringAsync();
         Check(response.StatusCode == HttpStatusCode.OK && html.Contains("About this product") && html.Contains("Productivity workspace overview"), "Valid Product slug renders full public detail content.");
+        Check(html.Contains("class=\"inner_page_header\"") && html.Contains("href=\"/shop\" class=\"custome_btn\"") &&
+              html.Contains("class=\"product-detail__overview\""),
+            "Product Detail reuses the shared inner-page hero and renders the gallery/information layout below it.");
         Check(html.Contains("href=\"/\">Home</a>") && html.Contains("href=\"/shop\"") && html.Contains("Productivity Pro"), "Product Detail renders semantic linked Home / Shop / Product breadcrumb content.");
         Check(html.Contains("product-gallery__control--previous") && html.Contains("aria-roledescription=\"carousel\"") && html.Contains("aria-live=\"polite\""), "Multi-image gallery exposes accessible controls and status.");
         Check(html.Contains("Related products") && Count(html, "shop-product-card\"") == 3, "Product Detail renders exactly three explicitly related ProductCards.");
@@ -72,6 +75,8 @@ internal static class ProductDetailChecks
         Check(html.Contains("fetchpriority=\"high\"") && html.Contains("role=\"group\" aria-label=\"Choose product image\"") && html.Contains("loading=\"lazy\""),
             "Product Detail prioritizes its main visual while thumbnails remain lazy and semantically grouped.");
         Check(Count(html, "<h1") == 1 && html.Contains("Current price:") && html.Contains("Original price:"), "Product Detail has one H1 and accessible current/original price meaning.");
+        Check(!html.Contains("shop-eyebrow") && !html.Contains("product-detail__features") && !html.Contains("What’s Included"),
+            "Product Detail omits blue eyebrow labels and the public Features block while preserving its stored data.");
         Check(!html.Contains("Add to Cart", StringComparison.OrdinalIgnoreCase) && !html.Contains("Buy Now", StringComparison.OrdinalIgnoreCase) && html.Contains("Catalog preview only"), "Product Detail never implies unavailable purchasing behavior.");
         Check((await client.GetAsync("/shop/not-a-real-product")).StatusCode == HttpStatusCode.NotFound, "Invalid Product slug returns safe not-found behavior.");
         Check((await client.GetStringAsync("/shop")).Contains("href=\"/shop/productivity-pro\""), "Shop ProductCard CTA targets Product Detail.");
@@ -116,14 +121,16 @@ internal static class ProductDetailChecks
         Check(detail.Gallery.Select(x => x.Source).SequenceEqual(new[] { uploaded[3], uploaded[0], uploaded[1], uploaded[2] }), "Gallery reorder persists exact D/A/B/C order.");
         Check(detail.Features.SequenceEqual(new[] { "Feature C", "Feature A", "Feature B" }), "Feature edit and reorder persist exact order.");
         Check(detail.RelatedProducts.Select(x => x.Slug).SequenceEqual(new[] { related[2].Slug, related[0].Slug, related[1].Slug }), "Related Product selection and reorder persist exact order.");
-        Check((await client.GetStringAsync("/shop/" + target.Slug)).Contains(uploaded[3]), "Public Product Detail renders the first reordered gallery image.");
+        var reorderedHtml = await client.GetStringAsync("/shop/" + target.Slug);
+        Check(reorderedHtml.Contains(uploaded[3]) && !reorderedHtml.Contains("Feature C"),
+            "Public Product Detail renders the reordered gallery while intentionally withholding stored Features.");
 
         await using (var restarted = new AuthFactory(app.Password, databasePath: app.DatabasePath, publicBaseUrl: Origin))
         {
             using var restartedClient = restarted.NewClient();
             var restartedHtml = await restartedClient.GetStringAsync("/shop/" + target.Slug);
-            Check(restartedHtml.Contains(uploaded[3]) && restartedHtml.Contains("Feature C") && restartedHtml.IndexOf(related[2].Name, StringComparison.Ordinal) < restartedHtml.IndexOf(related[0].Name, StringComparison.Ordinal),
-                "Gallery, features and related order survive refresh and application restart.");
+            Check(restartedHtml.Contains(uploaded[3]) && !restartedHtml.Contains("Feature C") && restartedHtml.IndexOf(related[2].Name, StringComparison.Ordinal) < restartedHtml.IndexOf(related[0].Name, StringComparison.Ordinal),
+                "Gallery and related order survive restart while stored Features remain intentionally absent from public rendering.");
         }
 
         model.Gallery = [model.Gallery[0], model.Gallery[1]];
@@ -203,6 +210,7 @@ internal static class ProductDetailChecks
         Check(html.Contains("$0"), "Zero Product price renders safely.");
         Check(!priceBlock.Contains("<del>"), "Omitted original Product price hides cleanly.");
         Check(!html.Contains("class=\"product-detail__badge\""), "Omitted Product badge hides cleanly.");
+        Check(!html.Contains(new string('F', 300)), "Stored Product Features remain omitted from the public detail page.");
         Check(Count(html, "aria-label=\"Show image") == 5, "Five-image gallery renders every ordered thumbnail.");
 
         model.Price = 900000m;

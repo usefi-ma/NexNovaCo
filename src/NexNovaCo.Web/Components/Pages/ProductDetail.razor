@@ -12,65 +12,60 @@
     <link rel="stylesheet" href="@Assets["css/project.css"]" />
     <link rel="stylesheet" href="@Assets["css/project-card-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/shop.css"]" />
+    <link rel="stylesheet" href="@Assets["css/inner-page-blazor.css"]" />
     <link rel="stylesheet" href="@Assets["css/product-detail.css"]" />
 </PublicPageHead>
 
 @if (_product is not null)
 {
-    <div class="shop-page product-detail-page" @key="_product.Summary.Slug">
-        <div class="shop-container">
-            <Breadcrumbs ParentHref="/shop" ParentLabel="Shop" CurrentLabel="@_product.Summary.Name" />
-            <section class="product-detail__overview" aria-labelledby="product-title">
-                <ProductGallery Images="_product.Gallery" CoverPath="@_product.Summary.ImagePath" ProductName="@_product.Summary.Name" />
-                <div class="product-detail__info">
-                    @if (ProductPresentation.Badge(_product.Summary.Badge) is { } badge)
-                    {
-                        <span class="product-detail__badge">@badge</span>
-                    }
-                    <p class="shop-eyebrow">Digital Product</p>
-                    <h1 id="product-title">@_product.Summary.Name</h1>
-                    <p class="product-detail__tagline">@_product.Summary.Tagline</p>
-                    <div class="product-detail__prices" aria-label="Product pricing">
-                        <strong><span class="visually-hidden">Current price: </span>@ProductPresentation.Price(_product.Summary.Price)</strong>
-                        @if (_product.Summary.OriginalPrice is decimal original)
+    <div class="shop-page product-detail-page"
+         style="@($"--product-detail-hero-image: url('{Navigation.ToAbsoluteUri(_product.Summary.ImagePath)}')")"
+         @key="_product.Summary.Slug">
+        <InnerPageHero Content="HeroContent" />
+
+        <section class="product-detail__main" aria-labelledby="product-information-title">
+            <div class="shop-container">
+                <Breadcrumbs ParentHref="/shop" ParentLabel="Shop" CurrentLabel="@_product.Summary.Name" />
+                <div class="product-detail__overview">
+                    <ProductGallery Images="_product.Gallery" CoverPath="@_product.Summary.ImagePath" ProductName="@_product.Summary.Name" />
+                    <div class="product-detail__info">
+                        @if (ProductPresentation.Badge(_product.Summary.Badge) is { } badge)
                         {
-                            <del><span class="visually-hidden">Original price: </span>@ProductPresentation.Price(original)</del>
+                            <span class="product-detail__badge product-detail__badge--@_product.Summary.Badge.ToString().ToLowerInvariant()">@badge</span>
                         }
+                        <h2 id="product-information-title">@_product.Summary.Name</h2>
+                        <p class="product-detail__tagline">@_product.Summary.Tagline</p>
+                        <div class="product-detail__prices" aria-label="Product pricing">
+                            <strong><span class="visually-hidden">Current price: </span>@ProductPresentation.Price(_product.Summary.Price)</strong>
+                            @if (_product.Summary.OriginalPrice is decimal original)
+                            {
+                                <del><span class="visually-hidden">Original price: </span>@ProductPresentation.Price(original)</del>
+                            }
+                        </div>
+                        <p class="product-detail__summary">@_product.Summary.ShortDescription</p>
+                        <p class="product-detail__availability">Catalog preview only. Online purchasing is not available.</p>
                     </div>
-                    <p class="product-detail__summary">@_product.Summary.ShortDescription</p>
-                    <a class="custome_btn shop-button" href="/shop">Back to Shop <span aria-hidden="true">→</span></a>
-                    <p class="product-detail__availability">Catalog preview only. Online purchasing is not available.</p>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <section class="product-detail__content" aria-labelledby="about-product-title">
-                <p class="shop-eyebrow">Product Overview</p>
-                <h2 id="about-product-title">About this product</h2>
-                @foreach (var paragraph in Paragraphs(_product.FullDescription))
-                {
-                    <p>@paragraph</p>
-                }
-            </section>
+        <section class="product-detail__about" aria-labelledby="about-product-title">
+            <div class="shop-container">
+                <div class="product-detail__content">
+                    <h2 id="about-product-title">About this product</h2>
+                    @foreach (var paragraph in Paragraphs(_product.FullDescription))
+                    {
+                        <p>@paragraph</p>
+                    }
+                </div>
+            </div>
+        </section>
 
-            @if (_product.Features.Count > 0)
-            {
-                <section class="product-detail__features" aria-labelledby="product-features-title">
-                    <p class="shop-eyebrow">What’s Included</p>
-                    <h2 id="product-features-title">Features</h2>
-                    <ul>
-                        @foreach (var feature in _product.Features)
-                        {
-                            <li><span aria-hidden="true">✓</span> @feature</li>
-                        }
-                    </ul>
-                </section>
-            }
-
-            @if (_product.RelatedProducts.Count > 0)
-            {
-                <section class="product-detail__related" aria-labelledby="related-products-title">
-                    <header>
-                        <p class="shop-eyebrow">Keep Exploring</p>
+        @if (_product.RelatedProducts.Count > 0)
+        {
+            <section class="product-detail__related" aria-labelledby="related-products-title">
+                <div class="shop-container">
+                    <header class="product-detail__related-heading">
                         <h2 id="related-products-title">Related products</h2>
                     </header>
                     <div class="shop-product-grid">
@@ -79,15 +74,21 @@
                             <ProductCard Content="related" NestedHeading="true" />
                         }
                     </div>
-                </section>
-            }
-        </div>
+                </div>
+            </section>
+        }
     </div>
 }
 
 @code {
     [Parameter] public string Slug { get; set; } = "";
     private Models.ProductDetail? _product;
+    private InnerPageHeroContent HeroContent => new(
+        _product!.Summary.Name,
+        _product.Summary.Name,
+        _product.Summary.Tagline,
+        "Back to Shop",
+        "/shop");
     private readonly CancellationTokenSource _lifetime = new();
     private int _request;
 

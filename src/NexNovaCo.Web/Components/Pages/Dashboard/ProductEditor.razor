@@ -11,45 +11,120 @@
 <HeadContent><meta name="robots" content="noindex, nofollow" /></HeadContent>
 <MudText Typo="Typo.overline" Class="dashboard-eyebrow">Shared Content / Products</MudText>
 <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-3">@(_editingId is null ? "Add product" : "Edit product")</MudText>
-<MudText Class="dashboard-muted mb-7">Saved content appears on the public Shop. Phase 22 supports one cover image; gallery media remains deferred.</MudText>
+<MudText Class="dashboard-muted mb-7">Manage the shared Shop card, public detail content, gallery, features, and related products.</MudText>
 <UnsavedChangesGuard IsDirty="IsDirty" />
 @if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mb-4" role="alert">@_error</MudAlert> }
 @if (_saved) { <MudAlert Severity="Severity.Success" Class="mb-4" role="status">Product saved.</MudAlert> }
 @if (_model is not null)
 {
     <MudPaper Class="dashboard-editor" Elevation="0" Outlined="true">
-        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="ClearSaved" FormName="shared-product">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" OnInvalidSubmit="InvalidSubmit" FormName="shared-product">
             <DataAnnotationsValidator />
             <ValidationSummary />
-            <section class="dashboard-editor-section" aria-label="Basic information">
-                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Basic information</MudText>
-                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" HelperText="Required. Up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
-                <MudTextField @bind-Value="_model.Slug" For="@(() => _model.Slug)" Label="Slug" HelperText="Unique lowercase route identifier reserved for Phase 23." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
-                <MudTextField @bind-Value="_model.Tagline" For="@(() => _model.Tagline)" Label="Tagline" HelperText="Required. Up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" Class="mb-5" />
-                <MudTextField @bind-Value="_model.ShortDescription" For="@(() => _model.ShortDescription)" Label="Short description" HelperText="Required. Up to 240 characters." Variant="Variant.Outlined" MaxLength="240" Lines="3" Immediate="true" Disabled="_saving" Class="mb-5" />
-            </section>
-            <MudDivider />
-            <section class="dashboard-editor-section" aria-label="Pricing and badge">
-                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Pricing and badge</MudText>
-                <MudGrid>
-                    <MudItem xs="12" sm="6"><MudNumericField T="decimal" @bind-Value="_model.Price" For="@(() => _model.Price)" Label="Price" HelperText="USD; non-negative, up to two decimal places." Min="0" Max="999999.99m" Format="0.00" Variant="Variant.Outlined" Immediate="true" Disabled="_saving" Class="mb-5" /></MudItem>
-                    <MudItem xs="12" sm="6"><MudNumericField T="decimal?" @bind-Value="_model.OriginalPrice" For="@(() => _model.OriginalPrice)" Label="Original price" HelperText="Optional comparison price." Min="0" Max="999999.99m" Format="0.00" Variant="Variant.Outlined" Immediate="true" Disabled="_saving" Class="mb-5" /></MudItem>
-                </MudGrid>
-                <MudSelect T="ProductBadge" @bind-Value="_model.Badge" For="@(() => _model.Badge)" Label="Badge" HelperText="Controlled presentation label." Variant="Variant.Outlined" Disabled="_saving" Class="mb-5">
-                    @foreach (var badge in Enum.GetValues<ProductBadge>())
-                    {
-                        <MudSelectItem T="ProductBadge" Value="badge">@(ProductPresentation.Badge(badge) ?? "None")</MudSelectItem>
-                    }
-                </MudSelect>
-            </section>
-            <MudDivider />
-            <section class="dashboard-editor-section" aria-label="Product media">
-                <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Media</MudText>
-                <CmsImageField @key="_model" @ref="_imageField" @bind-Value="_model.ImagePath" Kind="MediaKind.Product" Label="Product cover" Hint="JPG, PNG or WebP up to 3 MB. Used on the Shop card." Disabled="_saving" Changed="ClearSaved" />
-            </section>
+            <MudTabs @bind-ActivePanelIndex="_activeTab" KeepPanelsAlive="true" MinimumTabWidth="112px" Color="Color.Primary">
+                <MudTabPanel Text="Card">
+                    <section class="dashboard-editor-section" aria-label="Product card">
+                        <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Card presentation</MudText>
+                        <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" HelperText="Required. Up to 80 characters." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                        <MudTextField @bind-Value="_model.Slug" For="@(() => _model.Slug)" Label="Slug" HelperText="Unique lowercase route used at /shop/{slug}." Variant="Variant.Outlined" MaxLength="80" Immediate="true" Disabled="_saving" Class="mb-5" />
+                        <MudTextField @bind-Value="_model.Tagline" For="@(() => _model.Tagline)" Label="Tagline" HelperText="Required. Up to 120 characters." Variant="Variant.Outlined" MaxLength="120" Immediate="true" Disabled="_saving" Class="mb-5" />
+                        <MudTextField @bind-Value="_model.ShortDescription" For="@(() => _model.ShortDescription)" Label="Short description" HelperText="Used on cards and in metadata. Up to 240 characters." Variant="Variant.Outlined" MaxLength="240" Lines="3" Immediate="true" Disabled="_saving" Class="mb-5" />
+                        <CmsImageField @key="_model" @ref="_coverField" @bind-Value="_model.ImagePath" Kind="MediaKind.Product" Label="Product cover" Hint="JPG, PNG or WebP up to 3 MB. Used for cards, metadata, and as the gallery fallback." Disabled="_saving" Changed="ClearSaved" />
+                    </section>
+                </MudTabPanel>
+                <MudTabPanel Text="Pricing">
+                    <section class="dashboard-editor-section" aria-label="Pricing and badge">
+                        <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Pricing and badge</MudText>
+                        <MudGrid>
+                            <MudItem xs="12" sm="6"><MudNumericField T="decimal" @bind-Value="_model.Price" For="@(() => _model.Price)" Label="Price" HelperText="USD; non-negative, up to two decimal places." Min="0" Max="999999.99m" Format="0.00" Variant="Variant.Outlined" Immediate="true" Disabled="_saving" Class="mb-5" /></MudItem>
+                            <MudItem xs="12" sm="6"><MudNumericField T="decimal?" @bind-Value="_model.OriginalPrice" For="@(() => _model.OriginalPrice)" Label="Original price" HelperText="Optional comparison price." Min="0" Max="999999.99m" Format="0.00" Variant="Variant.Outlined" Immediate="true" Disabled="_saving" Class="mb-5" /></MudItem>
+                        </MudGrid>
+                        <MudSelect T="ProductBadge" @bind-Value="_model.Badge" For="@(() => _model.Badge)" Label="Badge" HelperText="Controlled presentation label." Variant="Variant.Outlined" Disabled="_saving">
+                            @foreach (var badge in Enum.GetValues<ProductBadge>())
+                            {
+                                <MudSelectItem T="ProductBadge" Value="badge">@(ProductPresentation.Badge(badge) ?? "None")</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </section>
+                </MudTabPanel>
+                <MudTabPanel Text="Detail">
+                    <section class="dashboard-editor-section" aria-label="Product detail content">
+                        <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-3">Detail content</MudText>
+                        <MudText Class="dashboard-muted mb-5">Plain text only. Separate paragraphs with a blank line.</MudText>
+                        <MudTextField @bind-Value="_model.FullDescription" For="@(() => _model.FullDescription)" Label="Full description" HelperText="Required. Up to 10,000 characters; rendered safely as text." Variant="Variant.Outlined" MaxLength="10000" Lines="10" Immediate="true" Disabled="_saving" />
+                    </section>
+                </MudTabPanel>
+                <MudTabPanel Text="Gallery">
+                    <section class="dashboard-editor-section" aria-label="Product gallery">
+                        <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-3">Detail gallery</MudText>
+                        <MudText Class="dashboard-muted mb-5">Gallery images are used in this order. If empty, the cover is shown. Removing a row does not delete its uploaded file.</MudText>
+                        @foreach (var row in _model.Gallery)
+                        {
+                            <MudPaper @key="row" Outlined="true" Elevation="0" Class="pa-4 mb-4">
+                                <CmsImageField @ref="_galleryFields[row]" @bind-Value="row.Source" Kind="MediaKind.Product" Label="@($"Gallery image {_model.Gallery.IndexOf(row) + 1}")" Hint="JPG, PNG or WebP up to 3 MB." Disabled="_saving" Changed="ClearSaved" />
+                                <MudTextField @bind-Value="row.Alt" Label="Image alt text" HelperText="Describe the visible product preview meaningfully." MaxLength="200" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" Class="mb-4" />
+                                <MudStack Row="true" Wrap="Wrap.Wrap" Class="mt-3">
+                                    <MudButton OnClick="@(() => MoveRow(_model.Gallery, row, -1))" Disabled="@(_saving || _model.Gallery.IndexOf(row) == 0)" aria-label="@($"Move up gallery image {_model.Gallery.IndexOf(row) + 1}")">Up</MudButton>
+                                    <MudButton OnClick="@(() => MoveRow(_model.Gallery, row, 1))" Disabled="@(_saving || _model.Gallery.IndexOf(row) == _model.Gallery.Count - 1)" aria-label="@($"Move down gallery image {_model.Gallery.IndexOf(row) + 1}")">Down</MudButton>
+                                    <MudButton OnClick="@(() => RemoveRow(_model.Gallery, row))" Disabled="_saving" Color="Color.Error" aria-label="@($"Remove gallery image {_model.Gallery.IndexOf(row) + 1}")">Remove</MudButton>
+                                </MudStack>
+                            </MudPaper>
+                        }
+                        <MudButton OnClick="AddGallery" Disabled="_saving" Variant="Variant.Outlined">Add gallery image</MudButton>
+                    </section>
+                </MudTabPanel>
+                <MudTabPanel Text="Features">
+                    <section class="dashboard-editor-section" aria-label="Product features">
+                        <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-5">Features</MudText>
+                        @foreach (var row in _model.Features)
+                        {
+                            <MudPaper @key="row" Outlined="true" Elevation="0" Class="pa-4 mb-4">
+                                <MudTextField @bind-Value="row.Text" Label="Feature" MaxLength="300" Lines="2" Immediate="true" Disabled="_saving" Variant="Variant.Outlined" />
+                                <MudStack Row="true" Wrap="Wrap.Wrap" Class="mt-3">
+                                    <MudButton OnClick="@(() => MoveRow(_model.Features, row, -1))" Disabled="@(_saving || _model.Features.IndexOf(row) == 0)" aria-label="@($"Move up feature {_model.Features.IndexOf(row) + 1}")">Up</MudButton>
+                                    <MudButton OnClick="@(() => MoveRow(_model.Features, row, 1))" Disabled="@(_saving || _model.Features.IndexOf(row) == _model.Features.Count - 1)" aria-label="@($"Move down feature {_model.Features.IndexOf(row) + 1}")">Down</MudButton>
+                                    <MudButton OnClick="@(() => RemoveRow(_model.Features, row))" Disabled="_saving" Color="Color.Error" aria-label="@($"Remove feature {_model.Features.IndexOf(row) + 1}")">Remove</MudButton>
+                                </MudStack>
+                            </MudPaper>
+                        }
+                        <MudButton OnClick="AddFeature" Disabled="_saving" Variant="Variant.Outlined">Add feature</MudButton>
+                    </section>
+                </MudTabPanel>
+                <MudTabPanel Text="Related">
+                    <section class="dashboard-editor-section" aria-label="Related products">
+                        <MudText Typo="Typo.h6" HtmlTag="h2" Class="mb-3">Related products</MudText>
+                        <MudText Class="dashboard-muted mb-5">Choose up to three existing products. Public cards follow this exact order.</MudText>
+                        @foreach (var relatedId in _model.RelatedProductIds)
+                        {
+                            <MudPaper @key="relatedId" Outlined="true" Elevation="0" Class="pa-4 mb-4">
+                                <MudText Typo="Typo.subtitle1">@RelatedName(relatedId)</MudText>
+                                <MudStack Row="true" Wrap="Wrap.Wrap" Class="mt-3">
+                                    <MudButton OnClick="@(() => MoveRelated(relatedId, -1))" Disabled="@(_saving || _model.RelatedProductIds.IndexOf(relatedId) == 0)" aria-label="@($"Move up {RelatedName(relatedId)}")">Up</MudButton>
+                                    <MudButton OnClick="@(() => MoveRelated(relatedId, 1))" Disabled="@(_saving || _model.RelatedProductIds.IndexOf(relatedId) == _model.RelatedProductIds.Count - 1)" aria-label="@($"Move down {RelatedName(relatedId)}")">Down</MudButton>
+                                    <MudButton OnClick="@(() => RemoveRelated(relatedId))" Disabled="_saving" Color="Color.Error" aria-label="@($"Remove {RelatedName(relatedId)}")">Remove</MudButton>
+                                </MudStack>
+                            </MudPaper>
+                        }
+                        <MudGrid>
+                            <MudItem xs="12" sm="8">
+                                <MudSelect T="int" @bind-Value="_pendingRelatedId" Label="Choose product" Variant="Variant.Outlined" Disabled="@(_saving || _model.RelatedProductIds.Count >= 3)">
+                                    <MudSelectItem T="int" Value="0">Select a product</MudSelectItem>
+                                    @foreach (var choice in AvailableChoices)
+                                    {
+                                        <MudSelectItem T="int" Value="choice.Id">@choice.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudButton OnClick="AddRelated" Variant="Variant.Outlined" FullWidth="true" Disabled="@(_saving || _pendingRelatedId == 0 || _model.RelatedProductIds.Count >= 3)">Add related product</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </section>
+                </MudTabPanel>
+            </MudTabs>
             <MudDivider />
             <div class="dashboard-editor-actions">
-                <MudText Typo="Typo.caption" Class="dashboard-muted">The public card updates immediately after save.</MudText>
+                <MudText Typo="Typo.caption" Class="dashboard-muted">One save updates both the Shop card and Product Detail page.</MudText>
                 <MudStack Row="true" Breakpoint="Breakpoint.Xs" Spacing="2" Class="dashboard-action-buttons">
                     <MudButton OnClick="Cancel" Variant="Variant.Outlined" Disabled="_saving">@(_saved ? "Back to list" : "Cancel")</MudButton>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Disabled="_saving">@(_saving ? "Saving…" : "Save product")</MudButton>
@@ -67,18 +142,26 @@ else
     [Parameter] public int? Id { get; set; }
     private int? _editingId;
     private ProductEditModel? _model;
+    private IReadOnlyList<ProductSelectionItem> _choices = [];
     private readonly EditorSnapshot _snapshot = new();
     private string[] CurrentValues => _model is null ? [] : [System.Text.Json.JsonSerializer.Serialize(_model)];
-    private CmsImageField? _imageField;
-    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues) || _imageField?.HasPendingSelection == true);
+    private CmsImageField? _coverField;
+    private readonly Dictionary<ProductGalleryEditRow, CmsImageField> _galleryFields = [];
+    private bool IsDirty => _model is not null && (_snapshot.HasChanges(CurrentValues) ||
+        _coverField?.HasPendingSelection == true || _galleryFields.Values.Any(imageField => imageField.HasPendingSelection));
     private bool _saving, _saved, _showCreated;
+    private int _activeTab, _pendingRelatedId;
     private string? _error, _navigateAfterSave;
+    private IEnumerable<ProductSelectionItem> AvailableChoices => _choices.Where(choice => !_model!.RelatedProductIds.Contains(choice.Id));
+
     protected override async Task OnParametersSetAsync()
     {
-        _editingId = Id; _model = null; _imageField = null; _error = null; _saved = _showCreated; _showCreated = false;
+        _editingId = Id; _model = null; _coverField = null; _galleryFields.Clear(); _error = null;
+        _saved = _showCreated; _showCreated = false; _activeTab = 0; _pendingRelatedId = 0;
         try
         {
             _model = Id is int id ? await ProductsService.GetForEditAsync(id) : new ProductEditModel { ImagePath = ProductImageAssets.Paths[0] };
+            _choices = await ProductsService.ListChoicesAsync(Id);
             _snapshot.Capture(CurrentValues);
         }
         catch (Exception exception) when (IsExpected(exception))
@@ -87,25 +170,78 @@ else
             _error = exception is KeyNotFoundException ? "This product no longer exists. Return to the list." : "The product could not be loaded. Check your session and try again.";
         }
     }
+
+    private void AddGallery() { if (!_saving) { _model!.Gallery.Add(new() { Source = ProductImageAssets.Paths[0] }); _saved = false; } }
+    private void AddFeature() { if (!_saving) { _model!.Features.Add(new()); _saved = false; } }
+    private void AddRelated()
+    {
+        if (_saving || _pendingRelatedId <= 0 || _model!.RelatedProductIds.Count >= 3 ||
+            _model.RelatedProductIds.Contains(_pendingRelatedId) || !_choices.Any(x => x.Id == _pendingRelatedId)) return;
+        _model.RelatedProductIds.Add(_pendingRelatedId); _pendingRelatedId = 0; _saved = false;
+    }
+    private void RemoveRelated(int id) { if (!_saving) { _model!.RelatedProductIds.Remove(id); _saved = false; } }
+    private void MoveRelated(int id, int direction) => MoveRow(_model!.RelatedProductIds, id, direction);
+    private string RelatedName(int id) => _choices.FirstOrDefault(x => x.Id == id)?.Name ?? "Unavailable product";
+    private void RemoveRow<T>(List<T> rows, T row)
+    {
+        if (_saving) return;
+        rows.Remove(row);
+        if (row is ProductGalleryEditRow image) _galleryFields.Remove(image);
+        _saved = false;
+    }
+    private void MoveRow<T>(List<T> rows, T row, int direction)
+    {
+        if (_saving) return;
+        var index = rows.IndexOf(row); var target = index + direction;
+        if (index < 0 || target < 0 || target >= rows.Count) return;
+        (rows[index], rows[target]) = (rows[target], rows[index]); _saved = false;
+    }
     private void ClearSaved() => _saved = false;
     private void Cancel() => Navigation.NavigateTo("/dashboard/content/shared-products");
+    private void InvalidSubmit(EditContext context)
+    {
+        _saved = false;
+        if (_model is null) return;
+        var tabs = new[]
+        {
+            (0, new[] { nameof(_model.Name), nameof(_model.Slug), nameof(_model.Tagline), nameof(_model.ShortDescription), nameof(_model.ImagePath) }),
+            (1, new[] { nameof(_model.Price), nameof(_model.OriginalPrice), nameof(_model.Badge) }),
+            (2, new[] { nameof(_model.FullDescription) }),
+            (3, new[] { nameof(_model.Gallery) }),
+            (4, new[] { nameof(_model.Features) }),
+            (5, new[] { nameof(_model.RelatedProductIds) })
+        };
+        foreach (var (index, fields) in tabs)
+        {
+            if (!fields.Any(name => context.GetValidationMessages(new FieldIdentifier(_model, name)).Any())) continue;
+            _activeTab = index;
+            break;
+        }
+    }
+
     private async Task SaveAsync()
     {
         if (_saving || _model is null) return;
         _saving = true; _saved = false; _error = null;
-        var previousImage = _model.ImagePath;
+        var previousCover = _model.ImagePath;
+        var previousGallery = _model.Gallery.Select(row => row.Source).ToArray();
         try
         {
-            if (_imageField is not null) _model.ImagePath = await _imageField.CommitAsync();
+            if (_coverField is not null) _model.ImagePath = await _coverField.CommitAsync();
+            foreach (var row in _model.Gallery)
+                if (_galleryFields.TryGetValue(row, out var field)) row.Source = await field.CommitAsync();
             if (_editingId is int id) await ProductsService.UpdateAsync(id, _model);
             else _editingId = await ProductsService.CreateAsync(_model);
             _model.Slug = ProductSlugs.Normalize(_model.Slug);
-            _snapshot.Capture(CurrentValues); _imageField?.AcceptSaved(); _saved = true;
+            _snapshot.Capture(CurrentValues); _coverField?.AcceptSaved();
+            foreach (var field in _galleryFields.Values) field.AcceptSaved();
+            _saved = true;
             if (Id is null) { _showCreated = true; _navigateAfterSave = $"/dashboard/content/shared-products/{_editingId}"; }
         }
         catch (Exception exception) when (IsExpected(exception))
         {
-            _model.ImagePath = previousImage;
+            _model.ImagePath = previousCover;
+            for (var index = 0; index < previousGallery.Length; index++) _model.Gallery[index].Source = previousGallery[index];
             Logger.LogError(exception, "Unable to save product.");
             _error = exception is ValidationException validation ? validation.Message
                 : exception is KeyNotFoundException or DbUpdateConcurrencyException ? "This product changed or no longer exists. Your input is retained; return to the list to reload."

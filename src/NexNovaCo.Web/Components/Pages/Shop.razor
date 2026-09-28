@@ -1,0 +1,63 @@
+@page "/shop"
+@inject IShopContentService ContentService
+
+<PublicPageHead Path="/shop" Title="Shop" Description="@_content?.Hero.Description" ImagePath="@_content?.Hero.ImagePath">
+    <link rel="stylesheet" href="@Assets["css/shop.css"]" />
+</PublicPageHead>
+
+@if (_content is not null)
+{
+    <div class="shop-page">
+        <section class="shop-hero" aria-labelledby="shop-title">
+            <img class="shop-hero__image" src="@_content.Hero.ImagePath" alt="Digital tools workspace with laptop, tablet and planning accessories" width="1672" height="941" />
+            <div class="shop-hero__shade" aria-hidden="true"></div>
+            <div class="shop-container shop-hero__content">
+                <p class="shop-eyebrow">@_content.Hero.Eyebrow</p>
+                <h1 id="shop-title">@_content.Hero.Title</h1>
+                <p class="shop-hero__description">@_content.Hero.Description</p>
+                <a class="shop-button" href="/shop#products">@_content.Hero.CtaLabel <span aria-hidden="true">→</span></a>
+            </div>
+        </section>
+
+        <section class="shop-products" id="products" aria-labelledby="shop-products-title">
+            <div class="shop-container">
+                <header class="shop-products__header">
+                    <div>
+                        <p class="shop-eyebrow">@_content.ProductsSection.Eyebrow</p>
+                        <h2 id="shop-products-title">@_content.ProductsSection.Title</h2>
+                        @if (!string.IsNullOrWhiteSpace(_content.ProductsSection.Introduction))
+                        {
+                            <p class="shop-products__intro">@_content.ProductsSection.Introduction</p>
+                        }
+                    </div>
+                    @if (_content.Products.Count > 0)
+                    {
+                        <p class="shop-products__count">All Products (@_content.Products.Count)</p>
+                    }
+                </header>
+
+                @if (_content.Products.Count == 0)
+                {
+                    <div class="shop-empty" role="status">
+                        <h3>Products are coming soon.</h3>
+                        <p>Our digital collection is being prepared. Please check back later.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="shop-product-grid">
+                        @foreach (var product in _content.Products)
+                        {
+                            <ProductCard Content="product" />
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    private ShopContent? _content;
+    protected override async Task OnInitializedAsync() => _content = await ContentService.ReadPublicAsync();
+}

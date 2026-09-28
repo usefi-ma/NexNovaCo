@@ -1,0 +1,31 @@
+<article class="shop-product-card">
+    <div class="shop-product-card__image-wrap">
+        <img src="@Content.ImagePath" alt="@(Content.Name + " digital product preview")" loading="lazy" width="640" height="410" />
+        @if (ProductPresentation.Badge(Content.Badge) is { } badge)
+        {
+            <span class="shop-product-card__badge shop-product-card__badge--@Content.Badge.ToString().ToLowerInvariant()">@badge</span>
+        }
+    </div>
+    <div class="shop-product-card__body">
+        <span class="shop-product-card__accent" aria-hidden="true"></span>
+        <h2>@Content.Name</h2>
+        <p class="shop-product-card__tagline">@Content.Tagline</p>
+        <p class="shop-product-card__description">@Content.ShortDescription</p>
+        <div class="shop-product-card__footer">
+            <div class="shop-product-card__prices" aria-label="Product price">
+                <strong>@ProductPresentation.Price(Content.Price)</strong>
+                @if (Content.OriginalPrice is decimal original)
+                {
+                    <del>@ProductPresentation.Price(original)</del>
+                }
+            </div>
+            <button type="button" class="shop-product-card__cta" disabled title="Product details are coming in the next Shop phase">
+                View Product <span aria-hidden="true">→</span>
+            </button>
+        </div>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public ProductSummary Content { get; set; } = default!;
+}

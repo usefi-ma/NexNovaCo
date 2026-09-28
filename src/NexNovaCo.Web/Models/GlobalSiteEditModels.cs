@@ -63,9 +63,9 @@ public sealed class SiteContactEditModel
 
 public sealed class PublicNavigationRouteAttribute : ValidationAttribute
 {
-    public PublicNavigationRouteAttribute() => ErrorMessage = "Use /, /about, /services, /projects, /team, /contact, or a project/member detail route.";
+    public PublicNavigationRouteAttribute() => ErrorMessage = "Use /, /about, /services, /projects, /team, /shop, /contact, or a project/member detail route.";
     public override bool IsValid(object? value) => value is string route && Regex.IsMatch(route,
-        @"\A(?:/|/?(?:about|services|contact|projects(?:/[a-z0-9]+(?:-[a-z0-9]+)*)?|team(?:/[a-z0-9]+(?:-[a-z0-9]+)*)?))\z", RegexOptions.CultureInvariant);
+        @"\A(?:/|/?(?:about|services|shop|contact|projects(?:/[a-z0-9]+(?:-[a-z0-9]+)*)?|team(?:/[a-z0-9]+(?:-[a-z0-9]+)*)?))\z", RegexOptions.CultureInvariant);
 }
 
 public sealed class GlobalSocialUrlAttribute : ValidationAttribute
@@ -85,7 +85,7 @@ public static class GlobalSiteDefaults
     public static IReadOnlyList<NavigationListItem> Navigation =>
     [
         new(1, 1, "Home", "/"), new(2, 2, "About", "about"), new(3, 3, "Services", "services"),
-        new(4, 4, "Projects", "projects"), new(5, 5, "Team", "team"), new(6, 6, "Contact", "contact")
+        new(4, 4, "Projects", "projects"), new(5, 5, "Team", "team"), new(6, 6, "Shop", "shop"), new(7, 7, "Contact", "contact")
     ];
     // Preserve the existing email link and two decorative icons without inventing social URLs.
     public static IReadOnlyList<SocialLinkListItem> SocialLinks =>

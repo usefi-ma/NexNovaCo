@@ -5,7 +5,7 @@ public sealed class PublicSiteUrls
 {
     public Uri? BaseUri { get; }
     public bool IsIndexable { get; }
-    public static readonly string[] StaticPaths = ["/", "/about", "/services", "/projects", "/team", "/contact"];
+    public static readonly string[] StaticPaths = ["/", "/about", "/services", "/projects", "/team", "/shop", "/contact"];
 
     public PublicSiteUrls(IConfiguration configuration, IWebHostEnvironment environment, ILogger<PublicSiteUrls> logger)
     {
